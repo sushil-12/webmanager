@@ -54,7 +54,7 @@ async function generateJsonLd(postId) {
         "isPartOf": {
             "@type": "WebSite",
             "name": "HE Group",
-            "url": "https://hegroup.com/"
+            "url": "https://webmanager.com/"
         },
         "about": {
             "@type": "Organization",
@@ -65,7 +65,7 @@ async function generateJsonLd(postId) {
         "potentialAction": {
             "@type": "Action",
             "name": "Apply Now",
-            "target": "https://hegroup.com/contact/"
+            "target": "https://webmanager.com/contact/"
         },
         "breadcrumb": {
             "@type": "BreadcrumbList",
@@ -74,7 +74,7 @@ async function generateJsonLd(postId) {
                     "@type": "ListItem",
                     "position": 1,
                     "item": {
-                        "@id": "https://hegroup.com/",
+                        "@id": "https://webmanager.com/",
                         "name": "HE Group"
                     }
                 },
