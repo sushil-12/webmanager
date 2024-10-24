@@ -53,7 +53,7 @@ const VerifyEmail = () => {
               style={{
                 border: `solid ${displayMessageState ? '#0': ''}`,
                 borderWidth: '0 0 0 6px',
-                color: '#000C79'
+                color: '#2C786C'
               }}
               className="border-primary w-full justify-content-start text-left displayMessage block"
               severity={displayMessageState ? 'info' : 'error'}

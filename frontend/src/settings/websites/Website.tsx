@@ -101,7 +101,7 @@ export default function Website() {
                                 <Message
                                     style={{
                                         borderWidth: '0 0 0 6px',
-                                        color: '#000C79'
+                                        color: '#2C786C'
                                     }}
                                     color="green"
                                     className="border-primary w-full justify-content-start text-left displayMessage block"

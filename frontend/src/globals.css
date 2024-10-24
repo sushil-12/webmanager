@@ -77,7 +77,7 @@
   ::-webkit-scrollbar-thumb {
     border-radius: 10px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
-    background-color: #000C79;
+    background-color: #2C786C;
   }
 
   /* Regular */
@@ -210,7 +210,7 @@
 
   .dropzone {
     /* HE Blue */
-    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23000C79FF' stroke-width='3' stroke-dasharray='6%2c 14' stroke-dashoffset='23' stroke-linecap='square'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%232C786CFF' stroke-width='3' stroke-dasharray='6%2c 14' stroke-dashoffset='23' stroke-linecap='square'/%3e%3c/svg%3e");
     border-radius: 1.5rem;
   }
  .websvg svg{
@@ -242,21 +242,21 @@
   /* Ellipse 7 */
 
   .avatar {
-    background: linear-gradient(180deg, #000C79 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #2C786C 0%, #0016DF 100%);
     width: 110px;
     height: 110px;
     @apply font-inter text-7xl font-bold leading-[72px];
   }
 
   .avatar-small {
-    background: linear-gradient(180deg, #000C79 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #2C786C 0%, #0016DF 100%);
     width: 53px;
     height: 53px;
     @apply font-inter text-2xl font-bold leading-[72px];
   }
 
   .avatar-extra-small {
-    background: linear-gradient(180deg, #000C79 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #2C786C 0%, #0016DF 100%);
     width: 36px;
     height: 36px;
     font-size: 1rem;
@@ -404,7 +404,7 @@
   }
 
   .p-inputgroup:focus-within>.p-inputgroup-addon {
-    border: 1px solid #000C79;
+    border: 1px solid #2C786C;
   }
 
   .login_cards .p-card-content {
@@ -840,7 +840,7 @@
   .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
     background: #EEF2FF;
     border-color: #EEF2FF !important;
-    color: #000C79 !important;
+    color: #2C786C !important;
   }
 
   .p-image-toolbar {

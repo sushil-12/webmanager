@@ -632,7 +632,7 @@ const AddEditUser = () => {
                                                             <FormControl>
                                                                 <div className={`flex items-center gap-2 ${form.getFieldState(field.name).error ? 'border-error' : ''}`}>
                                                                     {/* @ts-ignore */}
-                                                                    <Input className={`card_form_label_input_fields_full ${form.getFieldState(field.name).error ? 'border-error' : ''} `}  {...field} placeholder="e.g user@hegroup.com" onBlur={() => checkEmailExists()} />
+                                                                    <Input className={`card_form_label_input_fields_full ${form.getFieldState(field.name).error ? 'border-error' : ''} `}  {...field} placeholder="e.g user@webmanager.com" onBlur={() => checkEmailExists()} />
                                                                 </div>
 
                                                             </FormControl>

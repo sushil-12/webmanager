@@ -96,31 +96,31 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold text-center mb-6">Form Builder with Nested Fields</h1>
+    <div className="border rounded-md p-2">
+      <h1 className="font-bold">Custom Fields</h1>
 
-      <div className="flex justify-center space-x-4 mb-6">
+      <div className="flex gap-2 mb-6 mt-2">
         <button
           onClick={() => addField('text')}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="rounded-md border border-primary-500 text-primary-500 py-1 px-4 text-sm"
         >
           Add Text Field
         </button>
         <button
           onClick={() => addField('select')}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          className="rounded-md border border-primary-500 text-primary-500 py-1 px-4 text-sm "
         >
           Add Select Field
         </button>
         <button
           onClick={() => addField('checkbox')}
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+          className="rounded-md border border-primary-500 text-primary-500 py-1 px-4 text-sm"
         >
           Add Checkbox Field
         </button>
         <button
           onClick={() => addField('group')}
-          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+          className="rounded-md border border-primary-500 text-primary-500 py-1 px-4 text-sm"
         >
           Add Field Group (Nested)
         </button>
@@ -141,14 +141,16 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
         ))}
       </div>
 
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => { event?.preventDefault(); setFieldData(fields) }}
-          className="px-6 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-        >
-          Save Configuration
-        </button>
-      </div>
+        {fields.length > 0 && (
+           <div className="mt-6">
+           <button
+             onClick={() => { event?.preventDefault(); setFieldData(fields) }}
+             className="px-6 py-2 border border-primary-500"
+           >
+             Confirm Form Fields
+           </button>
+         </div>
+        )}
     </div>
   );
 };
