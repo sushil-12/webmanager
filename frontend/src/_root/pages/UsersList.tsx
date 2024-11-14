@@ -79,7 +79,7 @@ export default function UsersList() {
     return (
 
         <div className="main-container w-full overflow-hidden ">
-            <div className="w-full flex items-center justify-between h-[10vh] min-h-[10vh] max-h-[10vh] justify pl-5 pr-[44px]">
+            <div className="w-full flex items-center justify-between h-[10vh] bg-primary-500 min-h-[10vh] max-h-[10vh] justify pl-5 pr-[44px]">
                 <h3 className="page-titles">Users</h3>
             </div>
             <div className="user-container px-5">
@@ -120,7 +120,7 @@ export default function UsersList() {
                                 <Message
                                     style={{
                                         borderWidth: '0 0 0 6px',
-                                        color: '#2C786C'
+                                        color: '#0B3954'
                                     }}
                                     color="green"
                                     className="border-primary w-full justify-content-start text-left displayMessage block"

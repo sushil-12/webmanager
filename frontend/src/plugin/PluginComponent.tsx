@@ -20,7 +20,7 @@ const PluginComponent = () => {
     return (
 
         <div className="main-container w-full overflow-hidden ">
-            <div className="w-full flex items-center justify-between h-[10vh] min-h-[10vh] max-h-[10vh] justify pl-5 pr-[31px]">
+            <div className="w-full flex items-center justify-between h-[10vh] min-h-[10vh] max-h-[10vh] justify pl-5 pr-[31px] bg-primary-500">
                 <div className="flex gap-[15px]"> {/* @ts-ignore */}
                     <h3 className="page-titles capitalize">{(formatString(atob(domain)))} Plugins</h3>
                     <Button className="shad-button_primary place-self-end" size="sm" >

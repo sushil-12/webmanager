@@ -28,9 +28,9 @@ const uploadMediaToLibrary = async (req, res) => {
       const uploadedMedia = {
         title: req.body.title ? req.body.title : req.file.originalname.replace(/\.[^.]*$/, ''),
         caption: req.body.caption ? req.body.caption : '',
-        description: req.body.description ? req.body.description : 'upload file to webmanager',
-        alt_text: req.body.alt_text ? req.body.alt_text : 'upload file to webmanager',
-        filename: req.body.filename ? req.file.originalname : 'upload file to webmanager',
+        description: req.body.description ? req.body.description : 'upload file to contentlocker',
+        alt_text: req.body.alt_text ? req.body.alt_text : 'upload file to contentlocker',
+        filename: req.body.filename ? req.file.originalname : 'upload file to contentlocker',
         cloudinary_id: uploadInfo.cloudinary_id,
         url: uploadInfo.url,
         size: (uploadInfo.size),

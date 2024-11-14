@@ -85,7 +85,7 @@ const LeftSidebarWithWebsite = () => {
     }, [navItems, user]); // Include renderSidebar in the dependency array
 
     return (
-        <div className="leftsidebar overflow-hidden">
+        <div className="leftsidebar overflow-hidden bg-black">
             <ConfirmDialog />
             <div className="flex flex-col">
                 <button data-drawer-target="sidebar-multi-level-sidebar" data-drawer-toggle="sidebar-multi-level-sidebar" aria-controls="sidebar-multi-level-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
@@ -95,16 +95,16 @@ const LeftSidebarWithWebsite = () => {
                 <aside id="sidebar-multi-level-sidebar" className="fixed border-r h-full  top-0 left-0 z-40 w-64 transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
                     <div className="cu-simple-bar-resizer-handle ng-tns-c2398600540-13"></div>
 
-                    <div className={` bg-light-1 dark:bg-gray-800  ${user?.role === 'super_admin' || user?.role === 'admin'  ? 'min-h-[73%] max-h-[73%]' : 'user_sidebar'} overflow-y-auto overflow-x-hidden`} key={user?.role}>
-                        <div className="flex gap-3 items-center justify-center px-16 py-6">
-                            <Link to="/" className="m-0 items-center flex text-sm font-medium">
-                                <SvgComponent className="" svgName="logo-sidebar" />
+                    <div className={` bg-black dark:bg-gray-800  ${user?.role === 'super_admin' || user?.role === 'admin'  ? 'min-h-[73%] max-h-[73%]' : 'user_sidebar'} overflow-y-auto overflow-x-hidden`} key={user?.role}>
+                        <div className="flex gap-3 items-center justify-center px-16 py-6 h-[10vh] ">
+                            <Link to="/" className="m-0 items-center flex text-sm font-medium ">
+                               <img src="/assets/logo.svg" alt="" className="w-8 fill-white"/>
                                 <h1 className="font-inter text-md  ml-2">{import.meta.env.VITE_APP_NAME}</h1>
                             </Link>
                         </div>
                         {websites && websites.length > 0 && websites.map((website: IWebsite, index: number) => (
                             <React.Fragment key={`website-${index}`}>
-                                <li className={`${pathname.includes(btoa(createSlug(website?.business_name, '_'))) ? 'pointer-events-none' : 's'} left-sidebar-link border-b bg-white hover:bg-gray-100 ${dropdownVisibility[website.id] ? 'bg-secondary-gray' : ''}`} key={`left-sidebar-link-${index}`}>
+                                <li className={`${pathname.includes(btoa(createSlug(website?.business_name, '_'))) ? 'pointer-events-none bg-primary-600 text-white' : 's'} left-sidebar-link border-b  hover:bg-gray-100 ${dropdownVisibility[website.id] ? 'bg-secondary-gray' : ''}`} key={`left-sidebar-link-${index}`}>
                                     <button
                                         type="button"
                                         className="flex items-center justify-between w-full"
@@ -196,7 +196,7 @@ const LeftSidebarWithWebsite = () => {
                         ))}
                     </div>
 
-                    <div className=" w-full absolute bottom-0 bg-white">
+                    <div className=" w-full absolute bottom-0">
                         <ul className="relative">
                             {(user?.role === 'super_admin' || user?.role === 'admin') && (
                                 <>
@@ -226,7 +226,7 @@ const LeftSidebarWithWebsite = () => {
                                 </>
                             )
                             }
-                            <div className={(pathname.includes('profile') ? 'flex m-0 gap-[15px] bg-light-gray items-center min-h-[68px] max-h-[68px] p-4 relative' : 'flex m-0 gap-[15px] bg-light-gray items-center min-h-[68px] max-h-[68px] p-4 relative')} >
+                            <div className={(pathname.includes('profile') ? 'flex m-0 gap-[15px]  items-center min-h-[68px] max-h-[68px] p-4 relative' : 'flex m-0 gap-[15px]  items-center min-h-[68px] max-h-[68px] p-4 relative')} >
                                 <div className="image_box h-9 w-[208px] flex justify-between">
                                     <div className="flex items-center">
                                         <div className="img_container mr-2">

@@ -109,7 +109,7 @@ const CustomFieldDatatable = () => {
     return (
         <>
             <div className="main-container w-full overflow-hidden ">
-                <div className="w-full flex items-center justify-between h-[10vh] min-h-[10vh] max-h-[10vh] justify pl-5 pr-[31px]">
+                <div className="w-full flex items-center justify-between h-[10vh] bg-primary-500 min-h-[10vh] max-h-[10vh] justify pl-5 pr-[31px]">
                     <div className="flex gap-[15px] justify-between w-full">
                         <h3 className="page-titles ">Manage Fields <small className='text-xs'>{domain && formatString(atob(domain))}</small></h3>
                         <Button className="shad-button_primary place-self-end" size="sm" onClick={() => { setVisible(true); setSelectedCustomField({}); }}>

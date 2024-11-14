@@ -54,7 +54,7 @@ async function generateJsonLd(postId) {
         "isPartOf": {
             "@type": "WebSite",
             "name": "HE Group",
-            "url": "https://webmanager.com/"
+            "url": "https://contentlocker.com/"
         },
         "about": {
             "@type": "Organization",
@@ -65,7 +65,7 @@ async function generateJsonLd(postId) {
         "potentialAction": {
             "@type": "Action",
             "name": "Apply Now",
-            "target": "https://webmanager.com/contact/"
+            "target": "https://contentlocker.com/contact/"
         },
         "breadcrumb": {
             "@type": "BreadcrumbList",
@@ -74,7 +74,7 @@ async function generateJsonLd(postId) {
                     "@type": "ListItem",
                     "position": 1,
                     "item": {
-                        "@id": "https://webmanager.com/",
+                        "@id": "https://contentlocker.com/",
                         "name": "HE Group"
                     }
                 },

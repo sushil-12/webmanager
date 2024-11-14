@@ -129,6 +129,7 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
       <div className="space-y-6">
         {fields.map((field, index) => (
           <FieldComponent
+          isNestedField={false}
             key={index}
             field={field}
             index={index}
@@ -156,6 +157,7 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
 };
 
 interface FieldComponentProps {
+  isNestedField: boolean,
   field: Field;
   index: number;
   parentIndex?: number;
@@ -167,6 +169,7 @@ interface FieldComponentProps {
 }
 
 const FieldComponent: React.FC<FieldComponentProps> = ({
+  isNestedField,
   field,
   index,
   parentIndex,
@@ -179,7 +182,7 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
   return (
     <div className="p-4 bg-white shadow-md rounded-md space-y-4 border border-gray-300">
       <div className="flex justify-between items-center">
-        <h3 className="font-semibold text-lg">{field.field_type} Field</h3>
+        <h3 className="font-semibold text-lg capitalize">{field.field_type} Field</h3>
         <button
           onClick={() => onRemoveField(index, parentIndex)}
           className="text-red-500 hover:text-red-600 font-bold"
@@ -238,7 +241,8 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
         )}
 
         <div className="flex items-center space-x-4">
-          <label className="flex items-center">
+          {!isNestedField && (
+            <label className="flex items-center">
             <span className="block text-sm font-medium text-gray-700 mr-2">Repeatable:</span>
             <input
               type="checkbox"
@@ -249,6 +253,7 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
           </label>
+          )}
 
           <label className="flex items-center">
             <span className="block text-sm font-medium text-gray-700 mr-2">Required:</span>
@@ -270,6 +275,7 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
             <div className="space-y-4">
               {field.nestedFields?.map((nestedField, nestedIndex) => (
                 <FieldComponent
+                  isNestedField={true}
                   key={nestedIndex}
                   field={nestedField}
                   index={nestedIndex}
@@ -284,19 +290,19 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
             </div>
             <button
               onClick={() => onAddField('text', index)}
-              className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="mt-2 px-4 py-2 bg-primary-500 mr-2 text-white rounded "
             >
               Add Nested Text Field
             </button>
             <button
               onClick={() => onAddField('select', index)}
-              className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="mt-2 px-4 py-2  bg-primary-500 mr-2 text-white rounded "
             >
               Add Nested Select Field
             </button>
             <button
               onClick={() => onAddField('checkbox', index)}
-              className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="mt-2 px-4 py-2  bg-primary-500 text-white rounded "
             >
               Add Nested Checkbox Field
             </button>

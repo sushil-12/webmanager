@@ -132,7 +132,7 @@ const SignInForm = () => {
     resolver: zodResolver(validationSchema[state]),
     defaultValues: {
       form_type: state,
-      email: "he0803testing@gmail.com",
+      email: "sushil124maurya@gmail.com",
       password: "Test@1234",
       staySignedIn: 'yes',
       verification_code: '',

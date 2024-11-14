@@ -73,11 +73,11 @@ const getAllMedia = async (req, res) => {
         const can_edit = await canEditPermission(req, domainHeader);
         const mediadata = media.map((media) => ({
             id: media._id,
-            title: media?.title || media?.filename || media?.originalname || 'upload file to webmanager',
+            title: media?.title || media?.filename || media?.originalname || 'upload file to contentlocker',
             caption: media?.caption || '',
-            description: media?.description || 'upload file to webmanager',
-            alt_text: media?.alt_text || 'upload file to webmanager',
-            filename: media?.filename || media?.originalname || 'upload file to webmanager',
+            description: media?.description || 'upload file to contentlocker',
+            alt_text: media?.alt_text || 'upload file to contentlocker',
+            filename: media?.filename || media?.originalname || 'upload file to contentlocker',
             format: media?.format || (media?.resource_type ? media.resource_type + '/' + media.format : 'image/png'),
             height: media?.height || media?.height || '200',
             width: media?.width || media?.width || '500',

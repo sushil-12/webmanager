@@ -7,7 +7,7 @@ import { CustomFormFieldSchema } from '@/lib/validation';
 import SvgComponent from '@/utils/SvgComponent';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dropdown } from 'primereact/dropdown';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import FormBuilder from './FormBuilder';
@@ -86,6 +86,12 @@ const CustomFieldForm: React.FC<CustomFieldFormSchema> = ({ setVisible, selected
             });
         }
     }
+
+    useEffect(() => {
+        if (selectedCustomField.item_type) {
+            getPostTypesAndPages(selectedCustomField.item_type);
+        }
+    }, [selectedCustomField]);
 
     return (
         <Form {...form}>

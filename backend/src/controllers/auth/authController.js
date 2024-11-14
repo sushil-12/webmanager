@@ -188,7 +188,7 @@ const login = async (req, res) => {
     console.log(userData.role.name);
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: token_expiry });
 
-    ResponseHandler.success(res, { token }, HTTP_STATUS_CODES.OK);
+    ResponseHandler.success(res, { token, login_success: true }, HTTP_STATUS_CODES.OK);
   } catch (error) {
     ErrorHandler.handleError(error, res);
   }

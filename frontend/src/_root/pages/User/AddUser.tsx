@@ -242,7 +242,7 @@ const AddUser = () => {
                                                         <FormControl>
                                                             <div className={`flex items-center gap-2 `}>
                                                                 {/* @ts-ignore */}
-                                                                <Input className={`card_form_label_input_fields_full `}  {...field} placeholder="e.g user@webmanager.com" onBlur={() => checkEmailExists()} />
+                                                                <Input className={`card_form_label_input_fields_full `}  {...field} placeholder="e.g user@contentlocker.com" onBlur={() => checkEmailExists()} />
                                                             </div>
 
                                                         </FormControl>

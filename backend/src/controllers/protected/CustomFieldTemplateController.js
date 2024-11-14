@@ -23,7 +23,7 @@ const createEditCustomField = async (req, res) => {
         const { title, post_type, item_type, customFields } = req.body;
 
         // Check if the post_type is already in use
-        const existingCustomField = await CustomField.findOne({ post_type, domain });
+        const existingCustomField = await CustomField.findOne({ post_type, domain, isDeleted:false });
 
         if (existingCustomField && (!id || existingCustomField._id.toString() !== id)) {
             throw new CustomError(400, 'We already have custom fields for this post type!');

@@ -36,6 +36,12 @@
   .mt-32 {
     margin-top: 32px !important;
   }
+  .main-container{
+    @apply bg-off-white;
+  }
+  .auth-screen{
+    background-image: url('../public/assets/back.webp');
+  }
   .user_sidebar{
     min-height: calc(100% - 80px);
     max-height: calc(100% - 80px);
@@ -77,7 +83,7 @@
   ::-webkit-scrollbar-thumb {
     border-radius: 10px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
-    background-color: #2C786C;
+    background-color: #0B3954;
   }
 
   /* Regular */
@@ -242,21 +248,21 @@
   /* Ellipse 7 */
 
   .avatar {
-    background: linear-gradient(180deg, #2C786C 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #0B3954 0%, #0016DF 100%);
     width: 110px;
     height: 110px;
     @apply font-inter text-7xl font-bold leading-[72px];
   }
 
   .avatar-small {
-    background: linear-gradient(180deg, #2C786C 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #0B3954 0%, #0016DF 100%);
     width: 53px;
     height: 53px;
     @apply font-inter text-2xl font-bold leading-[72px];
   }
 
   .avatar-extra-small {
-    background: linear-gradient(180deg, #2C786C 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #0B3954 0%, #0016DF 100%);
     width: 36px;
     height: 36px;
     font-size: 1rem;
@@ -404,7 +410,7 @@
   }
 
   .p-inputgroup:focus-within>.p-inputgroup-addon {
-    border: 1px solid #2C786C;
+    border: 1px solid #0B3954;
   }
 
   .login_cards .p-card-content {
@@ -840,7 +846,7 @@
   .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
     background: #EEF2FF;
     border-color: #EEF2FF !important;
-    color: #2C786C !important;
+    color: #0B3954 !important;
   }
 
   .p-image-toolbar {
