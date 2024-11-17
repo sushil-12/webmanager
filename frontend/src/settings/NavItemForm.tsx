@@ -384,6 +384,7 @@ const NavItemForm: React.FC<{ item: any, setRerender: any, activeTab: string, ac
                                         Choose Icon
                                         <Button onClick={(e) => { e.preventDefault(); setRepeaterSvgPicker(true); setCurrentIndex(index) }} ><SvgComponent className="" svgName="edit" /></Button >
                                         <Dialog draggable={false} visible={repeaterSvgPicker} onHide={() => setRepeaterSvgPicker(false)} style={{ width: '60vw' }} header={headerRepeaterTemplate(currentIndex)} closable={false} >
+                                            {/* @ts-ignore */}
                                             <SvgPickerComponent setSvgName={currentIndex} currentIndexItem={currentIndexItem} updateFieldAtIndex={updateFieldAtIndex} setSvgPicker={setRepeaterSvgPicker} form_type={'repeater'} />
                                         </Dialog>
                                         {/* @ts-ignore */}
