@@ -8,16 +8,20 @@ async function callDynamicFunction(domain, fileName, functionName, seoDefault, .
             if(process.env.APP_ENV == 'local'){
                 modulePath = path.resolve(process.cwd(), 'src/plugins/schema',domain,fileName);
             }else{
+                console.log(modulePath, "herssse")
                 modulePath = path.resolve(process.cwd(), 'backend/src/plugins/schema',domain,fileName);
             }
         }else{
             if(process.env.APP_ENV == 'local'){
                 modulePath = path.resolve(process.cwd(), 'src/plugins/schema', 'demoSeo.js');
+                console.log(modulePath, "here")
             }else{
+                console.log(modulePath, "here")
                 modulePath = path.resolve(process.cwd(), 'backend/src/plugins/schema', 'demoSeo.js');
             }
         }
         
+        console.log(modulePath, "herssddddddddde")
         
         console.log(modulePath, domain);
         // Use require to load the module synchronously

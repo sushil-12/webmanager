@@ -13,6 +13,8 @@ import QuickEditForm from '@/plugin/post/_custom_form/QuickEditForm';
 import SvgComponent from '@/utils/SvgComponent';
 import { status } from '@/constants/message';
 import { Badge } from 'primereact/badge';
+import { Dialog } from 'primereact/dialog';
+import WebView from '../shared/Webview';
 
 interface PostDataTableProps {
     posts: PostModel[];
@@ -38,6 +40,9 @@ const PostDataTable: React.FC<PostDataTableProps> = ({ isPostLoading, posts, pos
     const [expandedQuickEditRows, setExpandedQuickEditRows] = useState('');
     const [isQuickEditForm, setIsQuickEditForm] = useState(false)
     const [rerenderPostTable, setRerenderPostTable] = useState(false)
+    const [visible, setVisible] = useState(false)
+    const [selectedPost, setSelectedPost] = useState('')
+
     const [dataTablePosts, setDatatablePosts] = useState(posts)
     useEffect(() => {
         setDatatablePosts(posts);  // Update dataTablePosts state when posts prop changes
@@ -61,7 +66,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({ isPostLoading, posts, pos
                 <h6 className='text-sm'>
                     <div className="flex gap-4">
                         {rowData.title}
-                        <Badge className='capitalize' value={ rowData?.status} severity="info"></Badge>
+                        <Badge className='capitalize' value={rowData?.status} severity="info"></Badge>
                     </div>
 
                     <div className={`about_section relative w-full ${expandedRows == rowData.id || expandedQuickEditRows == rowData.id ? 'block' : 'hidden'}`}>
@@ -86,7 +91,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({ isPostLoading, posts, pos
                     {canEdit && <button className='border-none text-primary-500' onClick={() => navigate(`/${btoa(currentDomain)}/post/${post_type}/${rowData?.id}`)}>Edit</button>}
                     {canEdit && <button className='border-none text-primary-500' onClick={() => { setIsQuickEditForm(true); setExpandedQuickEditRows(rowData.id) }}>Quick   edit</button>}
                     {canEdit && <button className='border-none text-danger' onClick={() => confirmDelete(rowData.id, rowData.status)}>Trash</button>}
-                    <button className='border-none text-primary-500'>View</button>
+                    <button className='border-none text-primary-500' onClick={() => { setVisible(true); setSelectedPost(rowData.id) }}>View</button>
                 </div>
             ) : (
                 <QuickEditForm setIsQuickEditForm={setIsQuickEditForm} rowData={rowData} setRerender={setRerenderPostTable} rerenderPostTable={rerenderPostTable} post_type={post_type} setExpandedQuickEditRows={setExpandedQuickEditRows} />
@@ -94,6 +99,14 @@ const PostDataTable: React.FC<PostDataTableProps> = ({ isPostLoading, posts, pos
         );
     };
 
+    const headerTemplate = () => {
+        return (
+            <div className={`flex items-center justify-between mb-6`}>
+                <h1 className='page-innertitles'>View API Request Log</h1>
+                <button onClick={() => { setVisible(false); }}><SvgComponent className="cursor-pointer float-right" svgName="close" /></button>
+            </div>
+        );
+    };
 
     async function accept(post_id: string, setStatus: string) {
         const deleteMediaResponse = await deletePostById(post_id);
@@ -152,6 +165,15 @@ const PostDataTable: React.FC<PostDataTableProps> = ({ isPostLoading, posts, pos
                             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 text-sm">Edit</button>
                         </Column>
                     </DataTable>
+                    <Dialog draggable={false} header={headerTemplate} closable={false} visible={visible} style={{ width: '70vw' }} onHide={() => setVisible(false)}>
+                        <p className="text-lg font-semibold text-gray-800 mb-2">
+                            <span className="text-primary-500">POST ID:</span> {selectedPost ? selectedPost : 'N/A'}
+                        </p>
+                        <p className="text-lg font-semibold text-gray-800 mb-4">
+                            <span className="text-primary-500">Your API KEY:</span> <span className="font-mono text-green-600">{'12345-ABCDE-67890-FGHIJ-KLMNO'}</span>
+                        </p>
+                        <WebView src={import.meta.env.VITE_API_URL + '/api-docs'} />
+                    </Dialog>
                 </>
             )
             }

@@ -22,6 +22,7 @@ import { Chip } from "primereact/chip";
 import { useUserContext } from "@/context/AuthProvider";
 import { formatString, menuSchemaJson } from "@/lib/utils";
 import Compressor from 'compressorjs';
+import { getHeroIcon } from "@/lib/HeroIcon";
 
 
 const AddEditWebsite = () => {
@@ -441,7 +442,7 @@ const AddEditWebsite = () => {
                                                                                 {menuItems && menuItems && menuItems.map((menu, index) => (
                                                                                     <tr key={index} className="border border-main-bg-900">
                                                                                         {/* @ts-ignore */}
-                                                                                        <td className="border border-main-bg-900 px-4 py-1.5 text-center"><SvgComponent className="" svgName={menu?.imgURL || 'websites'} /></td>
+                                                                                        <td className="border border-main-bg-900 px-4 py-1.5 text-center">{getHeroIcon(menu?.imgURL)}</td>
                                                                                         <td className="border border-main-bg-900 px-4 py-1.5 text-center">{menu.label}</td>
                                                                                         <td className="border border-main-bg-900 px-4 py-1.5 text-center"><Chip className={`text-xs ${menu.category ? 'bg-success-green text-white font-semibold' : ''}`} label={`${menu.category ? 'enabled' : 'disabled'}`} /></td>
                                                                                         <td className="border border-main-bg-900 px-4 py-1.5 text-center">{formatString(menu.type)}</td>

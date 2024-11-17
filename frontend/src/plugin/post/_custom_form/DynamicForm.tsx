@@ -59,7 +59,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     isRepeatable: boolean,
     index: number = 0
   ) => {
-    console.log(isRepeatable,"isRepeatable")
+    console.log(isRepeatable, "isRepeatable")
     setFormData((prevData) => {
       const updatedArray = [...(prevData[name] || [])];
       updatedArray[index] = value;
@@ -107,7 +107,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
         : [singleNestedData];
 
       return (
-        <div className="mb-4 border border-gray-300 rounded-md p-4" key={field.name}>
+        <div className="mb-4 " key={field.name}>
           <h3 className="font-semibold text-lg mb-2">{field.label}</h3>
           {nestedDataArray.map((nestedData: any, index: number) => (
             <div key={index} className="mb-2">
@@ -267,7 +267,18 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     );
   };
 
-  return <div>{fields.map((field) => renderField(field))}</div>;
+  return (
+    <div className=" shadow-lg rounded-lg w-full flex flex-col gap-6 ">
+      {fields.map((field) => (
+        <div
+          key={field.name}
+          className=" border  rounded-lg p-4 bg-white shadow-sm"
+        >
+          {renderField(field)}
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default DynamicForm;

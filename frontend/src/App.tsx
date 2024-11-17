@@ -149,8 +149,6 @@ const App = () => {
                     </Route>
                     {/* Public Routes End */}
                     <Route path='/verify-email/:token/:uniqueId/:email' element={<VerifyEmail />} />
-
-
                 </Routes>
             </main>
         </PrimeReactProvider>

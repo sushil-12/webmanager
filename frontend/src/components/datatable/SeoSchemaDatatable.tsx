@@ -97,7 +97,7 @@ const SeoSchemaDatatable = () => {
     return (
         <>
             <div className="main-container w-full overflow-hidden">
-                <div className="w-full flex items-center justify-between h-[10vh] min-h-[10vh] max-h-[10vh] pl-5 pr-[31px] bg-primary-500">
+                <div className="w-full flex items-center justify-between h-[10vh] min-h-[10vh] max-h-[10vh] pl-5 pr-[31px]  header-bar">
                     <div className="flex gap-[15px] justify-between w-full">
                         <h3 className="page-titles">Manage Seo Schema <small className='text-xs'>{domain && formatString(atob(domain))}</small></h3>
                         <Button className="shad-button_primary place-self-end" size="sm" onClick={handleAddNew}>

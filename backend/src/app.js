@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
 const protectedRoutes = require('./routes/protectedUserRoutes');
+const subscribtionApis = require('./routes/subscribtionApis');
 const commonRoutes = require('./routes/commanRoutes');
 const { CustomError, ErrorHandler, ResponseHandler } = require('./utils/responseHandler');
 const connectDB = require('./config/database');
@@ -15,7 +16,9 @@ const fs = require('fs');
 const serveIndex = require('serve-index');
 const sanitizeInput = require('./middleware/sanitizeRequest');
 const rateLimit = require('express-rate-limit');
-
+const swaggerUI = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
+const validateApiKey = require('./middleware/validateApiKeys');
 const app = express();
 
 // Connect to MongoDB
@@ -36,9 +39,11 @@ const limiter = rateLimit({
 app.use(express.json({ limit: '250kb' }));  // Set payload size to 150kb
 app.use(express.urlencoded({ limit: '250kb', extended: true }));
 app.use(bodyParser.json());
-app.use(cors('*'));
+app.use(cors(corsOptions));
 app.use(sanitizeInput);
 app.use(useragent.express());
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+
 
 // Applying the rate limiter to all requests
 // app.use(limiter);
@@ -70,6 +75,8 @@ app.use('/api/common', commonRoutes);
 
 // Protected routes
 app.use('/api', protectedRoutes);
+
+app.use('/subscription-api', cors('*'),  subscribtionApis)
 
 // Root route
 app.get('/', (req, res) => {

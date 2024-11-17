@@ -198,7 +198,7 @@ export const checkPasswordStrength = (password: string): PasswordError | null =>
 export const menuSchemaJson = [
   {
     "id": Math.random().toString(36).substr(2, 9),
-    "imgURL": "pages",
+    "imgURL": "DocumentIcon",
     "route": "/pages",
     "label": "Pages",
     "category": false,
@@ -206,7 +206,7 @@ export const menuSchemaJson = [
   },
   {
     "id": Math.random().toString(36).substr(2, 9),
-    "imgURL": "plugins",
+    "imgURL": "WrenchScrewdriverIcon",
     "route": "/plugins",
     "label": "plugins",
     "category": false,
@@ -214,7 +214,7 @@ export const menuSchemaJson = [
   },
   {
     "id": Math.random().toString(36).substr(2, 9),
-    "imgURL": "media",
+    "imgURL": "FilmIcon",
     "route": "/media",
     "label": "Media",
     "category": false,

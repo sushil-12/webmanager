@@ -28,6 +28,7 @@ const HTTP_STATUS_MESSAGES = {
     CONFLICT: 'Conflict - Conflicting change detected during an attempt to modify a resource.',
     UNSUPPORTED_MEDIA_TYPE: 'Unsupported Media Type - Data format of the request body is unsupported.',
     INTERNAL_SERVER_ERROR: 'Internal Server Error',
+    INVALID_API_KEY: 'INVALID API KEY'
 };
 
 module.exports.HTTP_STATUS_CODES = HTTP_STATUS_CODES;

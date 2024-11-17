@@ -67,6 +67,9 @@
     width: 320px !important;
   }
 
+  .header-bar{
+    @apply bg-white shadow-lg;
+  }
 
   ::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
@@ -75,15 +78,14 @@
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
-    border-radius: 100%;
+    width: 5px;
     background-color: #DEE0EE;
   }
 
   ::-webkit-scrollbar-thumb {
     border-radius: 10px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
-    background-color: #0B3954;
+    background-color: #435ebe;
   }
 
   /* Regular */
@@ -248,21 +250,21 @@
   /* Ellipse 7 */
 
   .avatar {
-    background: linear-gradient(180deg, #0B3954 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #435ebe 0%, #0016DF 100%);
     width: 110px;
     height: 110px;
     @apply font-inter text-7xl font-bold leading-[72px];
   }
 
   .avatar-small {
-    background: linear-gradient(180deg, #0B3954 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #435ebe 0%, #0016DF 100%);
     width: 53px;
     height: 53px;
     @apply font-inter text-2xl font-bold leading-[72px];
   }
 
   .avatar-extra-small {
-    background: linear-gradient(180deg, #0B3954 0%, #0016DF 100%);
+    background: linear-gradient(180deg, #435ebe 0%, #0016DF 100%);
     width: 36px;
     height: 36px;
     font-size: 1rem;
@@ -410,7 +412,7 @@
   }
 
   .p-inputgroup:focus-within>.p-inputgroup-addon {
-    border: 1px solid #0B3954;
+    border: 1px solid #435ebe;
   }
 
   .login_cards .p-card-content {
@@ -661,7 +663,7 @@
 
   .cu-simple-bar-resizer-handle {
     transition: background .2s cubic-bezier(.785, .135, .15, .86) .1s;
-    width: 8px;
+    width: 5px;
     height: 100%;
     cursor: col-resize;
     position: absolute;
@@ -820,9 +822,8 @@
   } */
 
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
+    width: 5px;
+    height: 5px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -831,7 +832,6 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #5c5c7b;
-    border-radius: 50px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -846,7 +846,7 @@
   .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
     background: #EEF2FF;
     border-color: #EEF2FF !important;
-    color: #0B3954 !important;
+    color: #435ebe !important;
   }
 
   .p-image-toolbar {
@@ -858,7 +858,7 @@
   }
 
   .common-container {
-    @apply flex flex-col flex-1 gap-10 overflow-auto py-10 px-5 md:px-8 lg:p-14;
+    @apply flex flex-col flex-1 gap-10 overflow-auto py-10 px-5 md:px-5 lg:px-5;
   }
 
   /* All Users */

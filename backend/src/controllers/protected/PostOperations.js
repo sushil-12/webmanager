@@ -268,7 +268,6 @@ const getPostById = async (req, res) => {
         const featuredImageId = post.featuredImage;
         const categoryIds = post?.categories || [];
 
-        console.log(post?.seoData?.seoUrl, "=========================================");
         if (post?.seoData?.seoUrl == '' || post?.seoData?.seoUrl === undefined) {
             post.seoData.seoUrl = post?.slug;
         }

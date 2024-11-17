@@ -79,7 +79,7 @@ export default function UsersList() {
     return (
 
         <div className="main-container w-full overflow-hidden ">
-            <div className="w-full flex items-center justify-between h-[10vh] bg-primary-500 min-h-[10vh] max-h-[10vh] justify pl-5 pr-[44px]">
+            <div className="w-full flex items-center header-bar justify-between h-[10vh]  min-h-[10vh] max-h-[10vh] justify pl-5 pr-[44px]">
                 <h3 className="page-titles">Users</h3>
             </div>
             <div className="user-container px-5">
@@ -99,9 +99,6 @@ export default function UsersList() {
                         </button>
 
                     </div>
-                    {/* <Button className="shad-button_primary place-self-end h-10" size="sm" onClick={() => { navigate('/add-user') }}>
-                        <SvgComponent className='' svgName='plus-circle' /> Add User
-                    </Button> */}
                     <Button className="shad-button_primary place-self-end h-10" size="sm" onClick={() => { navigate('/add-edit-user') }}>
                         <SvgComponent className='' svgName='plus-circle' /> Add User
                     </Button>
@@ -120,7 +117,7 @@ export default function UsersList() {
                                 <Message
                                     style={{
                                         borderWidth: '0 0 0 6px',
-                                        color: '#0B3954'
+                                        color: '#435ebe'
                                     }}
                                     color="green"
                                     className="border-primary w-full justify-content-start text-left displayMessage block"

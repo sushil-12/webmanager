@@ -18,6 +18,7 @@ import SvgComponent from "@/utils/SvgComponent";
 import Loader from "@/components/shared/Loader";
 import { useCreateEditWebsite } from "@/lib/react-query/queriesAndMutations";
 import { IMenuItem } from "@/lib/types";
+import { getHeroIcon } from "@/lib/HeroIcon";
 
 
 const WebsiteMenuForm: React.FC<{ item: any, activeTab: string, selectedItem?: any, setFormType?: any, setVisible?: any, setRerender?: any, setSidebarRender?:any }> = ({ item, activeTab, selectedItem, setVisible, setRerender, setSidebarRender }) => {
@@ -204,7 +205,7 @@ const WebsiteMenuForm: React.FC<{ item: any, activeTab: string, selectedItem?: a
                             <div className="flex align-middle items-center">Choose Icon
                                 <Button onClick={(e) => { e.preventDefault(); setSvgPicker(true); }} ><SvgComponent className="" svgName="edit" /></Button >
                                 {/* @ts-ignore */}
-                                <SvgComponent className="border border-primary-500 p-4" svgName={svgName} />
+                                {getHeroIcon(svgName)}
                             </div>
                         </FormLabel>
 

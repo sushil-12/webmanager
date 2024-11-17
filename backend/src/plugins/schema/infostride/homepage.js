@@ -47,18 +47,18 @@ async function generateJsonLd(postId) {
 
     return {
         "@context": "https://schema.org",
-        "@type": "DEMO SEO DATA",
+        "@type": "DEMO SEO DATA FROM FILE",
         "name": postData?.seoData.seoTitle, // post title
         "description": postData?.seoData.seoTitle, // post description
         "url": postData?.seoData.seoTitle, // post url
         "isPartOf": {
             "@type": "WebSite",
-            "name": "HE Group",
+            "name": "Infostride",
             "url": "https://contentlocker.com/"
         },
         "about": {
             "@type": "Organization",
-            "name": "HE Group",
+            "name": "Infostride",
             "numberOfEmployees": employeeEntities.length,
             "employee": employeeEntities
         },
@@ -75,7 +75,7 @@ async function generateJsonLd(postId) {
                     "position": 1,
                     "item": {
                         "@id": "https://contentlocker.com/",
-                        "name": "HE Group"
+                        "name": "Infostride"
                     }
                 },
                 {

@@ -123,10 +123,10 @@ export default function Media() {
           <div className="w-full mx-auto mt-[24px]"><MediaGridSkeletonDemo /></div>
         ) : (
           localMedia.length > 0 ? (
-            <div className="w-full">
+            <div className="w-full mt-6">
               <ImageUploader setPaginate={setPaginate} />
               <>
-                <div className="mx-auto w-full mt-[24px]">
+                <div className="mx-auto w-full mt-6">
                   <h2 className="sr-only">Media</h2>
                   <MediaGrid media={localMedia} isLoading={isLoading} setPaginate={setPaginate} canEdit={canEdit} />
                 </div>
