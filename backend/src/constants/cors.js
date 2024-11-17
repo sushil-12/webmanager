@@ -4,6 +4,7 @@ const frontendUrl = process.env.FRONTEND_APP_URL.replace(/\/$/, '');
 
 var originsWhitelist = [
     frontendUrl,
+    'http://localhost:5173'
 ];
 
 const corsOptions = {
