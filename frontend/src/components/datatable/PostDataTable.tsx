@@ -172,7 +172,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({ isPostLoading, posts, pos
                         <p className="text-lg font-semibold text-gray-800 mb-4">
                             <span className="text-primary-500">Your API KEY:</span> <span className="font-mono text-green-600">{'12345-ABCDE-67890-FGHIJ-KLMNO'}</span>
                         </p>
-                        <WebView src={import.meta.env.VITE_API_URL + '/api-docs'} />
+                        <WebView />
                     </Dialog>
                 </>
             )

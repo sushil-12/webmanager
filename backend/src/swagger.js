@@ -5,7 +5,7 @@ const swaggerDefinition = {
     openapi: '3.0.0',
     info: {
         title: 'Content Locker - A Powerful HeadLess CMS Web Application',
-        version: '1.0.0',
+        version: '2.0.0',
         description: 'developer - Sushil Kumar',
     },
 };

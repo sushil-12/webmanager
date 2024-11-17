@@ -7,7 +7,7 @@ const router = express.Router();
  * @swagger
  * tags:
  *   - name: Subscription API'S
- *     description: User must have an API key to access this resources
+ *     description: User must have an API key to access these resources
  */
 
 /**
