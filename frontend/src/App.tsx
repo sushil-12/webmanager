@@ -119,14 +119,14 @@ const App = () => {
                         />
                         <Route
                             path='/website/:action/:website_id?' element={
-                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin']} isLoading={isLoading}>
+                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin', 'user']} isLoading={isLoading}>
                                     <AddEditWebsite />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
                             path='websites' element={
-                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin']} isLoading={isLoading}>
+                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin', 'user']} isLoading={isLoading}>
                                     <Website />
                                 </ProtectedRoute>
                             }

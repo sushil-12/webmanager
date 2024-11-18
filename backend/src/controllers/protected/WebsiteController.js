@@ -126,6 +126,11 @@ const createOrEditWebsite = async (req, res) => {
 
 const listWebsites = async (req, res) => {
     try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decodedToken.userId;
+        const user = await User.findById(userId).populate('role');
+        
         const { page = 1, limit = 10, search, filterBy } = req.query;
 
         const query = {};
@@ -133,12 +138,23 @@ const listWebsites = async (req, res) => {
             query.business_name = { $regex: new RegExp(search, 'i') };
         }
         const websites = await Website.find(query).select('icon business_name description url');
+        const userPermittedWebsite = user.permissions ? Object.keys(user.permissions) : [];
+
         const websitesData = websites.map(website => ({
             id: website._id,
             ...website._doc, // Spread the remaining fields from the document
         }));
+
+        let websitesList = [];
+        
+        if (user?.role?.name !== 'admin' && user?.role?.name !== 'super_admin') {
+            const filteredWebsites = websitesData?.filter((website) => userPermittedWebsite.includes(website._id.toHexString()));
+            websitesList = filteredWebsites;
+        } else {
+            websitesList = websitesData;
+        }
         // Return the list of websites
-        ResponseHandler.success(res, { websites: websitesData }, HTTP_STATUS_CODES.OK);
+        ResponseHandler.success(res, { websites: websitesList }, HTTP_STATUS_CODES.OK);
     } catch (error) {
         // Handle errors
         ErrorHandler.handleError(error, res);

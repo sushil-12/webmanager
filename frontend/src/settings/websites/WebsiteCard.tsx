@@ -21,7 +21,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ item, index }) => {
             <div className="img_container w-8 h-8">
               {item?.icon == '' || item?.icon == undefined ? (<SvgComponent className='' svgName='website_icon' />) : <img src={`${item?.icon}`} alt="" className="w-8 h-8 rounded-full" />}
             </div>
-            {(user.role === 'super_admin' || user?.role === 'admin') && <button onClick={() => { user?.id == item.id ? navigate('/profile/' + item.id) : navigate('/website/edit/' + item.id) }}><SvgComponent className="" svgName="edit_action" /></button>}
+            {(user.role === 'super_admin' || user?.role === 'admin' ||  user?.role === 'user') && <button onClick={() => { user?.id == item.id ? navigate('/profile/' + item.id) : navigate('/website/edit/' + item.id) }}><SvgComponent className="" svgName="edit_action" /></button>}
           </div>
 
           <div className="flex m-0 gap-[15px] items-center h-full">

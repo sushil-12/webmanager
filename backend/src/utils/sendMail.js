@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 
 // Constants
 const ADMIN_EMAIL = 'sushil124maurya@gmail.com'; // Replace with your Gmail address
-const APP_NAME = 'toddlr';
+const APP_NAME = 'Content Locker';
 const FROM_NAME = `"${APP_NAME}" <${ADMIN_EMAIL}>`;
 
 // Configure nodemailer transport using Gmail's SMTP

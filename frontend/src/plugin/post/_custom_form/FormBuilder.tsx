@@ -20,6 +20,8 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
   const [fields, setFields] = useState<Field[]>(fieldData);
 
   const addField = (field_type: string, parentIndex?: number) => {
+    // @ts-ignore
+    event.preventDefault();
     const newField: Field = {
       field_type,
       label: '',
