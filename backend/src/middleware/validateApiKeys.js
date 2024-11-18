@@ -35,7 +35,7 @@ const validateApiKey = (req, res, next) => {
 
         // Attach the API key to the request object (optional)
         req.apiKey = apiKey;
-
+        // console.log("fss")
         // Proceed to the next middleware or route
         next();
     } catch (error) {

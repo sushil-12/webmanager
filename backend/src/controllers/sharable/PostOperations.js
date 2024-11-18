@@ -1,4 +1,4 @@
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, isObjectIdOrHexString } = require("mongoose");
 const Post = require("../../models/Post");
 const { CustomError, ResponseHandler, ErrorHandler } = require("../../utils/responseHandler");
 const Media = require("../../models/Media");
@@ -24,6 +24,7 @@ function extractRelevantFields(metaData) {
         return { label, name, repeatable, value };
     });
 }
+
 const getPostById = async (req, res) => {
     try {
         const postId = req.params.post_id;
@@ -41,11 +42,13 @@ const getPostById = async (req, res) => {
         }
 
         // Fetch featured image from Media collection
-        const images = await Media.find({ _id: post.featuredImage }).select('url alt_text').lean();
-        if (images && images.length > 0) {
-            post.featuredImage = images[0];
-        } else {
-            post.featuredImage = [];  // Empty array or handle no image scenario
+        if(post.featuredImage !== '' && isObjectIdOrHexString(post.featuredImage)){
+            const images = await Media.find({ _id: post.featuredImage }).select('url alt_text').lean();
+            if (images && images.length > 0) {
+                post.featuredImage = images[0];
+            } else {
+                post.featuredImage = [];  // Empty array or handle no image scenario
+            }
         }
 
         // Fetch and extract post meta data if available
@@ -65,37 +68,16 @@ const getPostById = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
     try {
-        const token = req.headers.authorization.split(' ')[1];
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        const userId = decodedToken.userId;
+        
+        const { post_type, website_name } = req.params;
         const { page = 1, limit = 10, search, filter } = req.query;
-        const user = await User.findById(userId).populate('role');
-        const userPermittedWebsite = user.permissions !== undefined && user.permissions !== null ? Object.keys(user.permissions) : {};
-        const domainHeader = req.headers['domain'];
-        let can_edit = true;
-        console.log(formatString(domainHeader), "DOMAIN HEADER");
-
-        if (user?.role?.name !== 'admin' && user?.role?.name !== 'super_admin') {
-            const id = await Website.findOne({ business_name: new RegExp(formatString(domainHeader), 'i') }).select('_id');
-            console.log(id, "CAN EDIT");
-            if (id !== null) {
-                if (userPermittedWebsite.includes(id._id.toString())) {
-                    can_edit = user.permissions[id._id].editor_permission;
-                }
-            }
-        }
-
-        const { post_type } = req.params;
         const query = {};
-
         if (search && search !== '') {
             query.$or = [
                 { title: { $regex: new RegExp(search, 'i') } },
                 { content: { $regex: new RegExp(search, 'i') } },
             ];
         }
-
-
         if (filter && filter !== 'All') {
             switch (filter) {
                 case 'trash':
@@ -116,14 +98,14 @@ const getAllPosts = async (req, res) => {
             postsPromise = Post.find(query)
                 .where('post_type').equals(post_type)
                 .where('deleted').equals(false)
-                .where('domain').equals(domainHeader)
+                .where('domain').equals(website_name)
                 .sort({ publicationDate: -1 })
                 .exec();
         } else {
             postsPromise = Post.find(query)
                 .where('post_type').equals(post_type)
                 .where('deleted').equals(false)
-                .where('domain').equals(domainHeader)
+                .where('domain').equals(website_name)
                 .limit(parseInt(limit))
                 .skip((parseInt(page) - 1) * parseInt(limit))
                 .sort({ publicationDate: -1 })
@@ -131,9 +113,9 @@ const getAllPosts = async (req, res) => {
         }
 
 
-        const publishedCountPromise = Post.countDocuments({ post_type, domain: domainHeader, status: 'published', deleted: false });
-        const draftCountPromise = Post.countDocuments({ post_type, domain: domainHeader, status: 'draft', deleted: false });
-        const allPostsCountPromise = Post.countDocuments({ post_type, domain: domainHeader, deleted: false });
+        const publishedCountPromise = Post.countDocuments({ post_type, domain: website_name, status: 'published', deleted: false });
+        const draftCountPromise = Post.countDocuments({ post_type, domain: website_name, status: 'draft', deleted: false });
+        const allPostsCountPromise = Post.countDocuments({ post_type, domain: website_name, deleted: false });
 
         const [posts, publishedCount, draftCount, allPostsCount] = await Promise.all([postsPromise, publishedCountPromise, draftCountPromise, allPostsCountPromise]);
 
@@ -172,7 +154,6 @@ const getAllPosts = async (req, res) => {
             totalCount: allPostsCount,
             draft_posts: draftCount,
             published_posts: publishedCount,
-            can_edit,
             pagination: {
                 page: parseInt(page),
                 limit: parseInt(limit),
@@ -188,8 +169,8 @@ const getAllPosts = async (req, res) => {
 const getAllPostTypesAndPages = async (req, res) => {
     try {
         const { page = 1, limit = 10, search } = req.query;
-        const domainHeader = req.headers['domain'];
-        const { type } = req.params;
+        const { type, website_name } = req.params;
+        const domainHeader = website_name;
         const query = {};
 
         if (search) {
@@ -210,20 +191,14 @@ const getAllPostTypesAndPages = async (req, res) => {
                 .limit(parseInt(limit))
                 .select('title');
         } else {
-            let business_name = formatString(domainHeader)
-            const sidebar = await Website.find({
-                business_name: {
-                    $regex: new RegExp(`^${business_name}$`, 'i')
-                }
-            });
-
-            console.log(sidebar[0].menus, business_name, "WEb")
-
-            posts = sidebar[0].menus
-                .filter(item => item.type === 'custom_post')
+            posts = await Post.find()
+                .where('post_type').equals(type)
+                .where('domain').equals(domainHeader)
+                .limit(parseInt(limit))
+                .select('title');
+            posts = sidebar[0].menus.filter(item => item.type === 'custom_post')
             // Selecting only the 'label' field
         }
-        console.log(posts)
 
         // Transform the posts array if needed
         const transformedPosts = posts.map(item => ({
