@@ -39,6 +39,8 @@ const limiter = rateLimit({
 app.use(express.json({ limit: '250kb' }));  // Set payload size to 150kb
 app.use(express.urlencoded({ limit: '250kb', extended: true }));
 app.use(bodyParser.json());
+app.use('/subscription-api', cors('*'),  subscribtionApis)
+
 app.use(cors(corsOptions));
 app.use(sanitizeInput);
 app.use(useragent.express());
@@ -76,7 +78,6 @@ app.use('/api/common', commonRoutes);
 // Protected routes
 app.use('/api', protectedRoutes);
 
-app.use('/subscription-api', cors('*'),  subscribtionApis)
 
 // Root route
 app.get('/', (req, res) => {
