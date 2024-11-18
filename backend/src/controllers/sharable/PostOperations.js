@@ -29,21 +29,33 @@ const getPostById = async (req, res) => {
         const postId = req.params.post_id;
         const requestedFields = parseFields(req.query._fields);
 
+        // Validate post ID
         if (!mongoose.Types.ObjectId.isValid(postId)) {
             throw new CustomError(400, 'Invalid post ID');
         }
 
-        const post = await Post.findById(postId);
-        let postMeta;
-        if (post?.postMeta) {
-            const postMetaData = await PostMeta.findById(post.postMeta).select('formData');
-            postMeta = extractRelevantFields(postMetaData?.formData);
-        }
-
+        // Fetch post data from the database
+        let post = await Post.findById(postId).lean();  // Using .lean() for better performance
         if (!post) {
             throw new CustomError(404, 'Post not found');
         }
 
+        // Fetch featured image from Media collection
+        const images = await Media.find({ _id: post.featuredImage }).select('url alt_text').lean();
+        if (images && images.length > 0) {
+            post.featuredImage = images[0];
+        } else {
+            post.featuredImage = [];  // Empty array or handle no image scenario
+        }
+
+        // Fetch and extract post meta data if available
+        let postMeta;
+        if (post?.postMeta) {
+            const postMetaData = await PostMeta.findById(post.postMeta).select('formData').lean();
+            postMeta = extractRelevantFields(postMetaData?.formData);
+        }
+
+        // Send success response
         ResponseHandler.success(res, { post, metaData: postMeta }, 200);
     } catch (error) {
         ErrorHandler.handleError(error, res);
@@ -127,6 +139,7 @@ const getAllPosts = async (req, res) => {
 
         const postIds = posts.filter(post => post.featuredImage).map(post => post.featuredImage);
         const images = await Media.find({ _id: { $in: postIds } }).select('url alt_text');
+
         const imagesData = images.map(media => ({
             id: media._id,
             url: media.url,
