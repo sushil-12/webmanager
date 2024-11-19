@@ -240,7 +240,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
       ) : (
         <>
           <button
-            className="border-none text-primary-500 flex place-self-end mb-4 absolute top-0 right-0"
+            className="border-none text-primary-500 flex place-self-end mb-1"
             onClick={() => {
               setVisible(true);
               setApiLogs("all");
