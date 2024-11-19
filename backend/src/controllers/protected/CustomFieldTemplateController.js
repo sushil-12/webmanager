@@ -139,7 +139,9 @@ const getAllCustomField = async (req, res) => {
       allCustomField = await Promise.all(
         allCustomField.map(async (item) => {
           let post;
-          if (item.item_type === "page") {
+          console.log("pageID", pageId)
+         if(pageId !== 'posts'){
+           if (item.item_type === "page") {
             post = await Post.findById(item.post_type).select("title postMeta");
           } else {
             post = await Post.findById(pageId).select("title postMeta");
@@ -188,6 +190,8 @@ const getAllCustomField = async (req, res) => {
             postTitle: post?.title || null,
             fields: updatedFields,
           };
+         }
+
 
           return item; // Return the custom field as is if not a 'page' type
         })

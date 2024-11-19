@@ -20,6 +20,7 @@ import { status } from "@/constants/message";
 const MediaEditForm: React.FC<{ item: MediaItem, handleModal: any, setblur: any, canEdit: boolean }> = ({ item, handleModal, setblur, canEdit }) => {
     const [isCopied, setIsCopied] = useState(false);
     const { mutateAsync: deleteMedia, isPending: isDeleting } = useDeleteMedia();
+    console.log(canEdit)
 
     const form = useForm<z.infer<typeof mediaEditFormSchema>>({
         resolver: zodResolver(mediaEditFormSchema),
