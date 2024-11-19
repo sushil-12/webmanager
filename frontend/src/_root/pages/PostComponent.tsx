@@ -121,7 +121,7 @@ const PostComponent = () => {
     }
   };
   return (
-    <div className="main-container w-full overflow-hidden">
+    <div className="main-container w-full overflow-hidden ">
       <div className="w-full flex items-center header-bar justify-between h-[10vh]  min-h-[10vh] max-h-[10vh] justify pl-5 pr-[31px]">
         <div className="flex gap-[15px]">
           <h3 className="page-titles capitalize">{defaultPostType }</h3>
@@ -147,7 +147,7 @@ const PostComponent = () => {
           </button>
         </div>
       </div>
-      <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto overflow-x-hidden pl-5 px-[31px] py-5">
+      <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto overflow-x-hidden pl-5 px-[31px] py-5 relative">
         <div className="flex mb-4 mt-[-2px]">
           <button className={`mr-2 ${filter === 'All' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('All'); resetPagination();}}>All {`(${totalCount})`}</button>
           <button className={`mr-2 ${filter === 'draft' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('draft'); resetPagination()} }>Drafts{`(${draftCount})`}</button>

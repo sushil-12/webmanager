@@ -219,7 +219,7 @@ const MediaEditForm: React.FC<{ item: MediaItem, handleModal: any, setblur: any,
                         </span>
 
                     </Button>
-                    {canEdit && (
+                    {(
                         <span className="text-danger cursor-pointer text-xs font-normal" onClick={() => confirmDelete(item?.id)}  >
                             {isDeleting ? 'Deleting' : 'Delete permanently'}
                         </span>

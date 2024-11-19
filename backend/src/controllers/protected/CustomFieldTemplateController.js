@@ -138,43 +138,26 @@ const getAllCustomField = async (req, res) => {
     if (allCustomField.length > 0) {
       allCustomField = await Promise.all(
         allCustomField.map(async (item) => {
-          if (item.item_type === "page" || item.item_type === "post") {
-            let post;
-            if (item.item_type === "page") {
-              post  = await Post.findById(item.post_type).select(
-                "title postMeta"
-              );
-            }
-            else{
-                post  = await Post.findById(item.post_type).select(
-                    "title postMeta"
-                  );
-            }
+          let post;
+          if (item.item_type === "page") {
+            post = await Post.findById(item.post_type).select("title postMeta");
+          } else {
+            post = await Post.findById(pageId).select("title postMeta");
+          }
 
-            // Fetch postMeta if it exists
-            let postMeta = null;
-            if (post?.postMeta) {
-              postMeta = await PostMeta.findById(post.postMeta);
-            }
+          console.log(post, "POSY");
+          // Fetch postMeta if it exists
+          let postMeta = null;
+          if (post?.postMeta) {
+            postMeta = await PostMeta.findById(post.postMeta);
+          }
 
-            let updatedFields = item.fields.map((field) => {
-              const matchingMeta = postMeta?.formData?.find(
-                (meta) => meta.name === field.name
-              );
-              if (matchingMeta) {
-                // Add value from postMeta to the field object
-                return {
-                  name: field.name,
-                  label: field.label,
-                  field_type: field.field_type,
-                  required: field.required,
-                  repeatable: field.repeatable,
-                  placeholder: field.placeholder,
-                  options: field.options,
-                  value: matchingMeta.value,
-                  nestedFields: field.nestedFields, // Keep nested fields as is
-                };
-              }
+          let updatedFields = item.fields.map((field) => {
+            const matchingMeta = postMeta?.formData?.find(
+              (meta) => meta.name === field.name
+            );
+            if (matchingMeta) {
+              // Add value from postMeta to the field object
               return {
                 name: field.name,
                 label: field.label,
@@ -183,17 +166,29 @@ const getAllCustomField = async (req, res) => {
                 repeatable: field.repeatable,
                 placeholder: field.placeholder,
                 options: field.options,
+                value: matchingMeta.value,
                 nestedFields: field.nestedFields, // Keep nested fields as is
-              }; // Return field as is if no match
-            });
-
-            // Return the custom field along with postTitle and newFields
+              };
+            }
             return {
-              ...item._doc,
-              postTitle: post?.title || null,
-              fields: updatedFields,
-            };
-          }
+              name: field.name,
+              label: field.label,
+              field_type: field.field_type,
+              required: field.required,
+              repeatable: field.repeatable,
+              placeholder: field.placeholder,
+              options: field.options,
+              nestedFields: field.nestedFields, // Keep nested fields as is
+            }; // Return field as is if no match
+          });
+
+          // Return the custom field along with postTitle and newFields
+          return {
+            ...item._doc,
+            postTitle: post?.title || null,
+            fields: updatedFields,
+          };
+
           return item; // Return the custom field as is if not a 'page' type
         })
       );

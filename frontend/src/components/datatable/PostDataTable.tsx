@@ -42,6 +42,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
   const { currentDomain } = useUserContext();
 
   const { toast } = useToast();
+
   const { mutateAsync: deletePostById, isPending: isDeleting } =
     usedeltePostbyID();
   const [expandedRows, setExpandedRows] = useState("");
@@ -49,6 +50,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
   const [isQuickEditForm, setIsQuickEditForm] = useState(false);
   const [rerenderPostTable, setRerenderPostTable] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [apiLogs, setApiLogs] = useState("all");
   const [selectedPost, setSelectedPost] = useState("");
 
   const [dataTablePosts, setDatatablePosts] = useState(posts);
@@ -145,6 +147,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
           className="border-none text-primary-500"
           onClick={() => {
             setVisible(true);
+            setApiLogs("single_post");
             setSelectedPost(rowData.id);
           }}
         >
@@ -236,6 +239,15 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
         <SkeletonTable rowCount={5} />
       ) : (
         <>
+          <button
+            className="border-none text-primary-500 flex place-self-end mb-4 absolute top-0 right-0"
+            onClick={() => {
+              setVisible(true);
+              setApiLogs("all");
+            }}
+          >
+            View API logs
+          </button>
           <DataTable
             value={dataTablePosts}
             tableStyle={{ minWidth: "60rem" }}
@@ -243,7 +255,8 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
             tableClassName="table-fixed rounded-sm overflow-x-hidden" // @ts-ignore
             rowClassName={`odd:bg-light-gray cursor-pointer`} // @ts-ignore
             className="post_data_table table-fixed overflow-x-hidden" // @ts-ignore
-            onRowMouseEnter={(e) => { // @ts-ignore
+            onRowMouseEnter={(e) => {
+              // @ts-ignore
               handleRowToggle(e.data);
             }}
             onRowMouseLeave={() => {
@@ -295,20 +308,21 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
             style={{ width: "70vw" }}
             onHide={() => setVisible(false)}
           >
-            <p className="text-lg font-semibold text-gray-800 mb-2">
-              <span className="text-primary-500">POST ID:</span>{" "}
-              {selectedPost ? selectedPost : "N/A"}
-            </p>
-            <p className="text-lg font-semibold text-gray-800 mb-4">
-              <span className="text-primary-500">Your API KEY:</span>{" "}
-              <span className="font-mono text-green-600">
-                {"12345-ABCDE-67890-FGHIJ-KLMNO"}
-              </span>
-            </p>
-            <WebView
-              apiKey="12345-ABCDE-67890-FGHIJ-KLMNO"
-              postId={selectedPost}
-            />
+            {apiLogs == "all" ? (
+              <WebView
+                apiKey="12345-ABCDE-67890-FGHIJ-KLMNO"
+                postId={""}
+                singlePost={false}
+                website_name={currentDomain}
+                post_type={post_type}
+              />
+            ) : (
+              <WebView
+                apiKey="12345-ABCDE-67890-FGHIJ-KLMNO"
+                postId={selectedPost}
+                singlePost={true}
+              />
+            )}
           </Dialog>
         </>
       )}

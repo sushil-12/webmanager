@@ -34,6 +34,7 @@ interface PostFormSchema {
     post_type: string,
     post: PostModel | null,
 }
+
 const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
     const { toast } = useToast();
     const navigate = useNavigate();
@@ -89,7 +90,8 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
                 console.log(customFieldsResponse, customFieldsResponse?.data?.customField?.fields, "customFieldsResponse?.data?.customField?.fields")
                 customFieldsResponse?.data?.customField[0]?.fields?.length > 0 && setCustomFormFields(customFieldsResponse?.data?.customField[0]?.fields)
             } else {
-                customFieldsResponse = await getAllCustomFields(post_type, "posts");
+                // @ts-ignore
+                customFieldsResponse = await getAllCustomFields(post_type, currentPost?.id);
                 console.log(customFieldsResponse, customFieldsResponse?.data?.customField, "customFieldsResponse?.data?.customField?.fields posts")
                 customFieldsResponse?.data?.customField[0]?.fields?.length > 0 && setCustomFormFields(customFieldsResponse?.data?.customField[0]?.fields)
                 console.log(customFieldsResponse?.data?.customField, "customFormFields")

@@ -139,9 +139,21 @@ const getAllPosts = async (req, res) => {
                 }
             }));
 
+            let imageData= '';
+            if(post.featuredImage !== '' && isObjectIdOrHexString(post.featuredImage)){
+                const images = await Media.find({ _id: post.featuredImage }).select('url alt_text').lean();
+                console.log("Ssfsfs", images)
+                
+                if (images && images.length > 0) {
+                    imageData = images[0];
+                } else {
+                    imageData = '';  // Empty array or handle no image scenario
+                }
+            }
             return {
                 ...post._doc,
                 id: post._id,
+                featuredImage: imageData,
                 images: imagesData.filter(img => img.id === post.featuredImage),
                 categories,
             };
