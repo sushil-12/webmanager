@@ -34,6 +34,7 @@ interface SwaggerSpec {
           schema: {
             type: string;
             default?: string;
+            example?: string;
           };
         }>;
         responses: {
@@ -139,7 +140,7 @@ const SwaggerDocs = ({
         },
       };
     } else {
-      dynamicSwaggerJson = {
+      dynamicSwaggerJson = { 
         openapi: "3.0.0",
         info: {
           title: "Content Locker - A Powerful Headless CMS Web Application",
@@ -150,13 +151,13 @@ const SwaggerDocs = ({
           {
             url: apiUrl, // Base URL for the API (e.g., http://localhost:3000)
           },
-        ],
+        ], //@ts-ignore
         paths: {
           [fullUrl]: {
             get: {
               summary: "Get all posts of a specific website and post type",
               description:
-                "Fetches all posts based on the provided website name and post type.",
+                "Fetches all posts based on the provided website name and post type. Supports optional query parameters for pagination, filtering, and field selection.",
               tags: ["PostOperations"],
               parameters: [
                 {
@@ -166,7 +167,7 @@ const SwaggerDocs = ({
                   description: "The website name to fetch posts from",
                   schema: {
                     type: "string",
-                    default: website_name || "defaultApiKey", // Dynamic api_key
+                    default: website_name || "defaultWebsiteName",
                   },
                 },
                 {
@@ -176,7 +177,7 @@ const SwaggerDocs = ({
                   description: "The type of post (e.g., blog, news, etc.)",
                   schema: {
                     type: "string",
-                    default: post_type || "defaultApiKey", // Dynamic api_key
+                    default: post_type || "defaultPostType",
                   },
                 },
                 {
@@ -186,7 +187,62 @@ const SwaggerDocs = ({
                   description: "The API key used for authentication",
                   schema: {
                     type: "string",
-                    default: apiKey || "defaultApiKey", // Dynamic api_key
+                    default: apiKey || "defaultApiKey",
+                  },
+                },
+                {
+                  in: "query",
+                  name: "page",
+                  required: false,
+                  description: "The page number for pagination",
+                  schema: {
+                    type: "integer",
+                    default: 1,
+                    example: 2,
+                  },
+                },
+                {
+                  in: "query",
+                  name: "limit",
+                  required: false,
+                  description: "The number of posts per page",
+                  schema: {
+                    type: "integer",
+                    default: 10,
+                    example: 20,
+                  },
+                },
+                {
+                  in: "query",
+                  name: "search",
+                  required: false,
+                  description: "A search term to filter posts by title or content",
+                  schema: {
+                    type: "string",
+                    example: "search-for-any-string",
+                  },
+                },
+                {
+                  in: "query",
+                  name: "filter",
+                  required: false,
+                  description: "Filter posts by status (e.g., draft, published, trash)",
+                  schema: {
+                    type: "string",
+                    enum: ["draft", "published", "trash", "all"],
+                    default: "All",
+                    example: "draft",
+                  },
+                },
+                {
+                  in: "query",
+                  name: "fields",
+                  required: false,
+                  description:
+                    "Comma-separated list of fields to include in the response. Example: 'title,content,categories,featuredImage,postMeta'",
+                  schema: {
+                    type: "string",
+                    example: "title,content,featuredImage,postMeta",
                   },
                 },
               ],
@@ -215,12 +271,36 @@ const SwaggerDocs = ({
                               description: "The content of the post",
                               example: "<p>Lorem ipsum dolor sit amet...</p>",
                             },
+                            featuredImage: {
+                              type: "object",
+                              description: "Details of the featured image",
+                              properties: {
+                                url: {
+                                  type: "string",
+                                  description: "URL of the image",
+                                  example: "https://example.com/image.jpg",
+                                },
+                                alt_text: {
+                                  type: "string",
+                                  description: "Alternative text for the image",
+                                  example: "An example image",
+                                },
+                              },
+                            },
+                            categories: {
+                              type: "array",
+                              description: "List of associated categories",
+                              items: {
+                                type: "string",
+                                example: "Technology",
+                              },
+                            },
                           },
                         },
                       },
                     },
                   },
-                },// @ts-ignore
+                },
                 "400": {
                   description: "Invalid website name or post type",
                 },
@@ -228,8 +308,7 @@ const SwaggerDocs = ({
                   description: "Invalid or missing API key",
                 },
                 "404": {
-                  description:
-                    "No posts found for the given website and post type",
+                  description: "No posts found for the given website and post type",
                 },
                 "500": {
                   description: "Internal server error",

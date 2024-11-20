@@ -68,9 +68,9 @@ const getPostById = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
     try {
-        
         const { post_type, website_name } = req.params;
-        const { page = 1, limit = 10, search, filter } = req.query;
+        const { page = 1, limit = 10, search, filter, fields } = req.query;
+
         const query = {};
         if (search && search !== '') {
             query.$or = [
@@ -93,69 +93,79 @@ const getAllPosts = async (req, res) => {
                     break;
             }
         }
-        let postsPromise;
-        if (search) {
-            postsPromise = Post.find(query)
-                .where('post_type').equals(post_type)
-                .where('deleted').equals(false)
-                .where('domain').equals(website_name)
-                .sort({ publicationDate: -1 })
-                .exec();
-        } else {
-            postsPromise = Post.find(query)
-                .where('post_type').equals(post_type)
-                .where('deleted').equals(false)
-                .where('domain').equals(website_name)
-                .limit(parseInt(limit))
-                .skip((parseInt(page) - 1) * parseInt(limit))
-                .sort({ publicationDate: -1 })
-                .exec();
-        }
 
+        // Add additional filtering
+        query.post_type = post_type;
+        query.domain = website_name;
+        query.deleted = false;
 
+        // Determine fields to select
+        const requiredFields = ['categories']; // Fields necessary for processing
+        const fieldsToSelect = fields
+            ? [...new Set(fields.split(',').concat(requiredFields))].join(' ') // Merge user-specified fields with required fields
+            : '-comments -seoData'; // Default excluded fields
+
+        // Fetch posts with pagination and sorting
+        const postsPromise = Post.find(query)
+            .select(fieldsToSelect)
+            .limit(parseInt(limit))
+            .skip((parseInt(page) - 1) * parseInt(limit))
+            .sort({ publicationDate: -1 })
+            .lean(); // Use lean() for better performance
+
+        // Fetch counts for different statuses
         const publishedCountPromise = Post.countDocuments({ post_type, domain: website_name, status: 'published', deleted: false });
         const draftCountPromise = Post.countDocuments({ post_type, domain: website_name, status: 'draft', deleted: false });
         const allPostsCountPromise = Post.countDocuments({ post_type, domain: website_name, deleted: false });
 
-        const [posts, publishedCount, draftCount, allPostsCount] = await Promise.all([postsPromise, publishedCountPromise, draftCountPromise, allPostsCountPromise]);
+        const [posts, publishedCount, draftCount, allPostsCount] = await Promise.all([
+            postsPromise,
+            publishedCountPromise,
+            draftCountPromise,
+            allPostsCountPromise,
+        ]);
 
-        const postIds = posts.filter(post => post.featuredImage).map(post => post.featuredImage);
-        const images = await Media.find({ _id: { $in: postIds } }).select('url alt_text');
+        // Fetch related media
+        const postIdsWithImages = posts.filter(post => post.featuredImage).map(post => post.featuredImage);
+        const images = await Media.find({ _id: { $in: postIdsWithImages } }).select('url alt_text').lean();
 
         const imagesData = images.map(media => ({
-            id: media._id,
+            id: media._id.toString(),
             url: media.url,
             alt_text: media.alt_text,
         }));
 
+        // Fetch postMeta for each post if included
         const formattedPosts = await Promise.all(posts.map(async (post) => {
-            const categories = await Promise.all(post.categories.map(async (item) => {
-                try {
-                    const category = await Category.findById(item).exec();
-                    return category ? category.name : null;
-                } catch (error) {
-                    console.error(`Error fetching category with ID ${item}:`, error);
-                    return null;
-                }
-            }));
+            const categories = Array.isArray(post.categories)
+                ? await Promise.all(post.categories.map(async (item) => {
+                    try {
+                        const category = await Category.findById(item).exec();
+                        return category ? category.name : null;
+                    } catch (error) {
+                        console.error(`Error fetching category with ID ${item}:`, error);
+                        return null;
+                    }
+                }))
+                : []; // Fallback to an empty array if categories is missing or not an array
 
-            let imageData= '';
-            if(post.featuredImage !== '' && isObjectIdOrHexString(post.featuredImage)){
-                const images = await Media.find({ _id: post.featuredImage }).select('url alt_text').lean();
-                console.log("Ssfsfs", images)
-                
-                if (images && images.length > 0) {
-                    imageData = images[0];
-                } else {
-                    imageData = '';  // Empty array or handle no image scenario
-                }
+            let postMetaData = null;
+            if (post.postMeta) {
+                postMetaData = await PostMeta.findById(post.postMeta).lean();
             }
+
+            let imageData = '';
+            if (post.featuredImage) {
+                const image = imagesData.find(img => img.id === post.featuredImage);
+                imageData = image || '';
+            }
+
             return {
-                ...post._doc,
+                ...post,
                 id: post._id,
                 featuredImage: imageData,
-                images: imagesData.filter(img => img.id === post.featuredImage),
                 categories,
+                postMeta: postMetaData,
             };
         }));
 
@@ -170,8 +180,8 @@ const getAllPosts = async (req, res) => {
                 page: parseInt(page),
                 limit: parseInt(limit),
                 totalPages,
-                totalItems: filter == 'draft' ? draftCount : filter == 'trash' ? trashCount : filter == 'published' ? publishedCount : allPostsCount
-            }
+                totalItems: filter === 'draft' ? draftCount : filter === 'trash' ? trashCount : filter === 'published' ? publishedCount : allPostsCount,
+            },
         }, 200);
     } catch (error) {
         ErrorHandler.handleError(error, res);
