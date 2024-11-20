@@ -142,7 +142,7 @@ const SwaggerDocs = ({
       dynamicSwaggerJson = {
         openapi: "3.0.0",
         info: {
-          title: "Subscription API",
+          title: "Content Locker - A Powerful Headless CMS Web Application",
           description: "API for fetching posts by website and post type",
           version: "1.0.0",
         },

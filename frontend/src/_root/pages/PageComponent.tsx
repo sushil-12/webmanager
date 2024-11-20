@@ -148,7 +148,7 @@ const PageComponent = () => {
           </button>
         </div>
       </div>
-      <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto pl-5 px-[31px] py-5 overflow-x-hidden">
+      <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto pl-5 px-[31px] py-5 overflow-x-hidden relative">
         <div className="flex mb-4 mt-[-2px]">
           <button className={`mr-2 ${filter === 'All' && 'font-bold pointer-events-none' }`} onClick={() => {handleFilterChange('All'); resetPagination();}}>All {`(${totalCount})`}</button>
           <button className={`mr-2 ${filter === 'draft' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('draft'); resetPagination();}}>Drafts{`(${draftCount})`}</button>

@@ -15,6 +15,7 @@ import { status } from "@/constants/message";
 import { Badge } from "primereact/badge";
 import { Dialog } from "primereact/dialog";
 import WebView from "../shared/Webview";
+import { getHeroIcon } from "@/lib/HeroIcon";
 
 interface PostDataTableProps {
   posts: PostModel[];
@@ -240,13 +241,14 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
       ) : (
         <>
           <button
-            className="border-none text-primary-500 flex place-self-end mb-1"
+            className="rounded-md border mb-2 flex text-sm place-self-end border-primary-500 text-primary-500 py-2 px-4 absolute top-3 right-8"
             onClick={() => {
               setVisible(true);
               setApiLogs("all");
             }}
           >
-            View API logs
+            {getHeroIcon('BarsArrowDownIcon')}
+            View API 
           </button>
           <DataTable
             value={dataTablePosts}

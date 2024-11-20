@@ -87,7 +87,7 @@ export function SidebarWithLogo() {
                             }
                         >
                             <ListItem placeholder={''}
-                                className={`p-0 hover:bg-gray-50 hover:text-black ${
+                                className={`p-0 hover:bg-primary-500 hover:text-white ${
                                     isActive(baseRoute) ? "bg-primary-500 text-white" : ""
                                 }`}
                                 selected={open === id}
@@ -125,7 +125,7 @@ export function SidebarWithLogo() {
                                                 onClick={() =>
                                                     navigate(finalRoute)
                                                 }
-                                                className={`hover:bg-gray-50${
+                                                className={`hover:text-primary-500 ${
                                                     isActive(finalRoute)
                                                         ? " text-blue-600"
                                                         : ""
@@ -148,7 +148,7 @@ export function SidebarWithLogo() {
 
                 <ListItem placeholder={''}
                     onClick={() => navigate("/users")}
-                    className={`hover:bg-gray-50 hover:text-black ${
+                    className={`hover:bg-primary-500 hover:text-white ${
                         isActive("/users") ? "bg-primary-500 text-white" : ""
                     }`}
                 >
@@ -160,7 +160,7 @@ export function SidebarWithLogo() {
 
                 <ListItem placeholder={''}
                     onClick={() => navigate(`/profile/${user?.id}`)}
-                    className={`hover:bg-gray-50 hover:text-black ${
+                    className={`hover:bg-primary-500 hover:text-white ${
                         isActive(`/profile/${user?.id}`)
                             ? "bg-primary-500 text-white"
                             : ""
@@ -174,7 +174,7 @@ export function SidebarWithLogo() {
 
                 <ListItem placeholder={''}
                     onClick={() => navigate("/websites")}
-                    className={`hover:bg-gray-50 hover:text-black ${
+                    className={`hover:bg-primary-500 hover:text-white ${
                         isActive("/websites") ? "bg-primary-500 text-white" : ""
                     }`}
                 >

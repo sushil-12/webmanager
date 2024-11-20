@@ -35,6 +35,7 @@ import { useUserContext } from './context/AuthProvider.tsx';
 import EditUser from './_root/pages/User/EditUser';
 import AddEditUser from './_root/pages/User/AddEditUser.tsx';
 import ManageSeoSchema from './plugin/seoSchema/ManageSeoSchema.tsx';
+import LandingPage from './_landing-page/page.tsx';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -55,7 +56,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, user, allowed
     return <>{children}</>;
 };
 
-
 const App = () => {
     const { user, isLoading } = useUserContext();
     return (
@@ -64,8 +64,11 @@ const App = () => {
             <main className='flex h-screen'>
                 <Routes>
                     {/* Private Routes start */}
+                    <Route>
+                        <Route index element={<LandingPage />} />
+                    </Route>
                     <Route element={<RootLayout />}  >
-                        <Route index element={<Home />} />
+
                         <Route path='/dashboard' element={<Home />} />
                         <Route path='/buisness-statistic/:stats?' element={<BuisnessStats />} />
                         <Route path='/personal-statistics/:test?' element={<PersonalStats />} />
@@ -96,7 +99,7 @@ const App = () => {
                         <Route
                             path='/edit-user/:user_id'
                             element={
-                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin']} isLoading={isLoading}>
+                                <ProtectedRoute user={user} allowedRoles={['admin', 'super_admin']} isLoading={isLoading}>
                                     <EditUser />
                                 </ProtectedRoute>
                             }
@@ -105,28 +108,28 @@ const App = () => {
                         <Route
                             path='/add-edit-user/:user_id?'
                             element={
-                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin']} isLoading={isLoading}>
+                                <ProtectedRoute user={user} allowedRoles={['admin', 'super_admin']} isLoading={isLoading}>
                                     <AddEditUser />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
                             path='/users' element={
-                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin']} isLoading={isLoading}>
+                                <ProtectedRoute user={user} allowedRoles={['admin', 'super_admin']} isLoading={isLoading}>
                                     <UsersList />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
                             path='/website/:action/:website_id?' element={
-                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin', 'user']} isLoading={isLoading}>
+                                <ProtectedRoute user={user} allowedRoles={['admin', 'super_admin', 'user']} isLoading={isLoading}>
                                     <AddEditWebsite />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
                             path='websites' element={
-                                <ProtectedRoute user={user} allowedRoles={['admin','super_admin', 'user']} isLoading={isLoading}>
+                                <ProtectedRoute user={user} allowedRoles={['admin', 'super_admin', 'user']} isLoading={isLoading}>
                                     <Website />
                                 </ProtectedRoute>
                             }
@@ -151,6 +154,7 @@ const App = () => {
                     <Route path='/verify-email/:token/:uniqueId/:email' element={<VerifyEmail />} />
                 </Routes>
             </main>
+
         </PrimeReactProvider>
     )
 }

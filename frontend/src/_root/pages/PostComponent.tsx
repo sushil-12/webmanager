@@ -132,7 +132,7 @@ const PostComponent = () => {
           )}
 
         </div>
-        <div className="flex justify-start items-center py-7 relative">
+        <div className="flex justify-start items-center py-7 ">
           <input
             onChange={handleInputChange}
             value={searchInput}
@@ -147,7 +147,7 @@ const PostComponent = () => {
           </button>
         </div>
       </div>
-      <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto overflow-x-hidden pl-5 px-[31px] py-5 relative">
+      <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto overflow-x-hidden  relative  pl-5 px-[31px] py-5">
         <div className="flex mb-4 mt-[-2px]">
           <button className={`mr-2 ${filter === 'All' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('All'); resetPagination();}}>All {`(${totalCount})`}</button>
           <button className={`mr-2 ${filter === 'draft' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('draft'); resetPagination()} }>Drafts{`(${draftCount})`}</button>
