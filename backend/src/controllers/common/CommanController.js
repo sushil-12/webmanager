@@ -45,7 +45,7 @@ const submitContactDetails = async (req, res) => {
 
         const mailOptions = {
             from: email,
-            to: process.env.CONTACT_SUPPORT_EMAIL,
+            to: process.env.CONTACT_SUPPORT_EMAIL || "sushil124maurya@gmail.com",
             subject: subject,
             text: `${message}\n\nFrom: ${fname} <${email}>`
         };

@@ -42,7 +42,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ navLinks, buttons, isVisible, s
                     <a className="mr-auto text-3xl font-semibold leading-none" href="#">
                         <img
                             className="h-10"
-                            src="https://wp.alithemes.com/html/monst/assets/imgs/logos/monst-logo.svg"
+                            src="/assets/logo.png"
                             alt="Logo"
                         />
                     </a>
@@ -141,8 +141,9 @@ const Header: React.FC<HeaderProps> = ({ logo, navLinks, buttons }) => {
             <div className="container bg-transparent">
                 <nav className="bg-transparent flex justify-between items-center py-3">
                     {/* Logo */}
-                    <a className="text-3xl font-semibold leading-none" href={logo.href}>
-                        <img className="h-10" src={logo.src} alt={logo.alt} />
+                    <a className="text-xl text-blue-500 items-center gap-2 flex font-semibold leading-none" href={logo.href}>
+                        <img className="h-10" src={logo.src} alt={logo.alt} /> 
+                        ContentLocker
                     </a>
 
                     {/* Navigation Links */}

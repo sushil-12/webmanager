@@ -20,13 +20,21 @@ const SimpleSolutionSection: React.FC<SimpleSolutionSectionProps> = ({
   sectionDescription,
   carouselItems,
 }) => {
-  // Slick carousel settings
+  // Slick carousel settings for displaying two items at a time
   const settings = {
-    dots: true,
+    dots: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 1,
+    slidesToShow: 2,  // Show 2 items at a time
     slidesToScroll: 1,
+    responsive: [
+      {
+        breakpoint: 1024,  // For screens smaller than 1024px, show 1 item at a time
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
   };
 
   return (
@@ -48,7 +56,7 @@ const SimpleSolutionSection: React.FC<SimpleSolutionSectionProps> = ({
           </div>
           <div className="w-full lg:w-2/3 flex flex-wrap">
             <div className="relative w-full">
-              <Slider {...settings} className="carausel-2-columns slick-carausel" >
+              <Slider {...settings} className="carausel-2-columns slick-carausel">
                 {carouselItems.map((item, index) => (
                   <CarouselItem
                     key={index}
