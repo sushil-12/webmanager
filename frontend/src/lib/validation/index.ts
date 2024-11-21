@@ -270,8 +270,8 @@ export const createOrEditWebsiteSchema = z.object({
         message: 'Too big, less than 20 characters please',
         path: ['name'],
     }),
-    url: z.string().refine((value) => /^(https?:\/\/[^\s/$.?#].[^\s]*\.(com|net|org|int|edu|gov|mil|co|info|biz|us|uk|jp|cn|de))$/.test(value), {
-        message: "Invalid URL format. Ensure it starts with http or https and ends with a valid domain like .com, .net, .org, or other common TLDs.",
+    url: z.string().refine((value) => /^(https?:\/\/[^\s/$.?#].[^\s]*)$/.test(value), {
+        message: "Invalid URL format. Ensure it starts with http or https and is a valid URL.",
     }),
     description: z.string().optional(),
     menus: z.optional(z.array(z.object({

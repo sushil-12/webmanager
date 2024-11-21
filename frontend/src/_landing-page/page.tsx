@@ -45,7 +45,7 @@ const LandingPage = () => {
 
     const buttons = [
         { label: "Log In", href: "/login", type: "accent" },
-        { label: "Sign Up", href: "/signup", type: "primary" },
+        { label: "Sign Up", href: "/sign-up", type: "primary" },
     ];
 
     const heroData = {

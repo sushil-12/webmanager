@@ -70,7 +70,7 @@ export function SidebarWithLogo() {
                 </Typography>
             </div>
 
-            <List placeholder={''}>
+            <List placeholder={''} className="overflow-auto">
                 {websites.map(({ id, business_name, icon, menus }) => {
                     const baseRoute = btoa(createSlug(business_name, "_"));
                     return (

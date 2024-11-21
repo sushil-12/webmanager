@@ -29,6 +29,7 @@
     "nodemailer": "^6.9.9",
     "nodemon": "^3.0.2",
     "serve-index": "^1.9.1",
+    "stripe": "^17.3.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1",

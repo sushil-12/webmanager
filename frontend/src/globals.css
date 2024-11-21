@@ -156,6 +156,9 @@
   .login_cards .action_button {
     margin-top: 12px !important;
   }
+  .signup_form_container .space-y-2{
+    width: 100%;
+  }
 
   .p-inputgroup input,
   .p-inputgroup span {

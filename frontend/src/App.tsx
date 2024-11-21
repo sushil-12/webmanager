@@ -36,6 +36,7 @@ import EditUser from './_root/pages/User/EditUser';
 import AddEditUser from './_root/pages/User/AddEditUser.tsx';
 import ManageSeoSchema from './plugin/seoSchema/ManageSeoSchema.tsx';
 import LandingPage from './_landing-page/page.tsx';
+import SignUpForm from './_auth/Forms/SignUpForm.tsx';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -65,10 +66,9 @@ const App = () => {
                 <Routes>
                     {/* Private Routes start */}
                     <Route>
-                        <Route index element={<LandingPage />} />
+                        <Route path='/landing-page' element={<LandingPage />} />
                     </Route>
-                    <Route element={<RootLayout />}  >
-
+                    <Route element={<RootLayout />}>
                         <Route path='/dashboard' element={<Home />} />
                         <Route path='/buisness-statistic/:stats?' element={<BuisnessStats />} />
                         <Route path='/personal-statistics/:test?' element={<PersonalStats />} />
@@ -143,12 +143,13 @@ const App = () => {
 
                     {/* Public Routes start */}
                     <Route element={<AuthLayout />}  >
+                        <Route index element={<SignInForm />} />
                         <Route path='/reset-password/:token' element={<ResetPasswordForm />} />
                         <Route path='/login' element={<SignInForm />} />
                         <Route path='/forgot-password' element={<SignInForm />} />
                         <Route path='/verify-account' element={<SignInForm />} />
 
-                        {/* <Route path='/sign-up' element={<SignUpForm />} /> */}
+                        <Route path='/sign-up' element={<SignUpForm />} />
                     </Route>
                     {/* Public Routes End */}
                     <Route path='/verify-email/:token/:uniqueId/:email' element={<VerifyEmail />} />
