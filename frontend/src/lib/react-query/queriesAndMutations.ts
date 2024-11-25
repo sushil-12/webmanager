@@ -46,6 +46,8 @@ import {
   deleteUserByID,
   getSeoFilePath,
   deletCustomFieldByID,
+  getStripeProductListing,
+  getStripeProductById,
 } from "@/lib/appwrite/api";
 
 import { INewUser, IWebsite } from "../types";
@@ -102,6 +104,19 @@ export const useEditProfile = () => {
 export const useGetAllUserListing = (): UseMutationResult<any, unknown, { page: number; limit: number, search?: string }, unknown> => {
   return useMutation({
     mutationFn: ({ page, limit, search }) => getUsersListing(page, limit, search),
+  });
+};
+
+
+export const useGetStripeProductListing = () => {
+  return useMutation({
+    mutationFn: () => getStripeProductListing(),
+  });
+};
+
+export const useGetStripeProducts = () => {
+  return useMutation({
+    mutationFn: (product_id:string) => getStripeProductById(product_id),
   });
 };
 

@@ -104,6 +104,11 @@ class AuthenticatedApiService {
     return await this.api.get('/api/get-all-post-and-pages/' + type, config);
   }
 
+  async getStripeProductById(product_id: string): Promise<any> {
+    const config: AxiosRequestConfig = { headers: this.getHeaders() };
+    return await this.api.get('/api/common/get-product/' + product_id, config);
+  }
+
 
   async getPostByIdApi(post_id: string): Promise<any> {
     const config: AxiosRequestConfig = { headers: this.getHeaders() };
@@ -200,6 +205,11 @@ class AuthenticatedApiService {
   async getUserListing(page: number, limit: number, search?: string): Promise<any> {
     const config: AxiosRequestConfig = { headers: this.getHeaders(), params: { page, limit, search } };
     return await this.api.get('/api/get-user-listings', config);
+  }
+
+  async getProductListing(): Promise<any> {
+    const config: AxiosRequestConfig = { headers: this.getHeaders() };
+    return await this.api.get('/api/common/list-products', config);
   }
 
   async createUserMember(user: object): Promise<any> {

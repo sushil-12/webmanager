@@ -7,6 +7,7 @@ const { createEditPost, getAllPosts, getPostById, deletePost, quickEditPost, get
 const { createEditCategory, getAllCategories, getCategoryById } = require('../controllers/protected/CategoryController');
 const { createEditCustomField, getAllCustomField, getCustomFieldById, deleteCustomField } = require('../controllers/protected/CustomFieldTemplateController');
 const { createOrEditWebsite, listWebsites, getWebsite, listWebsitesWithMenus, deleteWebsite } = require('../controllers/protected/WebsiteController');
+const { listProducts, getProductById } = require('../controllers/protected/StripeController');
 
 const router = express.Router();
 
@@ -61,5 +62,9 @@ router.get('/get-website/:website_id', getWebsite);
 router.delete('/delete/website/:website_id', deleteWebsite);
 
 router.get('/list-files', listFiles);
+
+
+
+
 
 module.exports = router;

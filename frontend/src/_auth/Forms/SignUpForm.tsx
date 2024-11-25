@@ -17,8 +17,9 @@ import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { getHeroIcon } from "@/lib/HeroIcon";
 import { useState } from "react";
-import { Elements, PaymentElement, useStripe, useElements, CardElement, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from "@stripe/stripe-js";
+import CheckoutForm from "./CheckOutForm";
 
 const SignUpForm = () => {
   const stripePromise = loadStripe('pk_test_51QNEM0EXM6E6dbLjiYTG1JCRfT2TAdosgJzd1SdfeiJAcnNoZy16BEUaJPauej6T98bfThimHTOVW3hBxqBUO0D400u9wZfbXQ');
@@ -26,6 +27,8 @@ const SignUpForm = () => {
   const { checkAuthUser } = useUserContext();
   const { mutateAsync: createUserAccount, isPending: isCreatingUser } = useCreateUserAccount();
   const [formState, setFormState] = useState('sign-up-form');
+  const [subsbcriptionData, setSubsbcriptionData] = useState(null);
+
   const [planId, setPlanId] = useState('');
   const navigate = useNavigate();
 
@@ -145,27 +148,25 @@ const SignUpForm = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof signUpValidationSchema>) {
-    console.log(values);
-    setFormState('select_pricing_plan')
     // @ts-ignore
-    // const newUser = await createUserAccount(values);
-    // if (!newUser) {
-    //   return toast({ variant: "destructive", title: "Signup Failed", description: "Something went wrong", duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> })
-    // }
-    // if (newUser && newUser.code && newUser.code.includes('ERR')) {
-    //   return toast({ variant: "destructive", title: "Signup Failed", description: newUser?.response?.data?.message, duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> });
-    // }
+    const newUser = await createUserAccount(values, ...subsbcriptionData);
+    if (!newUser) {
+      return toast({ variant: "destructive", title: "Signup Failed", description: "Something went wrong", duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> })
+    }
+    if (newUser && newUser.code && newUser.code.includes('ERR')) {
+      return toast({ variant: "destructive", title: "Signup Failed", description: newUser?.response?.data?.message, duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> });
+    }
 
-    // const session = true;
-    // if (!session) {
-    //   return toast({ variant: "destructive", title: "SigIn Failed", description: "Something went wrong" })
-    // }
-    // const isLoggedIn = await checkAuthUser();
-    // if (isLoggedIn) {
-    //   form.reset();
-    //   toast({ title: "Logged In Successfully" })
-    //   navigate('/dashboard');
-    // } else { return toast({ variant: "destructive", title: "SigIn Failed", description: "Something went wrong" }) }
+    const session = true;
+    if (!session) {
+      return toast({ variant: "destructive", title: "SigIn Failed", description: "Something went wrong" })
+    }
+    const isLoggedIn = await checkAuthUser();
+    if (isLoggedIn) {
+      form.reset();
+      toast({ title: "Logged In Successfully" })
+      navigate('/dashboard');
+    } else { return toast({ variant: "destructive", title: "SigIn Failed", description: "Something went wrong" }) }
 
   }
 
@@ -186,7 +187,7 @@ const SignUpForm = () => {
             }}
           >
             <form
-              onSubmit={form.handleSubmit(onSubmit)}
+              onSubmit={() => setFormState('select_pricing_plan')}
               className="space-y-1 flex flex-col w-full mt-4 signup_form_container"
             >
               <div className="flex flex-col gap-5">
@@ -324,24 +325,11 @@ const SignUpForm = () => {
           </>
         ) : formState === 'payment_form' ? (
           <>
-            <Elements stripe={stripePromise}>
-              <div className="flex flex-col max-w-sm mx-auto p-8 bg-white rounded-xl shadow-lg">
-                <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">Enter Payment Details</h2>
-
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Credit or Debit Card</label>
-                  <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
-                  <CardNumberElement />
-                  <CardExpiryElement />
-                  <CardCvcElement />
-                  </div>
-                </div>
-
-                <button className="w-full py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200">
-                  Pay Now
-                </button>
-              </div>
-            </Elements>
+            <div className="signup_form_container min-w-[550px]">
+              <Elements stripe={stripePromise}>
+                <CheckoutForm productId={planId} setSubsbcriptionData={setSubsbcriptionData} onSubmit={onSubmit} />
+              </Elements>
+            </div>
           </>
         ) : null}
 

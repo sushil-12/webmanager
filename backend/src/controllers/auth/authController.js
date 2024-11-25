@@ -15,6 +15,8 @@ const path = require('path');
 const { Readable } = require('stream');
 const useragent = require('express-useragent'); // Import express-useragent
 const { default: mongoose } = require('mongoose');
+const Subscription = require('../../models/Subscription');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(useragent.express());
@@ -31,17 +33,96 @@ const generateRandomString = (length) => {
 
 const register = async (req, res) => {
   try {
+    // Validate the registration request
     AuthValidator.validateRegistration(req.body);
-    const { username, password, email, firstName, lastName } = req.body;
+
+    const { username, password, email, firstName, lastName, priceId, productId, cardDetails } = req.body;
+
+    if (!priceId || !productId || !cardDetails) {
+      return ResponseHandler.error(res, HTTP_STATUS_CODES.BAD_REQUEST, {
+        message: 'Missing required subscription details: priceId, productId, or cardDetails.',
+      });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, password: hashedPassword, email, firstName, lastName });
+
+    // Create the user in the database
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      email,
+      firstName,
+      lastName,
+    });
     await newUser.save();
 
-    ResponseHandler.success(res, { message: 'User registered successfully' }, HTTP_STATUS_CODES.OK);
+    // Create or retrieve the Stripe customer
+    const customers = await stripe.customers.list({ email });
+    let customer = customers.data.length > 0 ? customers.data[0] : null;
+
+    if (!customer) {
+      customer = await stripe.customers.create({
+        email,
+        name: `${firstName} ${lastName}`,
+        payment_method: cardDetails.paymentMethodId,
+        invoice_settings: {
+          default_payment_method: cardDetails.paymentMethodId,
+        },
+      });
+    }
+
+    // Create the subscription
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: priceId }],
+      expand: ['latest_invoice.payment_intent'],
+    });
+
+    const paymentIntent = subscription.latest_invoice.payment_intent;
+
+    if (paymentIntent.status !== 'succeeded' && paymentIntent.status !== 'requires_action') {
+      return ResponseHandler.error(res, HTTP_STATUS_CODES.PAYMENT_REQUIRED, {
+        message: 'Payment failed. Please try again.',
+      });
+    }
+
+    // Save subscription details in the database
+    const savedSubscription = await Subscription.create({
+      userId: newUser.id,
+      customerId: customer.id,
+      subscriptionId: subscription.id,
+      productId,
+      priceId,
+      status: subscription.status,
+      startDate: subscription.start_date,
+      endDate: subscription.current_period_end,
+      paymentIntentId: paymentIntent.id,
+      paymentStatus: paymentIntent.status,
+    });
+
+    // Generate an API key for the user
+    const apiKey = crypto.randomBytes(32).toString('hex');
+
+    newUser.apiKey = apiKey; // Assuming `apiKey` is a field in your `User` model
+    await newUser.save();
+
+    // Return success response
+    ResponseHandler.success(
+      res,
+      {
+        message: 'User registered successfully with subscription.',
+        subscription: savedSubscription,
+        apiKey,
+      },
+      HTTP_STATUS_CODES.OK
+    );
   } catch (error) {
+    console.error('Error registering user:', error.message);
     ErrorHandler.handleError(error, res);
   }
 };
+
 
 const login = async (req, res) => {
   try {
@@ -317,7 +398,7 @@ const verifyEmail = async (req, res) => {
     if (new Date() > user.verificationLinkExpiryTime) {
       return ResponseHandler.error(res, HTTP_STATUS_CODES.NOT_FOUND, { message: 'This link has been expired! Please generate a new one.' });
     }
-    
+
     if (!user) {
       return ResponseHandler.error(res, HTTP_STATUS_CODES.NOT_FOUND, { message: 'This link has been expired please generate a new one.' });
     }

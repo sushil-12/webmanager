@@ -174,6 +174,30 @@ export async function getUsersListing(page: number, limit: number, search?: stri
   }
 }
 
+export async function getStripeProductListing(): Promise<any> {
+  try {
+    const authenticatedApiService = new AuthenticatedApiService();
+    const allMedia = await authenticatedApiService.getProductListing();
+
+    return allMedia?.data;
+  } catch (error) {
+    console.log(error)
+    throw new PromiseHandler('Error getting products', 'Something went wrong', { error });
+  }
+}
+
+
+export async function getStripeProductById(product_id: string) {
+  try {
+    const authenticatedApiService = new AuthenticatedApiService();
+    const post = await authenticatedApiService.getStripeProductById(product_id);
+
+    return post?.data;
+  } catch (error) {
+    throw new PromiseHandler('Error getting this Website', 'Website fetch error', { error });
+  }
+}
+
 
 export async function getWebsiteListing(page?: number, limit?: number, search?: string): Promise<any> {
   try {

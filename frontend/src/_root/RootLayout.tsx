@@ -47,7 +47,7 @@ const RootLayout = () => {
       {/* Main Content */}
       <section className={`${isSidebarOpen ? "ml-[280px]" : "ml-0"} w-full`}>
         <Outlet key={outletKey} />
-        <p className="text-sm flex justify-center font-semibold fixed bottom-0 left-1/2">
+        <p className="text-sm flex justify-center font-semibold fixed bottom-0 left-1/2 px-4 py-1 rounded-lg mb-2 bg-black text-white ">
           &copy; {currentYear} Sushil. Content Locker. All rights reserved.
         </p>
       </section>

@@ -69,6 +69,7 @@ const App = () => {
                         <Route path='/landing-page' element={<LandingPage />} />
                     </Route>
                     <Route element={<RootLayout />}>
+                        <Route index element={<Home />} />
                         <Route path='/dashboard' element={<Home />} />
                         <Route path='/buisness-statistic/:stats?' element={<BuisnessStats />} />
                         <Route path='/personal-statistics/:test?' element={<PersonalStats />} />
