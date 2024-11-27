@@ -27,7 +27,7 @@ const LandingPage = () => {
     title: "Your Content, Your Way",
     subtitle: "Streamlined with Headless CMS",
     backgroundImage:
-      "https://wp.alithemes.com/html/monst/assets/imgs/backgrounds/intersect.svg",
+      "/intersect.svg",
     features: [
       {
         label: "Annual Partners",
@@ -88,9 +88,9 @@ const LandingPage = () => {
     imageSrc:
       "/contentlocker.png",
     leftBlobSrc:
-      "https://wp.alithemes.com/html/monst/assets/imgs/elements/blob-tear.svg",
+      "/blob-tear.svg",
     rightBlobSrc:
-      "https://wp.alithemes.com/html/monst/assets/imgs/elements/blob-tear.svg",
+      "/blob-tear.svg",
   };
 
   const howWeWorkData = {
@@ -138,7 +138,7 @@ const LandingPage = () => {
         "Manage SEO Schema",
       ],
       imageSrc:
-        "https://wp.alithemes.com/html/monst/assets/imgs/icons/startup.svg", // Placeholder image, replace with relevant one
+        "/startup.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-white",
       buttonText: "Choose Basic Plan",
       buttonLink: "/sign-up",
@@ -155,7 +155,7 @@ const LandingPage = () => {
         "Customizable permissions for users",
       ],
       imageSrc:
-        "https://wp.alithemes.com/html/monst/assets/imgs/icons/agency.svg", // Placeholder image, replace with relevant one
+        "/agency.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-blue-500",
       buttonText: "Choose Standard Plan",
       buttonLink: "/sign-up",
@@ -172,7 +172,7 @@ const LandingPage = () => {
         "In-app chat feature with notification",
       ],
       imageSrc:
-        "https://wp.alithemes.com/html/monst/assets/imgs/icons/enterprise.svg", // Placeholder image, replace with relevant one
+        "/enterprise.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-white",
       buttonText: "Choose Premium Plan",
       buttonLink: "/sign-up",
@@ -197,19 +197,19 @@ const LandingPage = () => {
     socialLinks: [
       {
         iconSrc:
-          "https://wp.alithemes.com/html/monst/assets/imgs/icons/facebook-blue.svg",
+          "/facebook-blue.svg",
         href: "https://facebook.com",
         alt: "Facebook",
       },
       {
         iconSrc:
-          "https://wp.alithemes.com/html/monst/assets/imgs/icons/twitter-blue.svg",
+          "/twitter-blue.svg",
         href: "https://twitter.com",
         alt: "Twitter",
       },
       {
         iconSrc:
-          "https://wp.alithemes.com/html/monst/assets/imgs/icons/instagram-blue.svg",
+          "/instagram-blue.svg",
         href: "https://instagram.com",
         alt: "Instagram",
       },
@@ -226,11 +226,11 @@ const LandingPage = () => {
     <>
       <link
         rel="stylesheet"
-        href="https://wp.alithemes.com/html/monst/assets/css/animate.min.css?v=2.0"
+        href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
       />
       <link
         rel="stylesheet"
-        href="https://wp.alithemes.com/html/monst/assets/css/slick.css?v=2.0"
+        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"
       />
       <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js"></script>
       <link
@@ -239,7 +239,7 @@ const LandingPage = () => {
       />
       <link
         rel="stylesheet"
-        href="https://wp.alithemes.com/html/monst/assets/css/tailwind-built.css?v=2.0"
+        href="/assets/css/tailwind-built.css?v=2.0"
       />
       <div className="main w-full">
         {/*@ts-ignore*/}

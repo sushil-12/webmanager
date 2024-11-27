@@ -118,13 +118,13 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ navLinks, buttons, isVisible, s
                     </p>
                     <div className="flex space-x-2">
                         <a className="inline-block" href="#">
-                            <img src="https://wp.alithemes.com/html/monst/assets/imgs/icons/facebook-blue.svg" alt="Facebook" />
+                            <img src="/facebook-blue.svg" alt="Facebook" />
                         </a>
                         <a className="inline-block" href="#">
-                            <img src="https://wp.alithemes.com/html/monst/assets/imgs/icons/twitter-blue.svg" alt="Twitter" />
+                            <img src="/twitter-blue.svg" alt="Twitter" />
                         </a>
                         <a className="inline-block" href="#">
-                            <img src="https://wp.alithemes.com/html/monst/assets/imgs/icons/instagram-blue.svg" alt="Instagram" />
+                            <img src="/instagram-blue.svg" alt="Instagram" />
                         </a>
                     </div>
                 </div>

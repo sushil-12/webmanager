@@ -53,7 +53,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, backgroundImage, features,
       {/* Image Section */}
       <div className="relative max-w-6xl mt-16 md:mt-8 mb-8 mx-auto">
         <img
-          src="https://wp.alithemes.com/html/monst/assets/imgs/elements/pattern.png"
+          src="/pattern.png"
           alt="Background pattern"
         />
         <div

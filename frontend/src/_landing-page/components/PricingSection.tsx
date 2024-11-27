@@ -76,7 +76,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({
             className="py-20 xl:bg-contain bg-top bg-no-repeat" title={sectionTitle}
             style={{
                 backgroundImage:
-                    'url("https://wp.alithemes.com/html/monst/assets/imgs/backgrounds/intersect.svg")',
+                    'url("/intersect.svg")',
             }}
         >
             <div className="container px-4 mx-auto">

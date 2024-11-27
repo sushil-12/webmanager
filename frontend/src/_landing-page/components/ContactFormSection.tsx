@@ -63,7 +63,7 @@ const ContactFormSection: React.FC = () => {
       className="py-20 bg-top bg-no-repeat"
       style={{
         backgroundImage:
-          'url("https://wp.alithemes.com/html/monst/assets/imgs/elements/blob.svg")',
+          'url("/blob.svg")',
       }}
     >
       <div className="container px-4 mx-auto">

@@ -101,7 +101,7 @@ const SignUpForm = () => {
         "Manage SEO Schema",
       ],
       imageSrc:
-        "https://wp.alithemes.com/html/monst/assets/imgs/icons/startup.svg", // Placeholder image, replace with relevant one
+        "/startup.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-white",
       buttonText: "Choose Basic Plan",
       productId: 'prod_RFjsqoIg4jXUjZ',
@@ -118,7 +118,7 @@ const SignUpForm = () => {
         "Customizable permissions for users",
       ],
       imageSrc:
-        "https://wp.alithemes.com/html/monst/assets/imgs/icons/agency.svg", // Placeholder image, replace with relevant one
+        "/agency.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-blue-500",
       buttonText: "Choose Standard Plan",
       productId: 'prod_RFjsqoIg4jXUjZ',
@@ -135,7 +135,7 @@ const SignUpForm = () => {
         "In-app chat feature with push notifications",
       ],
       imageSrc:
-        "https://wp.alithemes.com/html/monst/assets/imgs/icons/enterprise.svg", // Placeholder image, replace with relevant one
+        "/enterprise.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-white",
       buttonText: "Choose Premium Plan",
       productId: 'prod_RFjsqoIg4jXUjZ'
