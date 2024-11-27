@@ -17,6 +17,7 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ title, subtitle, backgroundImage, features, cta }) => {
+  console.log(features)
   return (
     <section
       className="xl:bg-contain bg-top bg-no-repeat -mt-24 pt-24"
@@ -26,18 +27,10 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, backgroundImage, features,
       <div className="container px-4 mx-auto">
         <div className="pt-12 text-center">
           <div className="max-w-2xl mx-auto mb-8">
-            <h2 className="text-3xl lg:text-5xl lg:leading-normal mb-4 font-bold font-heading wow animate__animated animate__fadeIn">
+            <h2 className="text-2xl lg:text-5xl lg:leading-normal mb-4 font-bold font-heading wow animate__animated animate__fadeIn">
               {title} <br />
               <span className="text-blue-500">{subtitle}</span>
             </h2>
-            <p className="text-blueGray-400 leading-relaxed wow animate__animated animate__fadeIn">
-              I am <strong className="text-blue-500">Sushil</strong>, a solution provider{" "}
-              <span
-                className="typewrite d-inline text-brand"
-                data-period={3000}
-                data-type='["Web Agency", "Social Marketing"]'
-              />
-            </p>
           </div>
           <div>
             <a
@@ -68,15 +61,15 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, backgroundImage, features,
           style={{ top: "9%", left: "14%", width: "72%", height: "66%" }}
         >
           <img
-            className="jump rounded wow animate__animated animate__fadeInUp"
-            src="https://wp.alithemes.com/html/monst/assets/imgs/placeholders/dashboard.png"
+            className="jump wow animate__animated animate__fadeInUp rounded-lg"
+            src="/demo-dashboard.png"
             alt="Dashboard image"
           />
         </div>
       </div>
 
       {/* Statistics Section */}
-      <div className="container px-4 mx-auto">
+      {/* <div className="container px-4 mx-auto">
         <div className="flex flex-wrap justify-between pt-8 pb-16">
           {features.map((feature, index) => (
             <div
@@ -95,7 +88,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, backgroundImage, features,
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
     </section>
   );
 };

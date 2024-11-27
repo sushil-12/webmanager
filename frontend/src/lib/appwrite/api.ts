@@ -6,11 +6,14 @@ import PromiseHandler from "@/utils/PromiseHandler";
 // ============================== SIGN UP
 export async function createUserAccount(user: INewUser) {
   try {
+    console.log(user);
     // async register(username: string, email: string, password: string, firstName:string, lastName:string): Promise<any> {
     const newAccount = await Apiservices.authService.register(user);
+    newAccount ? newAccount?.data?.data?.token && localStorage.setItem("token", newAccount?.data?.data?.token) : '';
     if (!newAccount) throw Error;
     return newAccount;
   } catch (error) {
+    console.log(error);
     throw new PromiseHandler('Failed to create user account', 'CREATE USER FAILED', { user });
   }
 }

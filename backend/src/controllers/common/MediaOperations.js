@@ -3,6 +3,7 @@ const Media = require('../../models/Media');
 const { CustomError, ErrorHandler, ResponseHandler } = require('../../utils/responseHandler');
 const User = require('../../models/User');
 const jwt = require('jsonwebtoken');
+const Website = require('../../models/Websites');
 
 const canEditPermission = async (req, domainHeader) => {
     try {
@@ -12,7 +13,7 @@ const canEditPermission = async (req, domainHeader) => {
         const user = await User.findById(userId).populate('role');
 
         console.log(req.body)
-        if (user?.role?.name === 'admin' || user?.role?.name === 'super_admin' ) {
+        if (user?.role?.name === 'super_admin' ) {
             return true; // Admins have editing permission
         }
 

@@ -18,7 +18,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
     return (
         <div className="w-full md:w-1/2 lg:w-1/3 px-3 mb-6">
             <div
-                className={`hover-up-5 pt-16 pb-8 px-4 text-center rounded shadow bg-white hover:bg-blue-500 hover:text-white`}
+                className={`hover-up-5 pt-16 pb-8 px-4 text-center rounded shadow bg-white hover:bg-gray-50 border border-blue-400`}
             >
                 <img className="h-20 mb-6 mx-auto" src={plan.imageSrc} alt={plan.name} />
                 <h3 className="mb-2 text-4xl font-bold font-heading ">{plan.name}</h3>
@@ -42,7 +42,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                     />
                                 </svg>
-                                <span>{feature}</span>
+                                <span className='text-left'>{feature}</span>
                             </li>
                         ))}
                     </ul>
@@ -53,12 +53,6 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
                         href={plan.buttonLink}
                     >
                         {plan.buttonText}
-                    </a>
-                    <a
-                        className="block sm:inline-block py-4 px-6 text-xs text-blueGray-500 hover:text-blueGray-600 text-center font-semibold leading-none bg-white border border-blueGray-200 hover:border-black rounded"
-                        href={plan.buttonLink}
-                    >
-                        Purchase
                     </a>
                 </div>
             </div>

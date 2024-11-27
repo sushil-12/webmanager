@@ -435,10 +435,13 @@ const getAllUser = async (req, res) => {
   try {
     // Extract and parse query parameters
     const { page = 1, limit = 10, search } = req.query;
-
+    // Get the user_id from the route params (the ID of the user who created the records)
+    const createdBy = req.userId;
     // Build the search query
     const query = {
       deleted_at: null, // Exclude deleted users
+      created_by: createdBy, // Filter by users created by the specific user
+      role: '65896a7778d59ca679d53b2d'
     };
 
     // If search is provided, add username search criteria
@@ -530,6 +533,7 @@ const getAllUser = async (req, res) => {
     ErrorHandler.handleError(error, res);
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {

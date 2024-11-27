@@ -1,25 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
-import { useGetStripeProductListing, useGetStripeProducts } from "@/lib/react-query/queriesAndMutations";
+import { useCreateUserAccount, useGetStripeProductListing, useGetStripeProducts } from "@/lib/react-query/queriesAndMutations";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useUserContext } from "@/context/AuthProvider";
+import SvgComponent from "@/utils/SvgComponent";
 
 // Accept product as a prop
 interface CheckoutFormProps {
     productId: string;
     setSubsbcriptionData: any;
-    onSubmit: any;
+    formValues: any;
 }
 
-const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcriptionData, onSubmit }) => {
+const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcriptionData, formValues }) => {
     const stripe = useStripe();
     const elements = useElements();
-
+    const { toast } = useToast()
     const { mutateAsync: getStripeProductListing, isPending: isFetchingProductLists } = useGetStripeProductListing();
     const { mutateAsync: getStripeProductById, isPending: isFetchingProduct } = useGetStripeProducts();
-
+    const { mutateAsync: createUserAccount, isPending: isCreatingUser } = useCreateUserAccount();
     const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
     const [selectedProductId, setSelectedProductId] = useState<string | null>(productId);
     const [productDetails, setProductDetails] = useState<any | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const { checkAuthUser } = useUserContext();
+    const navigate = useNavigate();
+
+    const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -43,7 +51,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcription
                 try {
                     const product = await getStripeProductById(selectedProductId);
                     setProductDetails(product?.data?.product);
-                    console.log(product);
                     setErrorMessage(null); // Clear any previous errors
                 } catch (error) {
                     console.error("Failed to fetch product details:", error);
@@ -60,30 +67,93 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcription
     // Handle form submission
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+
+        // Check if dependencies are loaded and product is selected
         if (!stripe || !elements || !productDetails) {
-            return; // Stripe.js hasn't loaded yet or no product selected
+            setErrorMessage("Stripe.js is not loaded or product details are missing.");
+            return;
         }
 
-        // Get the elements for the card details
+        // Get elements for card details
         const cardNumber = elements.getElement(CardNumberElement);
         const cardExpiry = elements.getElement(CardExpiryElement);
         const cardCvc = elements.getElement(CardCvcElement);
 
         if (!cardNumber || !cardExpiry || !cardCvc) {
-            setErrorMessage("Card details are missing.");
+            setErrorMessage("Card details are missing. Please enter all card details.");
             return;
         }
 
+        // Create a payment method using the card details
+        const { error, paymentMethod } = await stripe.createPaymentMethod({
+            type: 'card',
+            card: cardNumber, // Provide the CardNumberElement reference
+        });
+
+        console.log(paymentMethod, "paymentMethod")
+
+        if (error) {
+            setErrorMessage(error.message || "An error occurred while processing the payment method.");
+            return;
+        }
+
+        // Now you have the paymentMethod object which contains card details securely
         const subscriptionData = {
             priceId: productDetails?.default_price,
             productId: selectedProductId,
-            cardDetails: {
-                cardNumber, cardExpiry, cardCvc
-            }
-        }
+            paymentMethodId: paymentMethod.id, // Send the PaymentMethod ID to your server
+        };
+
         setSubsbcriptionData(subscriptionData);
-        onSubmit();
-        return;
+        console.log(subscriptionData); // For debugging
+
+        // Attempt to create a new user account with subscription data
+        try {
+            const updatedFormValues = { ...formValues, ...subscriptionData };
+            const newUser = await createUserAccount(updatedFormValues);
+
+            if (!newUser) {
+                return toast({
+                    variant: "destructive",
+                    title: "Signup Failed",
+                    description: "Something went wrong during signup.",
+                    duration: import.meta.env.VITE_TOAST_DURATION,
+                    icon: <SvgComponent className="" svgName="close_toaster" />
+                });
+            }
+
+            if (newUser?.code?.includes('ERR')) {
+                return toast({
+                    variant: "destructive",
+                    title: "Signup Failed",
+                    description: newUser?.response?.data?.message ?? "Unknown error.",
+                    duration: import.meta.env.VITE_TOAST_DURATION,
+                    icon: <SvgComponent className="" svgName="close_toaster" />
+                });
+            }
+
+            // Check if session is valid
+            const sessionValid = await checkAuthUser(); // Replace with actual session validation logic
+            if (!sessionValid) {
+                return toast({
+                    variant: "destructive",
+                    title: "Sign In Failed",
+                    description: "Unable to authenticate user."
+                });
+            }
+
+            toast({ title: "Logged In Successfully" });
+            navigate('/dashboard');
+        } catch (error) {
+            console.error("Error during signup or authentication", error);
+            toast({
+                variant: "destructive",
+                title: "Signup Failed",
+                description: "An unexpected error occurred. Please try again.",
+                duration: import.meta.env.VITE_TOAST_DURATION,
+                icon: <SvgComponent className="" svgName="close_toaster" />
+            });
+        }
     };
 
     return (
@@ -143,7 +213,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcription
             )}
 
             {/* Payment Section */}
-            <form onSubmit={handleSubmit} className="mb-6">
+            <form onSubmit={handleSubmit} ref={formRef} className="mb-6">
                 {/* Card Number Section */}
                 <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
@@ -181,7 +251,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcription
                     className="w-full py-3 mt-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-500 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!stripe || isFetchingProduct || isFetchingProductLists}
                 >
-                    {isFetchingProduct || isFetchingProductLists ? "Processing..." : "Pay Now"}
+                    {isFetchingProduct || isFetchingProductLists || isCreatingUser ? "Processing..." : "Pay Now"}
                 </button>
             </form>
         </div>

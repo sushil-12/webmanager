@@ -38,13 +38,24 @@ export type IUser = {
   temp_email?: string,
 };
 
+export type ISubscriptionDetails = {
+  priceId: string;
+  productId: string;
+  cardDetails: {
+    cardNumber: string;
+    cardExpiry: string;
+    cardCvc: string;
+  };
+};
+
 export type INewUser = {
   email: string;
   firstName: string;
   lastName: string;
   password?: string;
-  user_type?:string;
+  user_type?: string;
   username: string;
+  subscriptionData?: ISubscriptionDetails; // Adding subscription data to the user type
 };
 
 export type MediaItem = {

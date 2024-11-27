@@ -68,7 +68,7 @@ const ContactFormSection: React.FC = () => {
     >
       <div className="container px-4 mx-auto">
         <div className="relative px-4">
-          <div className="max-w-lg mx-auto text-center">
+          <div className="max-w-4xl mx-auto text-center">
             <h2 className="mb-4 text-3xl lg:text-4xl font-bold font-heading wow animate__animated animate__fadeInUp">
               <span>Connect With Me</span>
               <span className="text-blue-500"> For any Query </span>
@@ -79,7 +79,7 @@ const ContactFormSection: React.FC = () => {
             </p>
 
             <div
-              className="p-8 rounded-lg shadow-lg flex flex-wrap max-w-md mx-auto wow animate__animated animate__fadeInUp"
+              className="p-8 rounded-lg shadow-lg flex flex-wrap max-w-2xl mx-auto wow animate__animated animate__fadeInUp"
               data-wow-delay=".5s"
             >
               {/* Name and Email Inputs */}

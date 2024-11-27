@@ -90,51 +90,58 @@ const SignUpForm = () => {
   };
   const pricingPlans = [
     {
-      name: 'Startup',
-      price: '$45.99',
+      name: "Basic Plan",
+      price: "$25.00",
       features: [
-        '3 Emails',
-        '1 Database',
-        'Unlimited Domains',
-        '10 GB Storage',
+        "Add websites",
+        "Manage multiple post types",
+        "Add unlimited pages",
+        "Add and manage media",
+        "Custom fields",
+        "Manage SEO Schema",
       ],
       imageSrc:
-        'https://wp.alithemes.com/html/monst/assets/imgs/icons/startup.svg',
-      backgroundColor: 'bg-white', // Can be bg-blue-500, bg-white, etc.
-      buttonText: 'Start Free Trial',
+        "https://wp.alithemes.com/html/monst/assets/imgs/icons/startup.svg", // Placeholder image, replace with relevant one
+      backgroundColor: "bg-white",
+      buttonText: "Choose Basic Plan",
       productId: 'prod_RFjsqoIg4jXUjZ',
     },
     {
-      name: 'Agency',
-      price: '$65.99',
+      name: "Standard Plan",
+      price: "$55.00",
       features: [
-        '6 Emails',
-        '4 Databases',
-        'Unlimited Domains',
-        '35 GB Storage',
+        "All features in Basic Plan",
+        "Custom fields with support for images, GIFs, PDFs, and documents",
+        "Add up to 3 websites",
+        "Add and manage up to 3 users",
+        "Share API data with frontend developers",
+        "Customizable permissions for users",
       ],
       imageSrc:
-        'https://wp.alithemes.com/html/monst/assets/imgs/icons/agency.svg',
-      backgroundColor: 'bg-blue-500', // Background color
-      buttonText: 'Start Free Trial',
+        "https://wp.alithemes.com/html/monst/assets/imgs/icons/agency.svg", // Placeholder image, replace with relevant one
+      backgroundColor: "bg-blue-500",
+      buttonText: "Choose Standard Plan",
       productId: 'prod_RFjsqoIg4jXUjZ',
     },
     {
-      name: 'Enterprise',
-      price: '$85.99',
+      name: "Premium Plan",
+      price: "$75.00",
       features: [
-        '12 Emails',
-        '8 Databases',
-        'Unlimited Domains',
-        '50 GB Storage',
+        "All features in Standard Plan",
+        "Unlimited websites",
+        "Unlimited users",
+        "Unlimited media",
+        "Custom support feature",
+        "In-app chat feature with push notifications",
       ],
       imageSrc:
-        'https://wp.alithemes.com/html/monst/assets/imgs/icons/enterprise.svg',
-      backgroundColor: 'bg-white',
-      buttonText: 'Start Free Trial',
-      productId: 'prod_RFjsqoIg4jXUjZ',
+        "https://wp.alithemes.com/html/monst/assets/imgs/icons/enterprise.svg", // Placeholder image, replace with relevant one
+      backgroundColor: "bg-white",
+      buttonText: "Choose Premium Plan",
+      productId: 'prod_RFjsqoIg4jXUjZ'
     },
   ];
+  
   const form = useForm<z.infer<typeof signUpValidationSchema>>({
     resolver: zodResolver(signUpValidationSchema), mode: 'all',
     defaultValues: {
@@ -146,29 +153,6 @@ const SignUpForm = () => {
     },
   });
 
-  // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof signUpValidationSchema>) {
-    // @ts-ignore
-    const newUser = await createUserAccount(values, ...subsbcriptionData);
-    if (!newUser) {
-      return toast({ variant: "destructive", title: "Signup Failed", description: "Something went wrong", duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> })
-    }
-    if (newUser && newUser.code && newUser.code.includes('ERR')) {
-      return toast({ variant: "destructive", title: "Signup Failed", description: newUser?.response?.data?.message, duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> });
-    }
-
-    const session = true;
-    if (!session) {
-      return toast({ variant: "destructive", title: "SigIn Failed", description: "Something went wrong" })
-    }
-    const isLoggedIn = await checkAuthUser();
-    if (isLoggedIn) {
-      form.reset();
-      toast({ title: "Logged In Successfully" })
-      navigate('/dashboard');
-    } else { return toast({ variant: "destructive", title: "SigIn Failed", description: "Something went wrong" }) }
-
-  }
 
   return (
     <Form {...form}>
@@ -327,7 +311,7 @@ const SignUpForm = () => {
           <>
             <div className="signup_form_container min-w-[550px]">
               <Elements stripe={stripePromise}>
-                <CheckoutForm productId={planId} setSubsbcriptionData={setSubsbcriptionData} onSubmit={onSubmit} />
+                <CheckoutForm productId={planId} setSubsbcriptionData={setSubsbcriptionData} formValues={form.getValues()}  />
               </Elements>
             </div>
           </>

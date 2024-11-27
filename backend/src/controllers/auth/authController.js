@@ -16,7 +16,7 @@ const { Readable } = require('stream');
 const useragent = require('express-useragent'); // Import express-useragent
 const { default: mongoose } = require('mongoose');
 const Subscription = require('../../models/Subscription');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')('sk_test_51QNEM0EXM6E6dbLjCD0WIp2zrGohhNUVamDFJzarS2pp8tau3kPs7pe0JZSx06vClK8Z5TgEEANWx5r8ycMeElfx00tteOA91u');
 
 const app = express();
 app.use(useragent.express());
@@ -36,16 +36,17 @@ const register = async (req, res) => {
     // Validate the registration request
     AuthValidator.validateRegistration(req.body);
 
-    const { username, password, email, firstName, lastName, priceId, productId, cardDetails } = req.body;
+    const { username, password, email, firstName, lastName, priceId, productId, paymentMethodId } = req.body;
 
-    if (!priceId || !productId || !cardDetails) {
+    if (!priceId || !productId || !paymentMethodId) {
       return ResponseHandler.error(res, HTTP_STATUS_CODES.BAD_REQUEST, {
-        message: 'Missing required subscription details: priceId, productId, or cardDetails.',
+        message: 'Missing required subscription details: priceId, productId, or paymentMethodId.',
       });
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const AdminRole = '66eedb1581e70fb4485cf17e';
 
     // Create the user in the database
     const newUser = new User({
@@ -54,6 +55,7 @@ const register = async (req, res) => {
       email,
       firstName,
       lastName,
+      role: AdminRole,
     });
     await newUser.save();
 
@@ -65,9 +67,9 @@ const register = async (req, res) => {
       customer = await stripe.customers.create({
         email,
         name: `${firstName} ${lastName}`,
-        payment_method: cardDetails.paymentMethodId,
+        payment_method: paymentMethodId,
         invoice_settings: {
-          default_payment_method: cardDetails.paymentMethodId,
+          default_payment_method: paymentMethodId,
         },
       });
     }
@@ -106,17 +108,9 @@ const register = async (req, res) => {
 
     newUser.apiKey = apiKey; // Assuming `apiKey` is a field in your `User` model
     await newUser.save();
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: process.env.STAY_SIGNEDIN_TOKEN_DURATION });
 
-    // Return success response
-    ResponseHandler.success(
-      res,
-      {
-        message: 'User registered successfully with subscription.',
-        subscription: savedSubscription,
-        apiKey,
-      },
-      HTTP_STATUS_CODES.OK
-    );
+    ResponseHandler.success(res, { token,  message: 'User registered successfully with subscription.', login_success: true }, HTTP_STATUS_CODES.OK);
   } catch (error) {
     console.error('Error registering user:', error.message);
     ErrorHandler.handleError(error, res);

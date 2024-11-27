@@ -25,7 +25,7 @@ interface StepCardProps {
 const StepCard: React.FC<StepCardProps> = ({ number, title, imageSrc, description, delay = '.3s' }) => {
     return (
         <div
-            className="hover-up-5 w-full md:w-1/2 lg:w-1/3 px-3 mb-6"
+            className="hover-up-5 w-full md:w-1/3 lg:w-1/3 px-3 mb-6"
             data-wow-delay={delay}
         >
             <div className="p-12 bg-white shadow rounded">
@@ -47,10 +47,10 @@ const HowWeWork: React.FC<HowWeWorkProps> = ({ sectionTitle, sectionDescription,
                 <div className="flex flex-wrap items-center justify-between max-w-2xl lg:max-w-full mb-12">
                     <div className="w-full lg:w-1/2 mb-4 lg:mb-0">
                         <h2 className="text-3xl md:text-4xl font-bold font-heading wow animate__animated animate__fadeInDown">
-                            <span>We are </span>
-                            <span className="text-blue-500">awesome team</span>
+                            <span>Content Locker </span>
+                            <span className="text-blue-500">Headless CMS</span>
                             <br />
-                            <span>for your business dream</span>
+                            <span>for all your buisness needs</span>
                         </h2>
                     </div>
                     <div className="w-full lg:w-1/2 lg:pl-16">

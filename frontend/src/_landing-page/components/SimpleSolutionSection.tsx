@@ -1,6 +1,5 @@
 import React from 'react';
 import Slider from 'react-slick';
-import CarouselItem from './CarouselItem';
 
 interface CarouselData {
   imageSrc: string;
@@ -9,66 +8,106 @@ interface CarouselData {
   link: string;
 }
 
+interface PlatformFeature {
+  title: string;
+  description: string;
+}
+
+interface PlatformDescription {
+  title: string;
+  description: string;
+  features: PlatformFeature[];
+  conclusion: string;
+}
+
 interface SimpleSolutionSectionProps {
   sectionTitle: string;
   sectionDescription: string;
   carouselItems: CarouselData[];
+  platformDescription: PlatformDescription;
 }
 
 const SimpleSolutionSection: React.FC<SimpleSolutionSectionProps> = ({
   sectionTitle,
   sectionDescription,
   carouselItems,
+  platformDescription,
 }) => {
-  // Slick carousel settings for displaying two items at a time
   const settings = {
-    dots: false,
+    dots: true,
     infinite: true,
     speed: 500,
-    slidesToShow: 2,  // Show 2 items at a time
+    slidesToShow: 2,
     slidesToScroll: 1,
+    arrows: true,
     responsive: [
       {
-        breakpoint: 1024,  // For screens smaller than 1024px, show 1 item at a time
-        settings: {
-          slidesToShow: 1,
-        },
+        breakpoint: 1024,
+        settings: { slidesToShow: 1 },
       },
     ],
   };
 
   return (
-    <section className="py-12 md:py-20" title={sectionTitle}>
+    <section className="py-12 md:py-20 bg-gray-50">
       <div className="container px-4 mx-auto">
-        <div className="flex flex-wrap -mx-3">
-          <div className="relative w-full lg:w-1/3 mb-8 lg:mb-0 text-center lg:text-left">
-            <div className="max-w-md lg:max-w-xs lg:pr-16 mx-auto lg:ml-0 mb-6 lg:mb-0">
-              <h2 className="text-3xl md:text-4xl mb-4 font-bold font-heading wow animate__animated animate__fadeInUp" data-wow-delay=".3s">
-                Simple Solution for <span className="text-blue-500">Complex</span> Connections
-              </h2>
-              <p className="text-xs md:text-base text-blueGray-400 leading-loose wow animate__animated animate__fadeInUp" data-wow-delay=".9s">
-                {sectionDescription}
-              </p>
-            </div>
-            <div className="lg:absolute lg:bottom-0 lg:left-0 flex justify-center">
-              <div id="carausel-2-columns-1-arrows" className="flex" />
-            </div>
-          </div>
-          <div className="w-full lg:w-2/3 flex flex-wrap">
-            <div className="relative w-full">
-              <Slider {...settings} className="carausel-2-columns slick-carausel">
-                {carouselItems.map((item, index) => (
-                  <CarouselItem
-                    key={index}
-                    imageSrc={item.imageSrc}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    link={item.link}
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            {sectionTitle} <span className="text-blue-500">with Videos</span>
+          </h2>
+          <p className="text-gray-600 text-sm md:text-base">
+            {sectionDescription}
+          </p>
+        </div>
+
+        {/* Carousel */}
+        <div className="mb-16">
+          <Slider {...settings}>
+            {carouselItems.map((item, index) => (
+              <div key={index} className="p-4">
+                <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+                  <img
+                    src={item.imageSrc}
+                    alt={item.title}
+                    className="w-full h-48 object-cover"
                   />
-                ))}
-              </Slider>
-            </div>
+                  <div className="p-5">
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p className="text-gray-500 text-sm mb-3">{item.subtitle}</p>
+                    <a
+                      href={item.link}
+                      className="text-blue-500 text-sm font-medium hover:underline"
+                    >
+                      Watch Now →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Slider>
+        </div>
+
+        {/* Platform Description */}
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <h3 className="text-2xl font-bold mb-6">{platformDescription.title}</h3>
+          <p className="text-gray-600 text-sm md:text-base mb-6">
+            {platformDescription.description}
+          </p>
+          <div className="grid md:grid-cols-2 gap-8 mb-6">
+            {platformDescription.features.map((feature, index) => (
+              <div key={index} className="flex items-start">
+                <span className="text-2xl mr-4"><img src="/point.png" alt=""/></span>
+                <div>
+                  <h4 className="font-bold text-lg mb-2">{feature.title}</h4>
+                  <p className="text-gray-500 text-sm">{feature.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
+          <p className="text-gray-700 font-semibold text-sm md:text-base mt-8 text-blueGray-400">
+            {platformDescription.conclusion}
+          </p>
         </div>
       </div>
     </section>

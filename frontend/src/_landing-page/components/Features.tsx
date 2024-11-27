@@ -53,7 +53,7 @@ const Features: React.FC<FeaturesProps> = ({
           </div>
 
           {/* Right Column: Image Section */}
-          <div className="relative w-full lg:w-1/2 my-12 lg:my-0">
+          <div className="relative w-full lg:w-1/2 my-12 ">
             <div className="wow animate__animated animate__fadeInRight">
               <img
                 className="jump relative mx-auto rounded-xl w-full z-10"

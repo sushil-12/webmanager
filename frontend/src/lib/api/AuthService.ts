@@ -22,6 +22,7 @@ class AuthService {
   }
 
   async register(user: object): Promise<any> {
+    console.log("USER OBKETC ", user)
     return this.api.post('/auth/register', user);
   }
 

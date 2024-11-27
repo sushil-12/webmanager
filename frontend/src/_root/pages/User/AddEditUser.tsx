@@ -23,13 +23,13 @@ import { checkPasswordStrength } from "@/lib/utils";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCreateEditMemebrAccount, useDeleteUserByID, useGetUserMemberProfile } from "@/lib/react-query/queriesAndMutations";
 import TooltipMessage from "@/components/shared/TooltipMessage";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+// import {
+//     Select,
+//     SelectContent,
+//     SelectItem,
+//     SelectTrigger,
+//     SelectValue,
+// } from "@/components/ui/select"
 
 const AddEditUser = () => {
 
@@ -660,7 +660,7 @@ const AddEditUser = () => {
 
                                                     )}
                                                     />
-                                                    <FormField
+                                                    {/* <FormField
                                                         control={form.control}
                                                         name="user_type"
                                                         render={({ field }) => (
@@ -683,7 +683,7 @@ const AddEditUser = () => {
                                                                 <FormMessage className="shad-form_message" />
                                                             </FormItem>
                                                         )}
-                                                    />
+                                                    /> */}
 
                                                     {userType === 'user' && (
                                                         <div className="border border-light-gray rounded-md">
@@ -956,7 +956,7 @@ const AddEditUser = () => {
                                                         </FormItem>
                                                     )}
                                                     />
-                                                    <FormField
+                                                    {/* <FormField
                                                         control={form.control}
                                                         name="user_type"
                                                         render={({ field }) => (
@@ -977,7 +977,7 @@ const AddEditUser = () => {
                                                                 <FormMessage className="shad-form_message" />
                                                             </FormItem>
                                                         )}
-                                                    />
+                                                    /> */}
                                                     <div className="border border-light-gray rounded-md">
                                                         {websites && websites.map((website: IWebsite) => {
                                                             return (
