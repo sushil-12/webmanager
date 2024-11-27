@@ -5,10 +5,8 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { signUpValidationSchema } from "@/lib/validation";
 import Loader from "@/components/shared/Loader";
-import { Link, useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast"
+import { Link} from "react-router-dom";
 import { useCreateUserAccount } from "@/lib/react-query/queriesAndMutations";
-import { useUserContext } from "@/context/AuthProvider";
 import { z } from "zod";
 import SvgComponent from "@/utils/SvgComponent";
 import TooltipMessage from "@/components/shared/TooltipMessage";
@@ -23,14 +21,12 @@ import CheckoutForm from "./CheckOutForm";
 
 const SignUpForm = () => {
   const stripePromise = loadStripe('pk_test_51QNEM0EXM6E6dbLjiYTG1JCRfT2TAdosgJzd1SdfeiJAcnNoZy16BEUaJPauej6T98bfThimHTOVW3hBxqBUO0D400u9wZfbXQ');
-  const { toast } = useToast()
-  const { checkAuthUser } = useUserContext();
   const { mutateAsync: createUserAccount, isPending: isCreatingUser } = useCreateUserAccount();
   const [formState, setFormState] = useState('sign-up-form');
   const [subsbcriptionData, setSubsbcriptionData] = useState(null);
+  console.log(createUserAccount, subsbcriptionData)
 
   const [planId, setPlanId] = useState('');
-  const navigate = useNavigate();
 
   interface PricingPlan {
     name: string;
