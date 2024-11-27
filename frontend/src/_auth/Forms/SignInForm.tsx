@@ -132,8 +132,8 @@ const SignInForm = () => {
     resolver: zodResolver(validationSchema[state]),
     defaultValues: {
       form_type: state,
-      email: "sushil124maurya@gmail.com",
-      password: "Test@1234",
+      email: "",
+      password: "",
       staySignedIn: 'yes',
       verification_code: '',
       recaptcha_key: '',
