@@ -145,11 +145,11 @@ const SignUpForm = () => {
   const form = useForm<z.infer<typeof signUpValidationSchema>>({
     resolver: zodResolver(signUpValidationSchema), mode: 'all',
     defaultValues: {
-      username: "sushil",
-      firstName: "sushil",
-      lastName: "maurya",
-      email: "sushil@yopmail.com",
-      password: "Test@1234",
+      username: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
     },
   });
 
