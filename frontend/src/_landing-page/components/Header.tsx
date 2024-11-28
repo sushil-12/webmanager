@@ -98,10 +98,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ navLinks, buttons, isVisible, s
                         {buttons.map((button, index) => (
                             <a
                                 key={index}
-                                className={`block px-4 py-3 mb-3 text-xs text-center font-semibold leading-none ${button.type === "primary"
-                                    ? "bg-blue-400 hover:bg-blue-500 text-white rounded"
-                                    : "text-blue-500 hover:text-blue-700 border border-blue-200 hover:border-blue-300 rounded"
-                                    }`}
+                                className={`block px-4 py-3 mb-3 text-xs text-center font-semibold leading-none bg-blue-400 hover:bg-blue-500 text-white rounded`}
                                 href={button.href}
                             >
                                 {button.label}
@@ -191,7 +188,7 @@ const Header: React.FC<HeaderProps> = ({ logo, navLinks, buttons }) => {
                             <a
                                 key={index}
                                 href={button.href}
-                                className={`btn-${button.type === "primary" ? "primary" : "accent"} hover-up-2`}
+                                className={`hover-up-2 block px-4 py-3 mb-3 text-xs text-center font-semibold leading-none bg-blue-400 hover:bg-blue-500 text-white rounded`}
                             >
                                 {button.label}
                             </a>

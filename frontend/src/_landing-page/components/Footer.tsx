@@ -40,7 +40,7 @@ const Footer: React.FC<FooterProps> = ({
                 <div className="flex flex-wrap mb-12 lg:mb-20 -mx-3 text-center lg:text-left">
                     {/* Logo Section */}
                     <div className="w-full lg:w-1/5 px-3 mb-6 lg:mb-0">
-                        <a className="text-xl text-blue-500 items-center gap-2 flex font-semibold leading-none" href={logo.href}>
+                        <a className="text-xl text-blue-500 items-center gap-2 flex font-semibold leading-none justify-center md:justify-start lg:justify-start" href={logo.href}>
                             <img className="h-10" src={logo.src} alt={logo.alt} />
                             ContentLocker
                         </a>

@@ -285,7 +285,7 @@ const SignInForm = () => {
   return (
     <Form {...form}>
       <div className="">
-        <div className="flex align-middle text-center items-center justify-center mb-10">
+        <div className="flex align-middle text-center items-center justify-center mb-10 cursor-pointer" onClick={()=> navigate('/landing-page')}>
           <AppLogo />
         </div>
         <Card

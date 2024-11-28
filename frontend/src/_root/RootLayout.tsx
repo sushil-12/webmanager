@@ -30,7 +30,7 @@ const RootLayout = () => {
     <div className={`w-full md:flex test-${rerender}`} key={`test` + rerender}>
       {/* Sidebar */}
       {isSidebarOpen && (
-        <div className="fixed top-0 w-[280px] left-0 h-screen bg-white text-white shadow-md z-50">
+        <div className="fixed top-0 w-[320px] left-0 h-screen bg-white text-white shadow-md z-50">
           <SidebarWithLogo />
         </div>
       )}
@@ -44,7 +44,7 @@ const RootLayout = () => {
       </button>
 
       {/* Main Content */}
-      <section className={`${isSidebarOpen ? "ml-[280px]" : "ml-0"} w-full`}>
+      <section className={`${isSidebarOpen ? "ml-[320px]" : "ml-0"} w-full`}>
         <Outlet key={outletKey} />
       </section>
     </div>

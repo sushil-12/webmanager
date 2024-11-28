@@ -1,4 +1,5 @@
 import React from 'react';
+
 // Define types for each step
 interface Step {
     number: number;
@@ -25,16 +26,18 @@ interface StepCardProps {
 const StepCard: React.FC<StepCardProps> = ({ number, title, imageSrc, description, delay = '.3s' }) => {
     return (
         <div
-            className="hover-up-5 w-full md:w-1/3 lg:w-1/3 px-3 mb-6"
+            className="hover-up-5 w-full md:w-1/3 lg:w-1/3 px-3 mb-6 min-w-[380px] h-full" // Ensures cards take up equal height
             data-wow-delay={delay}
         >
-            <div className="p-12 bg-white shadow rounded">
+            <div className="p-6 bg-white shadow rounded flex flex-col h-full border border-blue-400">
                 <div className="flex w-12 h-12 mx-auto items-center justify-center text-blue-800 font-bold font-heading bg-blue-200 rounded-full">
                     {number}
                 </div>
                 <img className="h-48 mx-auto my-4" src={imageSrc} alt={title} />
                 <h3 className="mb-2 font-bold font-heading">{title}</h3>
-                <p className="text-sm text-blueGray-400 leading-relaxed">{description}</p>
+                <p className="text-sm text-blueGray-400 leading-relaxed flex-grow">
+                    {description}
+                </p>
             </div>
         </div>
     );
@@ -50,7 +53,7 @@ const HowWeWork: React.FC<HowWeWorkProps> = ({ sectionTitle, sectionDescription,
                             <span>Content Locker </span>
                             <span className="text-blue-500">Headless CMS</span>
                             <br />
-                            <span>for all your buisness needs</span>
+                            <span>for all your business needs</span>
                         </h2>
                     </div>
                     <div className="w-full lg:w-1/2 lg:pl-16">

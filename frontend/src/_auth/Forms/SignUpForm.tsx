@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { signUpValidationSchema } from "@/lib/validation";
 import Loader from "@/components/shared/Loader";
-import { Link} from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import { useCreateUserAccount } from "@/lib/react-query/queriesAndMutations";
 import { z } from "zod";
 import SvgComponent from "@/utils/SvgComponent";
@@ -24,6 +24,7 @@ const SignUpForm = () => {
   const { mutateAsync: createUserAccount, isPending: isCreatingUser } = useCreateUserAccount();
   const [formState, setFormState] = useState('sign-up-form');
   const [subsbcriptionData, setSubsbcriptionData] = useState(null);
+  const navigate =  useNavigate();
   console.log(createUserAccount, subsbcriptionData)
 
   const [planId, setPlanId] = useState('');
@@ -43,7 +44,7 @@ const SignUpForm = () => {
   }
   const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
     return (
-      <div className="w-full md:w-1/2 lg:w-1/3 px-5 min-w-80">
+      <div className="w-full md:w-1/2 lg:w-1/3 px-5 min-w-[450px]">
         <div
           className={`hover-up-5 pt-8 pb-8 px-4 text-center rounded shadow bg-white `}
         >
@@ -51,10 +52,10 @@ const SignUpForm = () => {
           <h3 className="mb-2 text-4xl font-bold font-heading ">{plan.name}</h3>
           <span className="text-4xl font-bold font-heading">{plan.price}</span>
           <p className="mt-2 mb-8">user per month</p>
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center text-left mb-8">
             <ul className="">
               {plan.features.map((feature, index) => (
-                <li key={index} className="flex mb-3">
+                <li key={index} className="flex mb-3 text-left">
                   <svg
                     className="w-6 h-6 mr-2 text-green-500"
                     xmlns="http://www.w3.org/2000/svg"
@@ -107,11 +108,11 @@ const SignUpForm = () => {
       price: "$55.00",
       features: [
         "All features in Basic Plan",
-        "Custom fields with support for images, GIFs, PDFs, and documents",
+        "Custom Fields with File options",
         "Add up to 3 websites",
         "Add and manage up to 3 users",
-        "Share API data with frontend developers",
-        "Customizable permissions for users",
+        "Sharable API's",
+        "Customizable permissions",
       ],
       imageSrc:
         "/agency.svg", // Placeholder image, replace with relevant one
@@ -153,7 +154,7 @@ const SignUpForm = () => {
   return (
     <Form {...form}>
       <div className="">
-        <div className="flex align-middle text-center items-center justify-center mb-10">
+      <div className="flex align-middle text-center items-center justify-center mb-10 cursor-pointer" onClick={()=> navigate('/landing-page')}>
           <AppLogo />
         </div>
         {formState === 'sign-up-form' ? (

@@ -71,7 +71,7 @@ export function SidebarWithLogo() {
   const isActive = (url: string) => pathname.includes(url);
 
   return (
-    <Card placeholder={""} className="h-screen w-full p-4 shadow-xl  ">
+    <Card placeholder={""} className="h-screen w-full p-4 shadow-xl min-w-[300px] ">
       <ConfirmDialog />
       <div
         className="mb-2 flex items-center gap-2 p-2 cursor-pointer"

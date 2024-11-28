@@ -4,7 +4,8 @@ const frontendUrl = process.env.FRONTEND_APP_URL.replace(/\/$/, '');
 
 var originsWhitelist = [
     frontendUrl,
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'https://webmanager-client.vercel.app'
 ];
 
 const corsOptions = {

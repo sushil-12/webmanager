@@ -8,7 +8,7 @@ import "slick-carousel/slick/slick-theme.css";
 import PricingSection from "./components/PricingSection";
 import ContactFormSection from "./components/ContactFormSection";
 import Footer from "./components/Footer";
-
+// import '../landing.css';
 const LandingPage = () => {
   const logo = {
     src: "/assets/content-landing.svg",
@@ -104,7 +104,7 @@ const LandingPage = () => {
         imageSrc:
           "/onboarding.svg", // Placeholder image
         description:
-          "Sign up through the registration page and choose a subscription plan—Basic, Standard, or Premium—tailored to your content management needs.",
+          "Sign up through the registration page and choose a subscription plan Basic, Standard, or Diamond tailored to your content management needs with integrated stripe payments",
       },
       {
         number: 2,
@@ -190,7 +190,7 @@ const LandingPage = () => {
       "Content Control Made Simple and Secure.",
     profession: "Software Engineer",
     contacts: {
-      phone: "(+91) 8219479708",
+      phone: "+918219479708",
       email: "sushil124maurya@gmail.com",
       emailHref: "mailto:sushil124maurya@gmail.com",
     },
@@ -236,10 +236,6 @@ const LandingPage = () => {
       <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css"
-      />
-      <link
-        rel="stylesheet"
-        href="/assets/css/tailwind-built.css?v=2.0"
       />
       <div className="main w-full">
         {/*@ts-ignore*/}
