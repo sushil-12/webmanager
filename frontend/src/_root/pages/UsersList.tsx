@@ -123,7 +123,6 @@ export default function UsersList() {
                                     className="border-primary w-full justify-content-start text-left displayMessage block"
                                     text={'No user Found'}
                                 />
-
                             )}
                         </ul>
                     )}

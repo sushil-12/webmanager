@@ -1,11 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { signUpValidationSchema } from "@/lib/validation";
 import Loader from "@/components/shared/Loader";
-import { Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCreateUserAccount } from "@/lib/react-query/queriesAndMutations";
 import { z } from "zod";
 import SvgComponent from "@/utils/SvgComponent";
@@ -15,19 +21,23 @@ import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { getHeroIcon } from "@/lib/HeroIcon";
 import { useState } from "react";
-import { Elements } from '@stripe/react-stripe-js';
+import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./CheckOutForm";
+import { checkEmail, checkUsername } from "@/lib/appwrite/api";
 
 const SignUpForm = () => {
-  const stripePromise = loadStripe('pk_test_51QNEM0EXM6E6dbLjiYTG1JCRfT2TAdosgJzd1SdfeiJAcnNoZy16BEUaJPauej6T98bfThimHTOVW3hBxqBUO0D400u9wZfbXQ');
-  const { mutateAsync: createUserAccount, isPending: isCreatingUser } = useCreateUserAccount();
-  const [formState, setFormState] = useState('sign-up-form');
+  const stripePromise = loadStripe(
+    "pk_test_51QNEM0EXM6E6dbLjiYTG1JCRfT2TAdosgJzd1SdfeiJAcnNoZy16BEUaJPauej6T98bfThimHTOVW3hBxqBUO0D400u9wZfbXQ"
+  );
+  const { mutateAsync: createUserAccount, isPending: isCreatingUser } =
+    useCreateUserAccount();
+  const [formState, setFormState] = useState("sign-up-form");
   const [subsbcriptionData, setSubsbcriptionData] = useState(null);
-  const navigate =  useNavigate();
-  console.log(createUserAccount, subsbcriptionData)
+  const navigate = useNavigate();
+  console.log(createUserAccount, subsbcriptionData);
 
-  const [planId, setPlanId] = useState('');
+  const [planId, setPlanId] = useState("");
 
   interface PricingPlan {
     name: string;
@@ -48,7 +58,11 @@ const SignUpForm = () => {
         <div
           className={`hover-up-5 pt-8 pb-8 px-4 text-center rounded shadow bg-white `}
         >
-          <img className="h-20 mb-6 mx-auto" src={plan.imageSrc} alt={plan.name} />
+          <img
+            className="h-20 mb-6 mx-auto"
+            src={plan.imageSrc}
+            alt={plan.name}
+          />
           <h3 className="mb-2 text-4xl font-bold font-heading ">{plan.name}</h3>
           <span className="text-4xl font-bold font-heading">{plan.price}</span>
           <p className="mt-2 mb-8">user per month</p>
@@ -76,10 +90,15 @@ const SignUpForm = () => {
             </ul>
           </div>
           <div>
-            <button className="block sm:inline-block py-4 px-6 text-xs text-white  text-center font-semibold leading-none bg-black hover:bg-primary-500 hover:text-white rounded" onClick={() => { setPlanId(plan?.productId); setFormState('payment_form') }}>
+            <button
+              className="block sm:inline-block py-4 px-6 text-xs text-white  text-center font-semibold leading-none bg-black hover:bg-primary-500 hover:text-white rounded"
+              onClick={() => {
+                setPlanId(plan?.productId);
+                setFormState("payment_form");
+              }}
+            >
               Select Plan
             </button>
-
           </div>
         </div>
       </div>
@@ -97,11 +116,10 @@ const SignUpForm = () => {
         "Custom fields",
         "Manage SEO Schema",
       ],
-      imageSrc:
-        "/startup.svg", // Placeholder image, replace with relevant one
+      imageSrc: "/startup.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-white",
       buttonText: "Choose Basic Plan",
-      productId: 'prod_RFjsqoIg4jXUjZ',
+      productId: "prod_RFjsqoIg4jXUjZ",
     },
     {
       name: "Standard Plan",
@@ -114,11 +132,10 @@ const SignUpForm = () => {
         "Sharable API's",
         "Customizable permissions",
       ],
-      imageSrc:
-        "/agency.svg", // Placeholder image, replace with relevant one
+      imageSrc: "/agency.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-blue-500",
       buttonText: "Choose Standard Plan",
-      productId: 'prod_RFjsqoIg4jXUjZ',
+      productId: "prod_RFjsqoIg4jXUjZ",
     },
     {
       name: "Premium Plan",
@@ -131,16 +148,16 @@ const SignUpForm = () => {
         "Custom support feature",
         "In-app chat feature with push notifications",
       ],
-      imageSrc:
-        "/enterprise.svg", // Placeholder image, replace with relevant one
+      imageSrc: "/enterprise.svg", // Placeholder image, replace with relevant one
       backgroundColor: "bg-white",
       buttonText: "Choose Premium Plan",
-      productId: 'prod_RFjsqoIg4jXUjZ'
+      productId: "prod_RFjsqoIg4jXUjZ",
     },
   ];
-  
+
   const form = useForm<z.infer<typeof signUpValidationSchema>>({
-    resolver: zodResolver(signUpValidationSchema), mode: 'all',
+    resolver: zodResolver(signUpValidationSchema),
+    mode: "all",
     defaultValues: {
       username: "",
       firstName: "",
@@ -150,14 +167,58 @@ const SignUpForm = () => {
     },
   });
 
+  const checkEmailExists = async () => {
+    const email = form.getValues("email");
+    if (!email) return;
+    try {
+      const result = await checkEmail(email);
+      console.log(result?.data?.data?.message, result);
+
+      if (result?.data?.data?.status === "error") {
+        // Handle error response
+        console.error("Error:", result?.data?.data?.message);
+        return;
+      } else {
+        if (!result?.data?.data?.isEmailAvailable) {
+          // Set error message if email is not available
+          console.log(result?.data?.data?.message);
+          form.setError("email", { message: result?.data?.data?.message });
+          console.log(form.formState, "FORMSTATE");
+        } else {
+          // Clear error if email is available
+          form.clearErrors("email");
+        }
+      }
+    } catch (error) {
+      // Handle API call error
+      console.error("API call error:", error);
+    }
+  };
+
+  const checkUsernameExists = async () => {
+    const usernameValue = form.getValues("username");
+    const result = await checkUsername(usernameValue);
+    if (!result?.data?.data?.isUsernameAvailable) {
+      // Set error message if email is not available
+      console.log(result?.data?.data?.message);
+      form.setError("username", { message: result?.data?.data?.message });
+      console.log(form.formState, "FORMSTATE");
+    } else {
+      // Clear error if email is available
+      form.clearErrors("email");
+    }
+  };
 
   return (
     <Form {...form}>
       <div className="">
-      <div className="flex align-middle text-center items-center justify-center mb-10 cursor-pointer" onClick={()=> navigate('/landing-page')}>
+        <div
+          className="flex align-middle text-center items-center justify-center mb-10 cursor-pointer"
+          onClick={() => navigate("/landing-page")}
+        >
           <AppLogo />
         </div>
-        {formState === 'sign-up-form' ? (
+        {formState === "sign-up-form" ? (
           <Card
             className=""
             pt={{
@@ -168,27 +229,44 @@ const SignUpForm = () => {
             }}
           >
             <form
-              onSubmit={() => setFormState('select_pricing_plan')}
+              onSubmit={() => setFormState("select_pricing_plan")}
               className="space-y-1 flex flex-col w-full mt-4 signup_form_container"
             >
               <div className="flex flex-col gap-5">
-                <h1 className="text-main-bg-900 card_headings inter-regular-32 mb-5">Sign Up</h1>
+                <h1 className="text-main-bg-900 card_headings inter-regular-32 mb-5">
+                  Sign Up
+                </h1>
                 {/* Username Field */}
                 <FormField
                   control={form.control}
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <label className="form_labels inter-regular-14">Username</label>
+                      <label className="form_labels inter-regular-14">
+                        Username
+                      </label>
                       <FormControl>
-                        <div className={`p-inputgroup flex-1 inter-regular-14 form_labels`}>
-                          <span className={`p-inputgroup-addon bg-white ${form.getFieldState(field.name).error ? 'border-error' : ''}`}>
-                            {getHeroIcon('UserIcon')}
+                        <div
+                          className={`p-inputgroup flex-1 inter-regular-14 form_labels`}
+                        >
+                          <span
+                            className={`p-inputgroup-addon bg-white ${
+                              form.getFieldState(field.name).error
+                                ? "border-error"
+                                : ""
+                            }`}
+                          >
+                            {getHeroIcon("UserIcon")}
                           </span>
                           <InputText
-                            className={`${form.getFieldState(field.name).error ? 'border-error' : ''}`}
+                            className={`${
+                              form.getFieldState(field.name).error
+                                ? "border-error"
+                                : ""
+                            }`}
                             placeholder="Enter your username"
                             {...field}
+                            onBlur={() => checkUsernameExists()}
                           />
                         </div>
                       </FormControl>
@@ -203,17 +281,32 @@ const SignUpForm = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <label className="form_labels inter-regular-14">Email</label>
+                      <label className="form_labels inter-regular-14">
+                        Email
+                      </label>
                       <FormControl>
-                        <div className={`p-inputgroup flex-1 inter-regular-14 form_labels`}>
-                          <span className={`p-inputgroup-addon bg-white ${form.getFieldState(field.name).error ? 'border-error' : ''}`}>
+                        <div
+                          className={`p-inputgroup flex-1 inter-regular-14 form_labels`}
+                        >
+                          <span
+                            className={`p-inputgroup-addon bg-white ${
+                              form.getFieldState(field.name).error
+                                ? "border-error"
+                                : ""
+                            }`}
+                          >
                             <SvgComponent className="" svgName="mail" />
                           </span>
                           {/* @ts-ignore */}
                           <InputText
-                            className={`${form.getFieldState(field.name).error ? 'border-error' : ''}`}
+                            className={`${
+                              form.getFieldState(field.name).error
+                                ? "border-error"
+                                : ""
+                            }`}
                             placeholder="Your Email Address"
                             {...field}
+                            onBlur={() => checkEmailExists()}
                           />
                         </div>
                       </FormControl>
@@ -229,9 +322,15 @@ const SignUpForm = () => {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <label className="form_labels inter-regular-14">First Name</label>
+                        <label className="form_labels inter-regular-14">
+                          First Name
+                        </label>
                         <FormControl>
-                          <Input className="shad-input" placeholder="Enter First Name" {...field} />
+                          <Input
+                            className="shad-input"
+                            placeholder="Enter First Name"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage className="shad-form_message" />
                       </FormItem>
@@ -242,9 +341,15 @@ const SignUpForm = () => {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <label className="form_labels inter-regular-14">Last Name</label>
+                        <label className="form_labels inter-regular-14">
+                          Last Name
+                        </label>
                         <FormControl>
-                          <Input className="shad-input" placeholder="Enter Last Name" {...field} />
+                          <Input
+                            className="shad-input"
+                            placeholder="Enter Last Name"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage className="shad-form_message" />
                       </FormItem>
@@ -291,12 +396,15 @@ const SignUpForm = () => {
             </form>
             <p className="text-small-regular text-black text-center mt-2">
               Already have an account?{" "}
-              <Link to="/login" className="text-primary-500 text-small-semibold ml-1">
+              <Link
+                to="/login"
+                className="text-primary-500 text-small-semibold ml-1"
+              >
                 Log in
               </Link>
             </p>
           </Card>
-        ) : formState === 'select_pricing_plan' ? (
+        ) : formState === "select_pricing_plan" ? (
           <>
             <div className="flex align-middle text-center items-center justify-center mb-10">
               {pricingPlans.map((plan, index) => (
@@ -304,18 +412,19 @@ const SignUpForm = () => {
               ))}
             </div>
           </>
-        ) : formState === 'payment_form' ? (
+        ) : formState === "payment_form" ? (
           <>
             <div className="signup_form_container min-w-[550px]">
               <Elements stripe={stripePromise}>
-                <CheckoutForm productId={planId} setSubsbcriptionData={setSubsbcriptionData} formValues={form.getValues()}  />
+                <CheckoutForm
+                  productId={planId}
+                  setSubsbcriptionData={setSubsbcriptionData}
+                  formValues={form.getValues()}
+                />
               </Elements>
             </div>
           </>
         ) : null}
-
-
-
       </div>
     </Form>
   );

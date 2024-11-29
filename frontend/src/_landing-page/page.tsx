@@ -26,8 +26,7 @@ const LandingPage = () => {
   const heroData = {
     title: "Your Content, Your Way",
     subtitle: "Streamlined with Headless CMS",
-    backgroundImage:
-      "/intersect.svg",
+    backgroundImage: "/intersect.svg",
     features: [
       {
         label: "Annual Partners",
@@ -63,7 +62,7 @@ const LandingPage = () => {
       {
         title: "Best & Affordable Headless CMS",
         description:
-          "A flexible and cost-effective solution for managing your content",
+          "A flexible, cost-effective, and scalable solution for managing your content seamlessly—empowering businesses to create, organize, and deliver exceptional digital experiences with ease",
         icon: getHeroIcon("UserGroupIcon"),
       },
       {
@@ -85,12 +84,9 @@ const LandingPage = () => {
         icon: getHeroIcon("UserGroupIcon"),
       },
     ],
-    imageSrc:
-      "/contentlocker.png",
-    leftBlobSrc:
-      "/blob-tear.svg",
-    rightBlobSrc:
-      "/blob-tear.svg",
+    imageSrc: "/contentlocker.svg",
+    leftBlobSrc: "/blob-tear.svg",
+    rightBlobSrc: "/blob-tear.svg",
   };
 
   const howWeWorkData = {
@@ -101,30 +97,27 @@ const LandingPage = () => {
       {
         number: 1,
         title: "Seamless Onboarding & Plan Selection",
-        imageSrc:
-          "/onboarding.svg", // Placeholder image
+        imageSrc: "/onboarding.svg", 
         description:
           "Sign up through the registration page and choose a subscription plan Basic, Standard, or Diamond tailored to your content management needs with integrated stripe payments",
       },
       {
         number: 2,
         title: "Powerful Content & API Management",
-        imageSrc:
-          "/api.svg", // Placeholder image
+        imageSrc: "/api.svg", 
         description:
           "Effortlessly add websites, manage posts, pages, and media with custom fields and SEO schemas. Utilize API endpoints for seamless integration into any front-end platform.",
       },
       {
         number: 3,
         title: "Advanced Tools & Collaboration",
-        imageSrc:
-          "/tools.svg", // Placeholder image
+        imageSrc: "/tools.svg", 
         description:
           "Leverage Swagger UI to explore and test APIs. Unlock premium features like in-app chat, push notifications, unlimited users, and priority support for collaboration and growth.",
       },
     ],
   };
-  
+
   const pricingPlans = [
     {
       name: "Basic Plan",
@@ -137,8 +130,7 @@ const LandingPage = () => {
         "Custom fields",
         "Manage SEO Schema",
       ],
-      imageSrc:
-        "/startup.svg", // Placeholder image, replace with relevant one
+      imageSrc: "/startup.svg",
       backgroundColor: "bg-white",
       buttonText: "Choose Basic Plan",
       buttonLink: "/sign-up",
@@ -154,8 +146,7 @@ const LandingPage = () => {
         "Share API data with frontend developers",
         "Customizable permissions for users",
       ],
-      imageSrc:
-        "/agency.svg", // Placeholder image, replace with relevant one
+      imageSrc: "/agency.svg", 
       backgroundColor: "bg-blue-500",
       buttonText: "Choose Standard Plan",
       buttonLink: "/sign-up",
@@ -171,14 +162,12 @@ const LandingPage = () => {
         "Unlimited storage",
         "In-app chat feature with notification",
       ],
-      imageSrc:
-        "/enterprise.svg", // Placeholder image, replace with relevant one
+      imageSrc: "/enterprise.svg", 
       backgroundColor: "bg-white",
       buttonText: "Choose Premium Plan",
       buttonLink: "/sign-up",
     },
   ];
-  
 
   const footerData = {
     logo: {
@@ -186,8 +175,7 @@ const LandingPage = () => {
       href: "index.html",
       alt: "Monst Logo",
     },
-    description:
-      "Content Control Made Simple and Secure.",
+    description: "Content Control Made Simple and Secure.",
     profession: "Software Engineer",
     contacts: {
       phone: "+918219479708",
@@ -196,20 +184,17 @@ const LandingPage = () => {
     },
     socialLinks: [
       {
-        iconSrc:
-          "/facebook-blue.svg",
+        iconSrc: "/facebook-blue.svg",
         href: "https://facebook.com",
         alt: "Facebook",
       },
       {
-        iconSrc:
-          "/twitter-blue.svg",
+        iconSrc: "/twitter-blue.svg",
         href: "https://twitter.com",
         alt: "Twitter",
       },
       {
-        iconSrc:
-          "/instagram-blue.svg",
+        iconSrc: "/instagram-blue.svg",
         href: "https://instagram.com",
         alt: "Instagram",
       },

@@ -12,7 +12,7 @@ const PostOperation = () => {
   const { post_type, post_id, domain } = useParams();
   const { setCurrentDomain } = useUserContext();
   // @ts-ignore
-  setCurrentDomain(atob(domain))
+  setCurrentDomain((domain))
   const [post, setPost] = useState<PostModel | null>(null);
   const { mutateAsync: getPostByID, isPending: isPostLoading } = usegetPostbyID();
 

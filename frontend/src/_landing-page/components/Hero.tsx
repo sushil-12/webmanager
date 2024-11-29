@@ -57,12 +57,12 @@ const Hero: React.FC<HeroProps> = ({ title, subtitle, backgroundImage, features,
           alt="Background pattern"
         />
         <div
-          className="absolute rounded-md"
+          className="absolute"
           style={{ top: "9%", left: "14%", width: "72%", height: "66%" }}
         >
           <img
-            className="jump wow animate__animated animate rounded-lg"
-            src="/content-locker.gif"
+            className="jump wow animate__animated animate__fadeIn rounded-lg"
+            src="/demo-dashboard.png"
             alt="Dashboard image"
           />
         </div>

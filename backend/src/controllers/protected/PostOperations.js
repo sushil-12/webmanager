@@ -15,6 +15,7 @@ const path = require('path');
 const { callDynamicFunction } = require("../../plugins/DynamicLoader");
 const { logger } = require("../../logger");
 const Sidebar = require("../../models/Sidebar");
+const Subscription = require("../../models/Subscription");
 const fs = require('fs').promises;
 
 const canEditPermission = async (req, domainHeader) => {
@@ -470,16 +471,16 @@ const getAllPostTypesAndPages = async (req, res) => {
                 }
             });
 
-            console.log(sidebar[0].menus, business_name, "WEb")
+            console.log(sidebar[0]?.menus, business_name, "WEb")
 
-            posts = sidebar[0].menus
+            posts = sidebar[0]?.menus
                 .filter(item => item.type === 'custom_post')
             // Selecting only the 'label' field
         }
         console.log(posts)
 
         // Transform the posts array if needed
-        const transformedPosts = posts.map(item => ({
+        const transformedPosts = posts?.map(item => ({
             value: type === 'page' ? item._id : createSlug(item.label),
             label: item.label || item.title,
         }));
@@ -590,6 +591,44 @@ const listFiles = async (req, res) => {
 }
 
 
+const getDashboardData = async (req, res) => {
+    try {
+        // Fetch Aggregated Data
+        const [userCount, postCount, pageCount, activePlan] = await Promise.all([
+            User.countDocuments(), // Count number of users
+            Post.countDocuments({  post_type: 'post' }), // Count posts
+            Post.countDocuments({  post_type: 'page' }), // Count pages
+            Subscription.findOne({  status: 'active' }).select('plan next_billing_date'),
+        ]);
+
+        // Prepare response data
+        const dashboardData = {
+            users: {
+                count: userCount,
+            },
+            posts: {
+                count: postCount,
+            },
+            pages: {
+                count: pageCount,
+            },
+            subscription: activePlan
+                ? {
+                      planName: activePlan.plan,
+                      nextBillingDate: activePlan.next_billing_date,
+                  }
+                : null,
+        };
+
+        // Send response
+        ResponseHandler.success(res, dashboardData, 200);
+    } catch (error) {
+        ErrorHandler.handleError(error, res);
+    }
+};
+
+
+
 module.exports = {
-    createEditPost, getPostById, getAllPosts, listFiles, deletePost, quickEditPost, getAllPostTypesAndPages
+    createEditPost, getPostById, getAllPosts, listFiles, deletePost, quickEditPost, getAllPostTypesAndPages, getDashboardData
 };

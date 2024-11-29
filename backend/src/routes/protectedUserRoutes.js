@@ -3,7 +3,7 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const { getProfile, checkPassword, sendOtpVerificationOnEmail, logout, saveSidebarData, getSidebarData, verifyEmail, cancelEmailChangeRequest, createOrEditUser, getUserProfile, getAllUser, deleteUser } = require('../controllers/protected/UserController');
 const { uploadMediaToLibrary, deleteMedia } = require('../controllers/common/FileUploader');
 const { getAllMedia, editMedia, getAllImages } = require('../controllers/common/MediaOperations');
-const { createEditPost, getAllPosts, getPostById, deletePost, quickEditPost, getAllPostTypesAndPages, listFiles } = require('../controllers/protected/PostOperations');
+const { createEditPost, getAllPosts, getPostById, deletePost, quickEditPost, getAllPostTypesAndPages, listFiles, getDashboardData } = require('../controllers/protected/PostOperations');
 const { createEditCategory, getAllCategories, getCategoryById } = require('../controllers/protected/CategoryController');
 const { createEditCustomField, getAllCustomField, getCustomFieldById, deleteCustomField } = require('../controllers/protected/CustomFieldTemplateController');
 const { createOrEditWebsite, listWebsites, getWebsite, listWebsitesWithMenus, deleteWebsite } = require('../controllers/protected/WebsiteController');
@@ -49,6 +49,8 @@ router.delete('/delete/get-custom-field/:custom_field_id', deleteCustomField);
 
 router.post('/create-edit-user', createOrEditUser);
 router.get('/get-user-profile/:user_id', getUserProfile);
+router.get('/get-dashboard-data', getDashboardData);
+
 
 router.get('/get-user-listings', getAllUser);
 router.delete('/delete/user/:user_id', deleteUser);

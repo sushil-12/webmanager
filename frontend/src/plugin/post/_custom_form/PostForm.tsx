@@ -165,6 +165,7 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
         // @ts-ignore
         values.formData = postFormData;
         const createOrEditPostResponse = await createOrEditPost(values);
+        
         if (!createOrEditPostResponse) {
             return toast({ variant: "destructive", description: messages.update_error, duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> })
         }
@@ -173,7 +174,8 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
             setCurrentPost(updatedPost);
             form.setValue('id', updatedPost?.id);
             const message = createOrEditPostResponse?.code === status.created ? messages.item_updated : messages.item_created;
-            navigate('/' + currentDomain + '/posts/' + post_type)
+            // @ts-ignore
+            navigate('/' + btoa(localStorage.getItem('domain')) + '/posts/' + post_type)
             return toast({ variant: 'default', description: message, duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="check_toaster" /> });
         } else {
             return toast({ variant: 'default', description: messages.default_error, duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> });
