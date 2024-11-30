@@ -1,3 +1,4 @@
+import { getHeroIcon } from "@/lib/HeroIcon";
 import React, { useEffect, useState } from "react";
 
 interface Field {
@@ -107,10 +108,10 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
         : [singleNestedData];
 
       return (
-        <div className="mb-4 " key={field.name}>
-          <h3 className="font-semibold text-lg mb-2">{field.label}</h3>
+        <div className={`${field.field_type === "group" ? 'group_field': ''} mb-4`} key={field.name}>
+          <h3 className="font-semibold text-lg mb-2 capitalize">{field.label}</h3>
           {nestedDataArray.map((nestedData: any, index: number) => (
-            <div key={index} className="mb-2">
+            <div key={index} className=" flex gap-1 w-full relative mb-8">
               {field.nestedFields?.map((nestedField) => {
                 const handleNestedChange = (value: any) => {
                   handleInputChange(
@@ -180,9 +181,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 <button
                   type="button"
                   onClick={() => removeGroupField(field.name, index)}
-                  className="text-red-500 hover:underline"
+                  className="text-red-500 absolute -top-3 right-0 flex gap-2 hover:underline justify-end text-right  my-3"
                 >
-                  Remove {field.label}
+                  {getHeroIcon('TrashIcon')} 
                 </button>
               )}
             </div>
@@ -191,7 +192,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             <button
               type="button"
               onClick={() => addGroupField(field)}
-              className="text-blue-500 hover:underline"
+              className="text-blue-500 float-end hover:underline"
             >
               Add another {field.label}
             </button>

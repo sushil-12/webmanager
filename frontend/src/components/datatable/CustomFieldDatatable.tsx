@@ -73,7 +73,15 @@ const CustomFieldDatatable = () => {
     };
 
     const postTypeTemplate = (rowData: any) => {
-        return <p className='text-sm font-semibold cap'>{rowData.item_type === 'page' ? rowData.postTitle : rowData.post_type}</p>;
+        return (
+            <p className='text-sm font-semibold cap'>
+                {new Date(rowData.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                })}
+            </p>
+        );
     };
     const itemTypeTemplate = (rowData: any) => {
         return <h6 className='text-sm font-semibold capitalize'>{formatString(rowData.item_type)} </h6>;
@@ -93,7 +101,7 @@ const CustomFieldDatatable = () => {
                 <button className="rounded-md border border-primary-500 text-primary-500 py-2 px-4" onClick={() => handleEditData(rowData)}>
                     <div className="flex items-center gap-2">
                         <SvgComponent className='' svgName='edit' />
-                        <span className='text-xs'> Edit</span>
+                        <span className='text-xs'>Edit</span>
                     </div>
                 </button>
                 <button className="border border-primary-500 rounded-md text-error  px-4" onClick={() => confirmDeleteWebsite(rowData._id)} >
@@ -105,6 +113,23 @@ const CustomFieldDatatable = () => {
             </div>
         )
     }
+    const headerTemplate = () => {
+        return (
+          <div className={`flex items-center justify-between mb-6`}>
+            <h1 className="page-innertitles">Manage Custom Field</h1>
+            <button
+              onClick={() => {
+                setVisible(false);
+              }}
+            >
+              <SvgComponent
+                className="cursor-pointer float-right"
+                svgName="close"
+              />
+            </button>
+          </div>
+        );
+      };
 
     return (
         <>
@@ -119,20 +144,19 @@ const CustomFieldDatatable = () => {
 
                 </div>
                 <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto overflow-x-hidden">
-                    <Dialog draggable={false} header="Add/Edit Custom Field" visible={visible} style={{ width: '70vw' }} onHide={() => setVisible(false)}>
+                    <Dialog draggable={false} header={headerTemplate} closable={false} visible={visible} style={{ width: '70vw' }} onHide={() => setVisible(false)}>
                         <CustomFieldForm setVisible={setVisible} selectedCustomField={selectedCustomField} />
-
                     </Dialog>
                     {isCustomFieldLoading ? (<SkeletonTable rowCount={5} />) : (
                         <DataTable
                             metaKeySelection={false}
                             value={customFields}
                             tableStyle={{ minWidth: '40rem' }}
-                            className="w-full p-8"
+                            className="w-full p-8 cursor-pointer post_data_table"
                         >
                             <Column expander field="label" header="Template" body={titleTemplate} className=" font-semibold"><Skeleton width="100%" height="1.5rem" /></Column>
                             <Column expander field="item_type" header="Item Type" body={itemTypeTemplate} className=""><Skeleton width="100%" height="1.5rem" /></Column>
-                            <Column expander field="post_type" header="Title" body={postTypeTemplate} className=""><Skeleton width="100%" height="1.5rem" /></Column>
+                            <Column expander field="createdAt" header="Creation Date" body={postTypeTemplate} className=""><Skeleton width="100%" height="1.5rem" /></Column>
                             <Column field="customFieldsId" header="Actions" body={actionTemplate} className=""><Skeleton width="100%" height="1.5rem" /> </Column>
                         </DataTable >)}
 

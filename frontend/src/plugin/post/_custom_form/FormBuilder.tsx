@@ -1,5 +1,7 @@
 import { getHeroIcon } from '@/lib/HeroIcon';
-import React, { useState, ChangeEvent } from 'react';
+import { createSlug } from '@/lib/utils';
+import React, { useState } from 'react';
+import { Accordion, AccordionHeader, AccordionBody } from "@material-tailwind/react";
 
 interface Field {
   field_type: string;
@@ -117,33 +119,34 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
 
   return (
     <div className="border rounded-lg p-4 shadow-md bg-gray-50">
-      <h1 className="font-bold text-lg text-gray-800 mb-4">Custom Fields</h1>
-
-      <div className="flex gap-2 flex-wrap mb-6">
-        <button
-          onClick={() => addField('text')}
-          className="px-3 py-2 border border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
-        >
-          Add Text Field
-        </button>
-        <button
-          onClick={() => addField('select')}
-          className="px-3 py-2 border border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
-        >
-          Add Select Field
-        </button>
-        <button
-          onClick={() => addField('checkbox')}
-          className="px-3 py-2 border border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
-        >
-          Add Checkbox Field
-        </button>
-        <button
-          onClick={() => addField('group')}
-          className="px-3 py-2 border border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
-        >
-          Add Field Group (Nested)
-        </button>
+      <div className="flex gap-2 flex-wrap justify-between mb-6">
+        <h1 className="font-bold text-lg text-gray-800 mb-4">Custom Fields</h1>
+        <div className="buttons flex gap-4">
+          <button
+            onClick={() => addField('text')}
+            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+          >
+            {getHeroIcon('PlusCircleIcon')} Text Field
+          </button>
+          <button
+            onClick={() => addField('select')}
+            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+          >
+            {getHeroIcon('PlusCircleIcon')} Select Field
+          </button>
+          <button
+            onClick={() => addField('checkbox')}
+            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+          >
+            {getHeroIcon('PlusCircleIcon')} Checkbox Field
+          </button>
+          <button
+            onClick={() => addField('group')}
+            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+          >
+            {getHeroIcon('PlusCircleIcon')} Field Group (Nested)
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -206,161 +209,215 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
   onOptionChange,
 }) => {
   return (
-    <div className="p-4 bg-white shadow-sm rounded-lg border border-gray-200 space-y-3">
-      <div className="flex justify-between items-center">
-        <h3 className="font-medium text-gray-800 capitalize">{field.field_type} Field</h3>
-        <button
-          onClick={() => onRemoveField(index, parentIndex)}
-          className="text-red-500 hover:text-red-600 text-sm"
-        >
-          {getHeroIcon('MinusCircleIcon')}
-        </button>
-      </div>
+    <div className={`${field.field_type == 'group' ? 'group-custom-field' : 'group-normal-field'}`}>
 
-      <div className={`flex gap-4 ${field.field_type === 'group' ? 'flex-col': ' items-center '}`}>
-        <div className="flex gap-5">
-          <label className="block">
-            <span className="text-sm font-medium text-gray-600">Label:</span>
-            <input
-              type="text"
-              value={field.label}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onFieldChange(index, 'label', e.target.value, parentIndex)
-              }
-              className="mt-1 p-2 block text-sm w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
-            />
-          </label>
+      {field.field_type === 'group' && (
+        <div>
 
-          <label className="block">
-            <span className="text-sm font-medium text-gray-600">Name:</span>
-            <input
-              type="text"
-              value={field.name}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onFieldChange(index, 'name', e.target.value, parentIndex)
-              }
-              className="mt-1 p-2 block text-sm  w-full border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
-            />
-          </label>
-
-
-
-          {field.field_type === 'select' && (
-            <div className="rounded-md ">
-              <div className="flex items-center justify-between gap-2">
-                <h4 className="text-gray-700 text-sm font-semibold">Options</h4>
+          <Accordion placeholder={''} open={true}>
+            <AccordionHeader placeholder={''}
+              // onClick={() => toggleAccordion("customFields")}
+              className="text-xl font-bold bg-primary-500 text-white px-4 rounded-md flex flex-col items-left group-header"
+            >
+              <div className="flex w-full justify-between">
+              <h3 className="text-lg font-semibold text-white capitalize ">{field.field_type} Field</h3>
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onAddOption(index, parentIndex); // Add a new empty option
-                  }}
-                  className="p-0 text-primary-500 text-sm rounded-md mr-8"
+                  onClick={() => onRemoveField(index, parentIndex)}
+                  className="text-white transition-colors text-sm flex gap-4 "
                 >
-                  {getHeroIcon('PlusIcon')}
+                  {getHeroIcon('MinusCircleIcon')} Delete Field
                 </button>
               </div>
+              <div className="flex justify-start items-center gap-4 align-middle">
+                <label className=" items-center gap-4 w-max">
+                  <span className="text-sm font-medium text-white w-max">Edit Group Label</span>
+                  <input
+                    type="text"
+                    value={field.label}
+                    onChange={(e) => onFieldChange(index, 'label', e.target.value, parentIndex)}
+                    className="mt-2 p-3 block text-sm text-black w-max border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </label>
+                <label className="hidden">
+                  <span className="hidden text-sm font-medium text-white">Name:</span>
+                  <input
+                    type="text"
+                    value={createSlug(field.label, '_')}
+                    onChange={(e) => onFieldChange(index, 'name', e.target.value, parentIndex)}
+                    className="mt-2  p-3 hidden text-sm w-full border text-black  border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </label>
+                <div className="flex items-center gap-6 mt-6">
+                  {!isNestedField && (
+                    <label className="flex items-center space-x-2 w-max">
+                      <input
+                        type="checkbox"
+                        checked={field.repeatable}
+                        onChange={(e) => onFieldChange(index, 'repeatable', e.target.checked, parentIndex)}
+                        className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-white">Mark as Repeatable</span>
+                    </label>
+                  )}
 
-              <div className="space-y-2">
-                {field.options.map((option, optIndex) => (
-                  <div className='flex gap-2'>
+                  <label className="flex items-center space-x-2 w-max mr-2">
                     <input
-                      key={optIndex}
-                      type="text"
-                      value={option}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        onOptionChange(index, optIndex, e.target.value, parentIndex)
-                      }
-                      className="mt-1 p-2 block text-sm w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mb-2"
+                      type="checkbox"
+                      checked={field.required}
+                      onChange={(e) => onFieldChange(index, 'required', e.target.checked, parentIndex)}
+                      className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
                     />
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onRemoveOption(index, optIndex, parentIndex);
-                      }}
-                      className="text-red-500 hover:text-red-600 transition-all"
-                      title="Remove this option"
-                    >
-                      {getHeroIcon('MinusIcon')}
-                    </button>
-                  </div>
+                    <span className="text-sm text-white">Mark as Required</span>
+                  </label>
+                </div>
+                <div className="flex gap-4 mt-6">
+                  <button
+                    onClick={() => onAddField('text', index)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md flex gap-2 hover:bg-green-700 transition duration-200 text-sm"
+                  >
+                    {getHeroIcon('PlusCircleIcon')}Text Field
+                  </button>
+                  <button
+                    onClick={() => onAddField('select', index)}
+                    className="px-4 py-2 bg-red-900 text-white rounded-md flex gap-2 hover:bg-red-700 transition duration-200 text-sm"
+                  >
+                    {getHeroIcon('PlusCircleIcon')} Select Field
+                  </button>
+                  <button
+                    onClick={() => onAddField('checkbox', index)}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-md flex gap-2 hover:bg-yellow-700 transition duration-200 text-sm"
+                  >
+                    {getHeroIcon('PlusCircleIcon')} Checkbox Field
+                  </button>
+                </div>
+              </div>
+            </AccordionHeader>
+            <AccordionBody>
+              <div className="mt-6 space-y-6 ">
+                {field.nestedFields?.map((nestedField, nestedIndex) => (
+                  <FieldComponent
+                    isNestedField={true}
+                    key={nestedIndex}
+                    field={nestedField}
+                    index={nestedIndex}
+                    parentIndex={index}
+                    onFieldChange={onFieldChange}
+                    onRemoveField={onRemoveField}
+                    onAddField={onAddField}
+                    onAddOption={onAddOption}
+                    onRemoveOption={onRemoveOption}
+                    onOptionChange={onOptionChange}
+                  />
                 ))}
               </div>
+            </AccordionBody>
+          </Accordion>
 
+
+        </div>
+      )}
+
+      {field.field_type !== 'group' && (
+        <div className='group-normal'>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-primary-500 capitalize ">{field.field_type} Field</h3>
+            <button
+              onClick={() => onRemoveField(index, parentIndex)}
+              className="text-red-600 hover:text-red-700 transition-colors text-sm"
+            >
+              {getHeroIcon('MinusCircleIcon')}
+            </button>
+          </div>
+          <div className="flex gap-6 flex-col sm:flex-row">
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-8">
+              <label className="block flex-1">
+                <span className="text-sm font-medium text-black">Label:</span>
+                <input
+                  type="text"
+                  value={field.label}
+                  onChange={(e) => onFieldChange(index, 'label', e.target.value, parentIndex)}
+                  className="mt-2 p-3 block text-sm w-full border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                />
+              </label>
+
+              <label className=" flex-1 hidden">
+                <span className="text-sm font-medium text-black">Name:</span>
+                <input
+                  type="text"
+                  value={createSlug(field.label, '_')}
+                  onChange={(e) => onFieldChange(index, 'name', e.target.value, parentIndex)}
+                  className="mt-2 p-3 block text-sm w-full border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                />
+              </label>
             </div>
-          )}
 
-          <div className="flex items-center gap-4 mt-5">
-            {!isNestedField && (
-              <label className="flex items-center">
+            {field.field_type === 'select' && (
+              <div className="rounded-md mt-6">
+                <div className="flex items-center justify-between gap-4">
+                  <h4 className="text-gray-700 text-sm font-semibold">Options</h4>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onAddOption(index, parentIndex);
+                    }}
+                    className="text-primary-500 hover:text-primary-600 transition-all p-2 text-sm rounded-md"
+                  >
+                    {getHeroIcon('PlusIcon')}
+                  </button>
+                </div>
+
+                <div className="space-y-3 mt-4">
+                  {field.options.map((option, optIndex) => (
+                    <div className="flex items-center gap-4" key={optIndex}>
+                      <input
+                        type="text"
+                        value={option}
+                        onChange={(e) => onOptionChange(index, optIndex, e.target.value, parentIndex)}
+                        className="mt-2 p-3 block text-sm w-full border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onRemoveOption(index, optIndex, parentIndex);
+                        }}
+                        className="text-red-500 hover:text-red-600 transition-all p-2"
+                        title="Remove this option"
+                      >
+                        {getHeroIcon('MinusIcon')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="flex items-center gap-6 mt-6">
+              {!isNestedField && (
+                <label className="flex items-center space-x-2 w-max">
+                  <input
+                    type="checkbox"
+                    checked={field.repeatable}
+                    onChange={(e) => onFieldChange(index, 'repeatable', e.target.checked, parentIndex)}
+                    className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-700">Mark as Repeatable</span>
+                </label>
+              )}
+
+              <label className="flex items-center space-x-2 w-max mr-2">
                 <input
                   type="checkbox"
-                  checked={field.repeatable}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    onFieldChange(index, 'repeatable', e.target.checked, parentIndex)
-                  }
-                  className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                  checked={field.required}
+                  onChange={(e) => onFieldChange(index, 'required', e.target.checked, parentIndex)}
+                  className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-700">Repeatable</span>
+                <span className="text-sm text-gray-700">Mark as Required</span>
               </label>
-            )}
-
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={field.required}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  onFieldChange(index, 'required', e.target.checked, parentIndex)
-                }
-                className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-700">Required</span>
-            </label>
+            </div>
           </div>
         </div>
-        {field.field_type === 'group' && (
-          <div className='w-full'>
-            <div className="flex">
-              <button
-                onClick={() => onAddField('text', index)}
-                className="px-3 py-1 mr-2 bg-green-500 text-white rounded hover:bg-green-600 transition-all text-sm"
-              >
-                Add Nested Text Field
-              </button>
-              <button
-                onClick={() => onAddField('select', index)}
-                className="px-3 py-1  mr-2 bg-green-500 text-white rounded hover:bg-green-600 transition-all text-sm"
-              >
-                Add Nested select Field
-              </button>
-              <button
-                onClick={() => onAddField('checkbox', index)}
-                className="px-3 py-1  mr-2 bg-green-500 text-white rounded hover:bg-green-600 transition-all text-sm"
-              >
-                Add Nested checkbox Field
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {field.nestedFields?.map((nestedField, nestedIndex) => (
-                <FieldComponent
-                  isNestedField={true}
-                  key={nestedIndex}
-                  field={nestedField}
-                  index={nestedIndex}
-                  parentIndex={index}
-                  onFieldChange={onFieldChange}
-                  onRemoveField={onRemoveField}
-                  onAddField={onAddField}
-                  onAddOption={onAddOption}
-                  onRemoveOption={onRemoveOption}
-                  onOptionChange={onOptionChange}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
+
   );
 };
 

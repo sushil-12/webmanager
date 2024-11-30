@@ -159,7 +159,15 @@
   .signup_form_container .space-y-2{
     width: 100%;
   }
-
+  .group-header{
+    align-items: start !important;
+  }
+  .group-custom-field .overflow-hidden{
+    padding-left: 1rem;
+    padding-right: 1rem;
+    @apply rounded-e-sm;
+    background-color: #E8EBFF;
+  }
   .p-inputgroup input,
   .p-inputgroup span {
     height: 42px;

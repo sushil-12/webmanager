@@ -89,11 +89,10 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
           </div>
 
           <div
-            className={`about_section relative w-full ${
-              expandedRows == rowData.id || expandedQuickEditRows == rowData.id
+            className={`about_section relative w-full ${expandedRows == rowData.id || expandedQuickEditRows == rowData.id
                 ? "block"
                 : "hidden"
-            }`}
+              }`}
           >
             <table className="w-[100vw]">
               <tbody>
@@ -248,7 +247,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
             }}
           >
             {getHeroIcon('BarsArrowDownIcon')}
-            View API 
+            View API
           </button>
           <DataTable
             value={dataTablePosts}
@@ -278,10 +277,9 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
               field="categories"
               header="Seo Title"
               body={(rowData) =>
-                `${
-                  rowData.seoData?.seoTitle?.trim()
-                    ? rowData.seoData.seoTitle
-                    : "N/A"
+                `${rowData.seoData?.seoTitle?.trim()
+                  ? rowData.seoData.seoTitle
+                  : "N/A"
                 }`
               }
               className="text-left text-sm font-medium"
