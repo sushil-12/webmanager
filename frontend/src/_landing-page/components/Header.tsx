@@ -45,6 +45,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ navLinks, buttons, isVisible, s
                             src="/assets/content-landing.svg"
                             alt="Logo"
                         />
+                        ContentLocker
                     </a>
                     <button className="navbar-close" onClick={() => setVisible(false)}>
                         <svg
