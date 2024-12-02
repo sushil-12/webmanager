@@ -42,7 +42,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ navLinks, buttons, isVisible, s
                     <a className="mr-auto text-3xl font-semibold leading-none" href="#">
                         <img
                             className="h-10"
-                            src="/assets/logo.png"
+                            src="/assets/content-landing.svg"
                             alt="Logo"
                         />
                     </a>
