@@ -236,6 +236,100 @@ const getAllPostTypesAndPages = async (req, res) => {
     }
 };
 
+const getSubscriptionPostById = async (req, res) => {
+    try {
+        const postId = req.params.post_id;
+        const requestedFields = parseFields(req.query._fields);
+
+        // Validate post ID
+        if (!mongoose.Types.ObjectId.isValid(postId)) {
+            throw new CustomError(400, 'Invalid post ID');
+        }
+
+        // Fetch post data from the database
+        let post = await Post.findById(postId).lean();
+        if (!post) {
+            throw new CustomError(404, 'Post not found');
+        }
+
+        // Fetch featured image from Media collection
+        if(post.featuredImage !== '' && isObjectIdOrHexString(post.featuredImage)){
+            const images = await Media.find({ _id: post.featuredImage }).select('url alt_text').lean();
+            if (images && images.length > 0) {
+                post.featuredImage = images[0];
+            } else {
+                post.featuredImage = null;
+            }
+        }
+
+        // Fetch and extract post meta data if available
+        let postMeta;
+        if (post?.postMeta) {
+            const postMetaData = await PostMeta.findById(post.postMeta).select('formData').lean();
+            postMeta = extractRelevantFields(postMetaData?.formData);
+        }
+
+        // Organize meta data into sections
+        const organizedMeta = {};
+        if (postMeta) {
+            postMeta.forEach(section => {
+                if (section.value && section.value[0]) {
+                    organizedMeta[section.name] = {
+                        label: section.label,
+                        value: section.value[0]
+                    };
+                }
+            });
+        }
+
+        // Customize the response for subscription API
+        const customizedResponse = {
+            // Basic post information
+            basic: {
+                id: post._id,
+                title: post.title,
+                type: post.post_type,
+                content: post.content,
+                status: post.status,
+                slug: post.slug,
+                publishedAt: post.publicationDate,
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt
+            },
+            
+            // SEO information
+            seo: {
+                title: post.seoData?.seoTitle || '',
+                description: post.seoData?.seoDescription || '',
+                url: post.seoData?.seoUrl || '',
+                filePath: post.seoData?.seoFilePath || ''
+            },
+            
+            // Media information
+            media: {
+                featuredImage: post.featuredImage ? {
+                    url: post.featuredImage.url,
+                    alt: post.featuredImage.alt_text
+                } : null
+            },
+            
+            // Categories and tags
+            taxonomies: {
+                categories: post.categories || [],
+                tags: post.tags || []
+            },
+            
+            // Meta data organized by sections
+            meta: organizedMeta
+        };
+
+        // Send success response
+        ResponseHandler.success(res, customizedResponse, 200);
+    } catch (error) {
+        ErrorHandler.handleError(error, res);
+    }
+};
+
 module.exports = {
-    getPostById, getAllPosts, getAllPostTypesAndPages
+    getPostById, getAllPosts, getAllPostTypesAndPages, getSubscriptionPostById
 };

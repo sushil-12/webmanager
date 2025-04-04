@@ -30,14 +30,14 @@ const canEditPermission = async (req, domainHeader) => {
             return true; // Admins have editing permission
         }
         console.log("here")
-        const userPermittedWebsite = Object.keys(user.permissions);
+        const userPermittedWebsite = user.permissions ? Object.keys(user.permissions) : [];
         let filteredDomain = domainHeader.replace(/_/g, " ");
         const ids = await Website.find({ business_name: new RegExp(filteredDomain, 'i') }).select('_id');
         const idValues = ids.map((doc) => doc._id.toString()); //    Assuming ids are ObjectIds and converting them to strings
 
         // Check if any of the returned ids are in userPermittedWebsite
         for (const id of idValues) {
-            if (userPermittedWebsite.includes(id)) {
+            if (userPermittedWebsite?.includes(id)) {
 
                 // Ensure user.permissions[id] is properly accessed
                 if (user.permissions[id]) {
@@ -67,7 +67,7 @@ const canEditThisWebsitePermission = async (req, domainHeader) => {
         }
         console.log("USER_ROLE", user?.role?.name)
 
-        const userPermittedWebsite = Object.keys(user.permissions);
+        const userPermittedWebsite = user.permissions ? Object.keys(user.permissions) : [];
         let filteredDomain = domainHeader.replace(/_/g, " ");
         const ids = await Website.find({ business_name: new RegExp(filteredDomain, 'i') }).select('_id');
         const idValues = ids.map((doc) => doc._id.toString()); //    Assuming ids are ObjectIds and converting them to strings
@@ -324,7 +324,7 @@ const getAllPosts = async (req, res) => {
         const { page = 1, limit = 10, search, filter } = req.query;
         const user = await User.findById(userId).populate('role');
         const userPermittedWebsite = user.permissions !== undefined && user.permissions !== null ? Object.keys(user.permissions) : {};
-        const domainHeader = req.headers['domain'];
+        const domainHeader = req.headers['domain']|| 'infostride';
         let can_edit = true;
         console.log(formatString(domainHeader), "DOMAIN HEADER");
 
@@ -391,6 +391,7 @@ const getAllPosts = async (req, res) => {
         const [posts, publishedCount, draftCount, allPostsCount] = await Promise.all([postsPromise, publishedCountPromise, draftCountPromise, allPostsCountPromise]);
 
         const postIds = posts.filter(post => post.featuredImage).map(post => post.featuredImage);
+        console.log(postIds, "POST IDS ==============", posts)
         const images = await Media.find({ _id: { $in: postIds } }).select('url alt_text');
         const imagesData = images.map(media => ({
             id: media._id,

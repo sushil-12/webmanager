@@ -174,7 +174,7 @@ const listWebsites = async (req, res) => {
 
     if (user?.role?.name !== "admin" && user?.role?.name !== "super_admin") {
       const filteredWebsites = websitesData?.filter((website) =>
-        userPermittedWebsite.includes(website._id.toHexString())
+        userPermittedWebsite?.includes(website._id.toHexString())
       );
       websitesList = filteredWebsites;
     } else {
@@ -224,7 +224,7 @@ const listWebsitesWithMenus = async (req, res) => {
 
     if (user?.role?.name !== "admin" && user?.role?.name !== "super_admin") {
       const filteredWebsites = websitesData?.filter((website) =>
-        userPermittedWebsite.includes(website._id.toHexString())
+        userPermittedWebsite?.includes(website._id.toHexString())
       );
       websitesList = filteredWebsites;
     } else {

@@ -17,14 +17,14 @@ const canEditPermission = async (req, domainHeader) => {
             return true; // Admins have editing permission
         }
 
-        const userPermittedWebsite = Object.keys(user.permissions);
+        const userPermittedWebsite = user.permissions ? Object.keys(user.permissions) : [];
         let filteredDomain = domainHeader.replace(/_/g, " ");
         const ids = await Website.find({ business_name: new RegExp(filteredDomain, 'i') }).select('_id');
         const idValues = ids.map((doc) => doc._id.toString()); //    Assuming ids are ObjectIds and converting them to strings
 
         // Check if any of the returned ids are in userPermittedWebsite
         for (const id of idValues) {
-            if (userPermittedWebsite.includes(id)) {
+            if (userPermittedWebsite?.includes(id)) {
 
                 // Ensure user.permissions[id] is properly accessed
                 if (user.permissions[id]) {
@@ -74,11 +74,11 @@ const getAllMedia = async (req, res) => {
         const can_edit = await canEditPermission(req, domainHeader);
         const mediadata = media.map((media) => ({
             id: media._id,
-            title: media?.title || media?.filename || media?.originalname || 'upload file to contentlocker',
+            title: media?.title || media?.filename || media?.originalname || 'ContentLocker is made by Sushil Kumar',
             caption: media?.caption || '',
-            description: media?.description || 'upload file to contentlocker',
-            alt_text: media?.alt_text || 'upload file to contentlocker',
-            filename: media?.filename || media?.originalname || 'upload file to contentlocker',
+            description: media?.description || 'ContentLocker is a platform for creating and sharing content with others.',
+            alt_text: media?.alt_text || 'Contentlocker Media',
+            filename: media?.filename || media?.title || 'FileName',
             format: media?.format || (media?.resource_type ? media.resource_type + '/' + media.format : 'image/png'),
             height: media?.height || media?.height || '200',
             width: media?.width || media?.width || '500',
@@ -111,14 +111,14 @@ const getAllMedia = async (req, res) => {
 const getAllImages = async (req, res) => {
     try {
         const domainHeader = req.headers['domain'];
-        const images = await Media.find({ domain: domainHeader }).select('url alt_text');
-
+        const images = await Media.find({ domain: domainHeader }).select('url alt_text filename title');
+        
         const imagesdata = images.map((media) => ({
             id: media._id,
             url: media.url,
+            filename:  media?.title  || media.filename || 'content locker media',
             alt_text: media?.alt_text,
         }));
-
         // Return the media and pagination information
         ResponseHandler.success(res, { imagesdata }, 200);
     } catch (error) {

@@ -8,45 +8,116 @@ const upload = multer({ storage: storage });
 
 
 
+// const uploadMediaToLibrary = async (req, res) => {
+//   try {
+//     const domainHeader = req.headers['domain'];
+//     upload.single('file')(req, res, async (err) => {
+//       if (err) {
+//         throw new CustomError(400, 'Error handling file upload.');
+//       }
+
+//       // Handle DOCX files specifically
+//       if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+//         console.log("DOCX FILE")
+//         req.file.mimetype = 'application/msword'; // Convert to standard MIME type
+//       }
+
+//       const b64 = Buffer.from(req.file.buffer).toString("base64");
+//       let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+//       const uploadInfo = await handleUpload(dataURI, req.file.originalname, req);
+
+//       if (!uploadInfo) {
+//         throw new CustomError(500, 'Failed to upload file to Cloudinary.');
+//       }
+
+//       const uploadedMedia = {
+//         title: req.body.title ? req.body.title : req.file.originalname.replace(/\.[^.]*$/, ''),
+//         caption: req.body.caption ? req.body.caption : '',
+//         description: req.body.description ? req.body.description : 'upload file to contentlocker',
+//         alt_text: req.body.alt_text ? req.body.alt_text : req.file.originalname,
+//         filename: req.body.filename ? req.file.originalname : req.file.originalname,
+//         cloudinary_id: uploadInfo.cloudinary_id,
+//         url: uploadInfo.url,
+//         size: (uploadInfo.size),
+//         width: uploadInfo.width,
+//         height: uploadInfo?.height,
+//         resource_type: uploadInfo.resource_type,
+//         format: uploadInfo?.format || req.file.originalname.split('.').pop(),
+//         storage_type: 'cloudinary',
+//         author: req.userId,
+//         category: req.body.category ? req.file.category : '',
+//         tags: req.body.tags,
+//         domain: domainHeader,
+//       };
+
+//       const savedMedia = await Media.create(uploadedMedia);
+
+//       ResponseHandler.success(res, savedMedia, 200);
+//     });
+//   } catch (error) {
+//     ErrorHandler.handleError(error, res);
+//   }
+// };
+
+// async function handleUpload(file, originalname, req) {
+//   const res = await cloudinary.uploader.upload(file, {
+//     // resource_type: "auto",
+//     folder: req.headers['domain'],
+//     // Add specific handling for documents
+//     resource_type: originalname.match(/\.(doc|docx|pdf)$/i) ? "raw" : "auto"
+//   });
+
+//   return {
+//     cloudinary_id: res.public_id,
+//     url: res.secure_url,
+//     size: res.bytes,
+//     filename: originalname,
+//     width: res.width,
+//     height: res.height,
+//     resource_type: res.resource_type,
+//     format: res.format || originalname.split('.').pop()
+//   };
+// }
+
+
 const uploadMediaToLibrary = async (req, res) => {
   try {
-    const domainHeader = req.headers['domain'];
     upload.single('file')(req, res, async (err) => {
       if (err) {
         throw new CustomError(400, 'Error handling file upload.');
       }
 
+      // Convert buffer to base64
       const b64 = Buffer.from(req.file.buffer).toString("base64");
-      let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+      const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+      
       const uploadInfo = await handleUpload(dataURI, req.file.originalname, req);
-     
-
+      
       if (!uploadInfo) {
-        throw new CustomError(500, 'Failed to upload one or more images to Cloudinary.');
+        throw new CustomError(500, 'Failed to upload file to Cloudinary.');
       }
 
       const uploadedMedia = {
-        title: req.body.title ? req.body.title : req.file.originalname.replace(/\.[^.]*$/, ''),
-        caption: req.body.caption ? req.body.caption : '',
-        description: req.body.description ? req.body.description : 'upload file to contentlocker',
-        alt_text: req.body.alt_text ? req.body.alt_text : 'upload file to contentlocker',
-        filename: req.body.filename ? req.file.originalname : 'upload file to contentlocker',
+        title: req.body.title || req.file.originalname.replace(/\.[^.]*$/, ''),
+        caption: req.body.caption || '',
+        description: req.body.description || 'content locker media',
+        alt_text: req.body.alt_text || req.file.originalname,
+        filename: req.file.originalname,
         cloudinary_id: uploadInfo.cloudinary_id,
         url: uploadInfo.url,
-        size: (uploadInfo.size),
+        size: uploadInfo.size,
         width: uploadInfo.width,
-        height: uploadInfo?.height,
+        height: uploadInfo.height,
         resource_type: uploadInfo.resource_type,
-        format:uploadInfo?.format,
+        format: uploadInfo.format,
         storage_type: 'cloudinary',
-        author: req.userId, // Ensure req.user is defined
-        category: req.body.category ? req.file.category : '',
+        author: req.userId,
+        category: req.body.category || '',
         tags: req.body.tags,
-        domain: domainHeader,
+        domain: req.headers['domain'],
       };
 
       const savedMedia = await Media.create(uploadedMedia);
-
       ResponseHandler.success(res, savedMedia, 200);
     });
   } catch (error) {
@@ -54,11 +125,12 @@ const uploadMediaToLibrary = async (req, res) => {
   }
 };
 
-async function handleUpload(file, originalname, req) {
-  const res = await cloudinary.uploader.upload(file, {
-    resource_type: "auto",
-    folder: req.headers['domain']
-    // Include any other Cloudinary upload options if needed
+async function handleUpload(dataURI, originalname, req) {
+  const res = await cloudinary.uploader.upload(dataURI, {
+    resource_type: "auto", // Let Cloudinary auto-detect the resource type
+    folder: req.headers['domain'],
+    public_id: originalname.split('.').slice(0, -1).join('.'),
+    format: originalname.split('.').pop(),
   });
 
   return {
@@ -66,10 +138,10 @@ async function handleUpload(file, originalname, req) {
     url: res.secure_url,
     size: res.bytes,
     filename: originalname,
-    width:  res.width,
-    height:  res.height,
-    resource_type:res.resource_type,
-    format:res.format
+    width: res.width || null,
+    height: res.height || null,
+    resource_type: res.resource_type,
+    format: res.format || originalname.split('.').pop()
   };
 }
 

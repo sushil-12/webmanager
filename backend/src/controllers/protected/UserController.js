@@ -438,48 +438,47 @@ const getAllUser = async (req, res) => {
     // Get the user_id from the route params (the ID of the user who created the records)
     const createdBy = req.userId;
     const user = await User.findById(createdBy).populate('role');
-    console.log(user , "role")
-    let query;
-    if(user?.role?.name === 'super_admin') {
-      query = {
-        deleted_at: null, // Exclude deleted users
-      };
+    
+    let query = {
+      deleted_at: null, // Exclude deleted users
+    };
+
+    // Add role-based filtering
+    if (user?.role?.name !== 'super_admin') {
+      query.created_by = createdBy;
+      query.role = '65896a7778d59ca679d53b2d';
     }
-    else{
-      query = {
-        deleted_at: null, // Exclude deleted users
-        created_by: createdBy, // Filter by users created by the specific user
-        role: '65896a7778d59ca679d53b2d'
-      };
-  
-    }
+
     // Build the search query
-  
-   
-    // If search is provided, add username search criteria
     if (search) {
-      query.username = { $regex: new RegExp(search, 'i') }; // Case-insensitive search for username
+      query.$or = [
+        { username: { $regex: new RegExp(search, 'i') } },
+        { email: { $regex: new RegExp(search, 'i') } },
+        { firstName: { $regex: new RegExp(search, 'i') } },
+        { lastName: { $regex: new RegExp(search, 'i') } }
+      ];
     }
 
     // Convert page and limit to numbers and ensure they are valid
-    const pageNumber = Math.max(Number(page), 1); // Page must be 1 or greater
-    const limitNumber = Math.max(Number(limit), 1); // Limit must be 1 or greater
+    const pageNumber = Math.max(Number(page), 1);
+    const limitNumber = Math.max(Number(limit), 1);
+
+    // Get total count for pagination
+    const totalDocuments = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalDocuments / limitNumber);
 
     // Fetch users with pagination and search query
     const users = await User.find(query)
-      .skip((pageNumber - 1) * limitNumber) // Skip based on page
-      .populate('role') // Populate role field
-      .limit(limitNumber); // Limit results based on page size
-
-    // Total documents matching the query
-    const totalDocuments = await User.countDocuments(query);
-    const totalPages = Math.ceil(totalDocuments / limitNumber);
+      .skip((pageNumber - 1) * limitNumber)
+      .populate('role')
+      .limit(limitNumber)
+      .sort({ createdAt: -1 }); // Add sorting by creation date
 
     // Fetch all websites and create a lookup for website info
     const websites = await Website.find().select('icon business_name');
     const websitesData = websites.map(website => ({
       id: website._id,
-      ...website._doc, // Spread the remaining fields from the document
+      ...website._doc,
     }));
 
     // Helper function to get website icon or name
