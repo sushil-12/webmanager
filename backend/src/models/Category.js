@@ -11,8 +11,6 @@ const categorySchema = new mongoose.Schema({
     timestamps: true, 
 });
 
-categorySchema.index({ slug: 1 });
-
 // Validation
 categorySchema.path('slug').validate((value) => /^[a-zA-Z0-9-]+$/.test(value), 'Invalid slug format');
 

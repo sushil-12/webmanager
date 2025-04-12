@@ -69,7 +69,6 @@ const planSchema = new mongoose.Schema({
 
 // Indexes for faster queries
 planSchema.index({ isActive: 1, sortOrder: 1 });
-planSchema.index({ name: 1 }, { unique: true });
 
 // Static method to get plan by Stripe price ID
 planSchema.statics.findByStripePriceId = async function(priceId) {

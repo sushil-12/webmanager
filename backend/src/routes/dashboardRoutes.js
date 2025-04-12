@@ -10,7 +10,7 @@ const {
     getContentCalendar,
     getApiUsage,
     getSubscriptionDetails
-} = require('../controllers/protected/DashboardController');
+} = require('../controllers/protected/dashboardController');
 
 // Apply token verification middleware to all routes
 
