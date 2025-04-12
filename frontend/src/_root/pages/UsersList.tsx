@@ -8,6 +8,7 @@ import { IUser } from "@/lib/types";
 import SvgComponent from "@/utils/SvgComponent";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Search } from 'lucide-react';
 
 function useDebounce(value: string, delay: number) {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -24,13 +25,14 @@ function useDebounce(value: string, delay: number) {
 
     return debouncedValue;
 }
+
 export default function UsersList() {
     const { toast } = useToast();
     const [searchInput, setSearchInput] = useState('');
     const [users, setUsers] = useState<IUser[]>([]);
     const { mutateAsync: getUsersListing, isPending: isLoading } = useGetAllUserListing();
     const navigate = useNavigate();
-    const debouncedSearchInput = useDebounce(searchInput, 500); // Adjust delay as needed
+    const debouncedSearchInput = useDebounce(searchInput, 500);
     const [loadMore, setLoadMore] = useState(false);
     const [pagination, setPagination] = useState({
         page: 1,
@@ -38,111 +40,141 @@ export default function UsersList() {
         totalPages: 1,
         totalItems: 0,
     });
-    const fetchData = async () => {
+
+    const fetchData = async (resetPage = false) => {
         try {
-            const userListingdata = await getUsersListing({ page: pagination.page, limit: pagination.limit, search: debouncedSearchInput });
-            let sortedUsers: IUser[] = userListingdata?.data?.userData;
-            if (sortedUsers) {
+            const currentPage = resetPage ? 1 : pagination.page;
+            const userListingdata = await getUsersListing({ 
+                page: currentPage, 
+                limit: pagination.limit, 
+                search: debouncedSearchInput 
+            });
+
+            if (userListingdata?.data?.userData) {
                 if (loadMore) {
-                    setUsers((prevPosts) => [...prevPosts, ...sortedUsers]);
+                    setUsers(prevUsers => [...prevUsers, ...userListingdata.data.userData]);
                     setLoadMore(false);
                 } else {
-                    setUsers(sortedUsers);
+                    setUsers(userListingdata.data.userData);
                 }
-
             }
-            setPagination(userListingdata?.data?.pagination || {});
+
+            if (userListingdata?.data?.pagination) {
+                setPagination(prev => ({
+                    ...prev,
+                    ...userListingdata.data.pagination,
+                    page: currentPage
+                }));
+            }
         } catch (error) {
-            toast({ variant: "destructive", description: "Something went wrong", duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> });
+            toast({ 
+                variant: "destructive", 
+                description: "Something went wrong", 
+                duration: import.meta.env.VITE_TOAST_DURATION, 
+                icon: <SvgComponent className="" svgName="close_toaster" /> 
+            });
         }
     };
+
+    // Reset page when search changes
     useEffect(() => {
-        fetchData();
-    }, [debouncedSearchInput, pagination.page]);
-    // @ts-ignore
-    const handleInputChange = (event) => {// @ts-ignore
+        setPagination(prev => ({ ...prev, page: 1 }));
+        fetchData(true);
+    }, [debouncedSearchInput]);
+
+    // Fetch data when page changes
+    useEffect(() => {
+        if (pagination.page > 1) {
+            fetchData();
+        }
+    }, [pagination.page]);
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(event.target.value);
     };
 
-    const handleSearch = () => {// @ts-ignore
-        fetchData();
-    };
     const handleLoadMore = () => {
         if (pagination.page < pagination.totalPages) {
             setLoadMore(true);
-            setPagination((prevPagination) => ({
-                ...prevPagination,
-                page: prevPagination.page + 1,
+            setPagination(prev => ({
+                ...prev,
+                page: prev.page + 1
             }));
         }
     };
-    return (
 
-        <div className="main-container w-full overflow-hidden ">
-            <div className="w-full flex items-center header-bar justify-between h-[10vh]  min-h-[10vh] max-h-[10vh] justify pl-5 pr-[44px]">
-                <h3 className="page-titles">Users</h3>
+    return (
+        <div className="flex flex-col h-full bg-gray-50">
+            {/* Header Section */}
+            <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-gray-200">
+                <h1 className="text-lg font-medium text-gray-900">Users</h1>
+                <Button 
+                    className="shad-button_primary h-8 px-3 text-sm" 
+                    size="sm" 
+                    onClick={() => navigate('/add-edit-user')}
+                >
+                    <SvgComponent className="w-3.5 mr-1.5" svgName='plus-circle' /> 
+                    Add User
+                </Button>
             </div>
-            <div className="user-container px-5">
-                <div className="w-full flex justify-between pt-6 pb-3 ">
-                    <div className="flex justify-start items-center relative overflow-hidden">
+
+            {/* Main Content */}
+            <div className="flex-1 p-4">
+                {/* Search Bar */}
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="relative flex-1 max-w-xs">
                         <input
                             onChange={handleInputChange}
                             value={searchInput}
-                            className="leading-none text-left text-gray-600 px-4 py-3 border rounded border-gray-300 outline-none w-[239px] h-10 text-[14px] font-medium"
+                            className="w-full h-8 pl-9 pr-3 text-sm bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                             type="text"
-                            placeholder="Search"
+                            placeholder="Search users..."
                         />
-                        <button className="absolute right-3 z-10 cursor-pointer" onClick={handleSearch}>
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M8.33333 7.33333H7.80667L7.62 7.15333C8.27333 6.39333 8.66667 5.40667 8.66667 4.33333C8.66667 1.94 6.72667 0 4.33333 0C1.94 0 0 1.94 0 4.33333C0 6.72667 1.94 8.66667 4.33333 8.66667C5.40667 8.66667 6.39333 8.27333 7.15333 7.62L7.33333 7.80667V8.33333L10.6667 11.66L11.66 10.6667L8.33333 7.33333ZM4.33333 7.33333C2.67333 7.33333 1.33333 5.99333 1.33333 4.33333C1.33333 2.67333 2.67333 1.33333 4.33333 1.33333C5.99333 1.33333 7.33333 2.67333 7.33333 4.33333C7.33333 5.99333 5.99333 7.33333 4.33333 7.33333Z" fill="#4F5B67" />
-                            </svg>
-                        </button>
-
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                     </div>
-                    <Button className="shad-button_primary place-self-end h-10" size="sm" onClick={() => { navigate('/add-edit-user') }}>
-                        <SvgComponent className='' svgName='plus-circle' /> Add User
-                    </Button>
                 </div>
-                <div className="card_container w-full">
+
+                {/* Users Grid */}
+                <div className="space-y-4">
                     {isLoading && pagination.page === 1 ? (
                         <Loader type="list-loader" />
                     ) : (
+                        <>
+                            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                {users.length > 0 ? (
+                                    users.map((item, index) => (
+                                        <UserCard item={item} index={index} key={index} />
+                                    ))
+                                ) : (
+                                    <Message
+                                        style={{
+                                            borderWidth: '0 0 0 3px',
+                                            color: '#435ebe'
+                                        }}
+                                        color="green"
+                                        className="border-primary w-full justify-content-start text-left displayMessage block text-sm"
+                                        text={'No users found'}
+                                    />
+                                )}
+                            </ul>
 
-                        <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {users.length > 0 ? (
-                                users.map((item, index) => (
-                                    <UserCard item={item} index={index} key={index} />
-                                ))
-                            ) : (
-                                <Message
-                                    style={{
-                                        borderWidth: '0 0 0 6px',
-                                        color: '#435ebe'
-                                    }}
-                                    color="green"
-                                    className="border-primary w-full justify-content-start text-left displayMessage block"
-                                    text={'No user Found'}
-                                />
+                            {/* Load More Button */}
+                            {pagination.totalItems > users.length && (
+                                <div className="flex justify-center pt-3">
+                                    <button
+                                        className="px-3 py-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors disabled:opacity-50"
+                                        onClick={handleLoadMore}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? <Loader /> : 'Load more'}
+                                    </button>
+                                </div>
                             )}
-                        </ul>
+                        </>
                     )}
-
-                    <div className="card text-center mb-14 mt-8">
-                        {pagination.totalItems > users.length && (
-                            <button
-                                className="load-more-button"
-                                onClick={handleLoadMore}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? <Loader /> : 'Load more'}
-                            </button>
-                        )}
-                    </div>
-
                 </div>
             </div>
-
-        </div >
-
-    )
+        </div>
+    );
 }
+

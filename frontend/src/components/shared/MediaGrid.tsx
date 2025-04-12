@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { MediaItem } from '@/lib/types';
 import GalleryMediaItem from './GalleryMediaItem';
-import { Button } from 'primereact/button';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { useToast } from '../ui/use-toast';
 import { useDeleteMedia } from '@/lib/react-query/queriesAndMutations';
@@ -11,7 +10,7 @@ import { bytesToSize } from '@/lib/utils';
 import { Skeleton } from 'primereact/skeleton';
 import SvgComponent from '@/utils/SvgComponent';
 import { status } from '@/constants/message';
-
+import { FileIcon, ImageIcon, FileTextIcon, FileVideoIcon, FileAudioIcon, EyeIcon, Trash2Icon, DownloadIcon, ExternalLinkIcon } from 'lucide-react';
 
 interface MediaGridProps {
     media: MediaItem[];
@@ -26,7 +25,35 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, isLoading, setPaginate, ca
     const { toast } = useToast();
     const { mutateAsync: deleteMedia, isPending: isDeleting } = useDeleteMedia();
     const { setMedia } = useMedia();
-    console.log(isLoading);
+
+    const getFileType = (url: string) => {
+        const extension = url.split('.').pop()?.toLowerCase();
+        if (extension) {
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) return 'image';
+            if (['mp4', 'webm', 'mov'].includes(extension)) return 'video';
+            if (['mp3', 'wav', 'ogg'].includes(extension)) return 'audio';
+            if (extension === 'pdf') return 'pdf';
+            if (['doc', 'docx', 'xls', 'xlsx', 'txt'].includes(extension)) return 'document';
+        }
+        return 'file';
+    };
+
+    const getFileIcon = (type: string) => {
+        switch (type) {
+            case 'image':
+                return <ImageIcon className="h-5 w-5 text-blue-500" />;
+            case 'video':
+                return <FileVideoIcon className="h-5 w-5 text-purple-500" />;
+            case 'audio':
+                return <FileAudioIcon className="h-5 w-5 text-green-500" />;
+            case 'pdf':
+                return <FileIcon className="h-5 w-5 text-red-500" />;
+            case 'document':
+                return <FileTextIcon className="h-5 w-5 text-orange-500" />;
+            default:
+                return <FileIcon className="h-5 w-5 text-gray-500" />;
+        }
+    };
 
     const openEditModal = (mediaItem: MediaItem) => {
         setSelectedMedia(mediaItem);
@@ -37,7 +64,6 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, isLoading, setPaginate, ca
         setVisible(false);
         setSelectedMedia(null);
     };
-
 
     const headerTemplate = () => {
         return (
@@ -62,8 +88,9 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, isLoading, setPaginate, ca
     }
 
     const reject = () => {
-        console.log("CACNELLEED");
+        console.log("CANCELLED", isLoading);
     }
+
     const confirmDelete = (media_id: string) => {
         confirmDialog({
             header: 'Do you want to delete this media file?',
@@ -81,53 +108,181 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, isLoading, setPaginate, ca
     }
 
     return (
-        <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 xxl:grid-cols-4 xl:gap-x-8 mb-4">
-            {media.map((mediaItem: MediaItem) => (
-                //
-                <div key={mediaItem?.id} className="group relative">
-                    {mediaItem.title === 'false' && (
-                        <a className="card group cursor-pointer">
-                            <div className="aspect-h-1 aspect-w-1 w-full border-round border-1 surface-border surface-card overflow-hidden xl:aspect-h-8 xl:aspect-w-7 object-contain ">
-                                <div style={{ position: 'relative' }} className='w-full h-[201px]'>
-                                    <img src={mediaItem.tempUrl} style={{ opacity: 0.2 }} className="h-full w-full object-contain object-center group-hover:opacity-75" />
-                                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                                        <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
-                                    </div>
-                                </div>
-                                <div className="flex place-content-between-end mt-[9px]  max-w-[360px]" style={{ "placeContent": "space-between" }}>
-                                    <div className="flex flex-col">
-                                        <Skeleton height='20px' width='100px' />
-                                    </div>
-                                    <Skeleton height='18px' width='18px' />
-                                </div>
-                            </div>
-                        </a>
-                    )}
-                    {mediaItem.title !== 'false' && (
-                        <a className={`card group cursor-pointer  ${isDeleting ? 'blur-sm' : ''}`} >
-                            <div className="aspect-h-1 aspect-w-1 w-full border-round border-1 surface-border surface-card overflow-hidden xl:aspect-h-8 xl:aspect-w-7  min-h-[201px] max-h-[201px] object-contain " onClick={() => openEditModal(mediaItem)}>
-                                <img
-                                    src={mediaItem.url}
-                                    alt={mediaItem.alt_text}
-                                    className="h-full w-full object-contain object-center items-center self-center group-hover:opacity-75"
-                                />
-                            </div>
-                            <div className="flex place-content-between-end mt-[9px] " style={{ "placeContent": "space-between" }}>
-                                <div className="flex flex-col">
-                                    <h3 className="mt-4 text-[16px] leading-[150%] text-[#242D35] page-innersubtitles">{mediaItem.title}</h3>
-                                    <p className="mt-1 text-xl font-semibold text-gray-900">{bytesToSize(mediaItem.size)}</p>
-                                </div>
-                                {canEdit && (
-                                    <Button onClick={() => confirmDelete(mediaItem.id)} className='outline-none p-0 bg-transparent border-none min-w-7' >
-                                        <SvgComponent className='' svgName='trash_media' />
-                                    </Button>
-                                )}
-                            </div>
-                        </a>
-                    )}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {media.map((mediaItem: MediaItem) => {
+                const fileType = getFileType(mediaItem.url);
+                const isImage = fileType === 'image';
+                const isGif = mediaItem.url.toLowerCase().endsWith('.gif');
 
-                </div>
-            ))}
+                return (
+                    <div key={mediaItem?.id} className="group relative">
+                        {mediaItem.title === 'false' ? (
+                            <div className="card group cursor-pointer">
+                                <div className="aspect-h-1 aspect-w-1 w-full border rounded-lg overflow-hidden bg-gray-50">
+                                    <div className="relative w-full h-[180px]">
+                                        <img 
+                                            src={mediaItem.tempUrl} 
+                                            style={{ opacity: 0.2 }} 
+                                            className="h-full w-full object-contain object-center" 
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <i className="pi pi-spin pi-spinner text-2xl text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    <div className="p-2.5">
+                                        <Skeleton height="16px" width="80px" className="mb-1.5" />
+                                        <Skeleton height="14px" width="50px" />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={`card group cursor-pointer ${isDeleting ? 'blur-sm' : ''}`}>
+                                <div 
+                                    className="aspect-h-1 aspect-w-1 w-full border rounded-lg overflow-hidden bg-gray-50 relative group"
+                                    onClick={() => openEditModal(mediaItem)}
+                                >
+                                    {isImage ? (
+                                        <div className="relative w-full h-[180px]">
+                                            <img
+                                                src={mediaItem.url}
+                                                alt={mediaItem.alt_text}
+                                                className="h-full w-full object-contain object-center group-hover:opacity-75 transition-all duration-200"
+                                            />
+                                            {isGif && (
+                                                <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2.5 py-1 rounded-full font-medium tracking-wide shadow-sm">
+                                                    GIF
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                <div className="flex gap-2">
+                                                    <a 
+                                                        href={mediaItem.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-2 bg-white rounded-full shadow-sm hover:bg-blue-50 transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <ExternalLinkIcon className="h-4 w-4 text-blue-600" />
+                                                    </a>
+                                                    <a 
+                                                        href={mediaItem.url}
+                                                        download
+                                                        className="p-2 bg-white rounded-full shadow-sm hover:bg-green-50 transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <DownloadIcon className="h-4 w-4 text-green-600" />
+                                                    </a>
+                                                    <button 
+                                                        className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-colors"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openEditModal(mediaItem);
+                                                        }}
+                                                    >
+                                                        <EyeIcon className="h-4 w-4 text-gray-600" />
+                                                    </button>
+                                                    {canEdit && (
+                                                        <button 
+                                                            className="p-2 bg-white rounded-full shadow-sm hover:bg-red-50 transition-colors"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                confirmDelete(mediaItem.id);
+                                                            }}
+                                                        >
+                                                            <Trash2Icon className="h-4 w-4 text-red-500" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-[180px] p-4">
+                                            <div className="mb-2 transform transition-transform duration-200 group-hover:scale-110">
+                                                {getFileIcon(fileType)}
+                                            </div>
+                                            <p className="text-sm text-gray-500 text-center break-words line-clamp-2 mb-2">
+                                                {mediaItem.title}
+                                            </p>
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                <div className="flex gap-2">
+                                                    <a 
+                                                        href={mediaItem.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-2 bg-white rounded-full shadow-sm hover:bg-blue-50 transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <ExternalLinkIcon className="h-4 w-4 text-blue-600" />
+                                                    </a>
+                                                    <a 
+                                                        href={mediaItem.url}
+                                                        download
+                                                        className="p-2 bg-white rounded-full shadow-sm hover:bg-green-50 transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <DownloadIcon className="h-4 w-4 text-green-600" />
+                                                    </a>
+                                                    <button 
+                                                        className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-colors"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openEditModal(mediaItem);
+                                                        }}
+                                                    >
+                                                        <EyeIcon className="h-4 w-4 text-gray-600" />
+                                                    </button>
+                                                    {canEdit && (
+                                                        <button 
+                                                            className="p-2 bg-white rounded-full shadow-sm hover:bg-red-50 transition-colors"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                confirmDelete(mediaItem.id);
+                                                            }}
+                                                        >
+                                                            <Trash2Icon className="h-4 w-4 text-red-500" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-2.5">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                                                {mediaItem.title}
+                                            </h3>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {bytesToSize(mediaItem.size)}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-1.5 ml-2">
+                                            <a 
+                                                href={mediaItem.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <ExternalLinkIcon className="h-3.5 w-3.5 text-gray-400 hover:text-blue-600" />
+                                            </a>
+                                            <a 
+                                                href={mediaItem.url}
+                                                download
+                                                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <DownloadIcon className="h-3.5 w-3.5 text-gray-400 hover:text-green-600" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
             {selectedMedia && (
                 <Dialog
                     draggable={false}
@@ -135,13 +290,44 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, isLoading, setPaginate, ca
                     closeIcon={`hidden`}
                     closable={false}
                     pt={{
-                        root: { className: 'bg-white-100 overflow-hidden' },
-                        headerTitle: { className: 'page-subtitles' },
-                        content: { className: 'overflow-y-auto p-6 pt-0' }
+                        root: { 
+                            className: 'bg-white/95 backdrop-blur-sm shadow-2xl rounded-2xl border border-gray-100/20' 
+                        },
+                        headerTitle: { 
+                            className: 'text-xl font-semibold text-gray-800 tracking-tight' 
+                        },
+                        header: {
+                            className: 'px-6 py-4 border-b border-gray-100/20 bg-white/50 backdrop-blur-sm'
+                        },
+                        content: { 
+                            className: 'p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent' 
+                        }
                     }}
-                    style={{ width: '1110px', height: 'auto' }}
-                    visible={visible} onHide={onHide}>
-                    <GalleryMediaItem item={selectedMedia} modalVisibility={onHide} canEdit={canEdit} />
+                    className="transform transition-all duration-300 ease-out"
+                    style={{ 
+                        width: '80vw',
+                        maxWidth: '1200px',
+                        maxHeight: '90vh',
+                        margin: '0 auto',
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
+                    }}
+                    breakpoints={{ '960px': '95vw' }}
+                    visible={visible} 
+                    onHide={onHide}
+                    transitionOptions={{
+                        timeout: 300,
+                        classNames: {
+                            enter: 'opacity-0 scale-95',
+                            enterActive: 'opacity-100 scale-100',
+                            exit: 'opacity-100 scale-100',
+                            exitActive: 'opacity-0 scale-95'
+                        }
+                    }}
+                >
+                    <div className="relative w-full h-full">
+                        <GalleryMediaItem item={selectedMedia} modalVisibility={onHide} canEdit={canEdit} />
+                    </div>
                 </Dialog>
             )}
         </div>

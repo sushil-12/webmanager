@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { signUpValidationSchema } from "@/lib/validation";
 import Loader from "@/components/shared/Loader";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCreateUserAccount } from "@/lib/react-query/queriesAndMutations";
 import { z } from "zod";
 import SvgComponent from "@/utils/SvgComponent";
@@ -20,140 +20,42 @@ import AppLogo from "@/components/shared/AppLogo";
 import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { getHeroIcon } from "@/lib/HeroIcon";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./CheckOutForm";
 import { checkEmail, checkUsername } from "@/lib/appwrite/api";
+import PricingSection from "@/_landing-page/components/PricingSection";
 
 const SignUpForm = () => {
   const stripePromise = loadStripe(
-    "pk_test_51QNEM0EXM6E6dbLjiYTG1JCRfT2TAdosgJzd1SdfeiJAcnNoZy16BEUaJPauej6T98bfThimHTOVW3hBxqBUO0D400u9wZfbXQ"
+    'pk_test_51RAmPNREgYeUYuR3s2IzSgKFnB4k1cWf7bjFAHgT3OW4QOQEICZFpXqzm6eGINLiXfbp5EJFznMUMqjnSDWRCWRM00PCrygtGf'
   );
   const { mutateAsync: createUserAccount, isPending: isCreatingUser } =
     useCreateUserAccount();
   const [formState, setFormState] = useState("sign-up-form");
   const [subsbcriptionData, setSubsbcriptionData] = useState(null);
   const navigate = useNavigate();
-  console.log(createUserAccount, subsbcriptionData);
-
-  const [planId, setPlanId] = useState("");
-
-  interface PricingPlan {
-    name: string;
-    price: string;
+  const location = useLocation();
+  const [showPricing, setShowPricing] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    planId: string;
+    priceId: string;
+    planName: string;
+    price: number;
+    billingInterval: 'monthly' | 'annually';
+    apiCallsLimit: number;
+    websiteLimit: number;
     features: string[];
-    imageSrc: string;
-    backgroundColor: string; // For dynamic background color
-    buttonText: string;
-    productId: string;
-  }
+  } | null>(null);
 
-  interface PricingCardProps {
-    plan: PricingPlan;
-  }
-  const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
-    return (
-      <div className="w-full md:w-1/2 lg:w-1/3 px-5 min-w-[450px]">
-        <div
-          className={`hover-up-5 pt-8 pb-8 px-4 text-center rounded shadow bg-white `}
-        >
-          <img
-            className="h-20 mb-6 mx-auto"
-            src={plan.imageSrc}
-            alt={plan.name}
-          />
-          <h3 className="mb-2 text-4xl font-bold font-heading ">{plan.name}</h3>
-          <span className="text-4xl font-bold font-heading">{plan.price}</span>
-          <p className="mt-2 mb-8">user per month</p>
-          <div className="flex flex-col items-center text-left mb-8">
-            <ul className="">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex mb-3 text-left">
-                  <svg
-                    className="w-6 h-6 mr-2 text-green-500"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <button
-              className="block sm:inline-block py-4 px-6 text-xs text-white  text-center font-semibold leading-none bg-black hover:bg-primary-500 hover:text-white rounded"
-              onClick={() => {
-                setPlanId(plan?.productId);
-                setFormState("payment_form");
-              }}
-            >
-              Select Plan
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  const pricingPlans = [
-    {
-      name: "Basic Plan",
-      price: "$25.00",
-      features: [
-        "Add websites",
-        "Manage multiple post types",
-        "Add unlimited pages",
-        "Add and manage media",
-        "Custom fields",
-        "Manage SEO Schema",
-      ],
-      imageSrc: "/startup.svg", // Placeholder image, replace with relevant one
-      backgroundColor: "bg-white",
-      buttonText: "Choose Basic Plan",
-      productId: "prod_RFjsqoIg4jXUjZ",
-    },
-    {
-      name: "Standard Plan",
-      price: "$55.00",
-      features: [
-        "All features in Basic Plan",
-        "Custom Fields with File options",
-        "Add up to 3 websites",
-        "Add and manage up to 3 users",
-        "Sharable API's",
-        "Customizable permissions",
-      ],
-      imageSrc: "/agency.svg", // Placeholder image, replace with relevant one
-      backgroundColor: "bg-blue-500",
-      buttonText: "Choose Standard Plan",
-      productId: "prod_RFjsqoIg4jXUjZ",
-    },
-    {
-      name: "Premium Plan",
-      price: "$75.00",
-      features: [
-        "All features in Standard Plan",
-        "Unlimited websites",
-        "Unlimited users",
-        "Unlimited media",
-        "Custom support feature",
-        "In-app chat feature with push notifications",
-      ],
-      imageSrc: "/enterprise.svg", // Placeholder image, replace with relevant one
-      backgroundColor: "bg-white",
-      buttonText: "Choose Premium Plan",
-      productId: "prod_RFjsqoIg4jXUjZ",
-    },
-  ];
+  useEffect(() => {
+    // Check if user came from landing page with a selected plan
+    if (location.state?.plan) {
+      setShowPricing(false);
+      setSelectedPlan(location.state.plan);
+    }
+  }, [location.state]);
 
   const form = useForm<z.infer<typeof signUpValidationSchema>>({
     resolver: zodResolver(signUpValidationSchema),
@@ -175,22 +77,18 @@ const SignUpForm = () => {
       console.log(result?.data?.data?.message, result);
 
       if (result?.data?.data?.status === "error") {
-        // Handle error response
         console.error("Error:", result?.data?.data?.message);
         return;
       } else {
         if (!result?.data?.data?.isEmailAvailable) {
-          // Set error message if email is not available
           console.log(result?.data?.data?.message);
           form.setError("email", { message: result?.data?.data?.message });
           console.log(form.formState, "FORMSTATE");
         } else {
-          // Clear error if email is available
           form.clearErrors("email");
         }
       }
     } catch (error) {
-      // Handle API call error
       console.error("API call error:", error);
     }
   };
@@ -199,19 +97,27 @@ const SignUpForm = () => {
     const usernameValue = form.getValues("username");
     const result = await checkUsername(usernameValue);
     if (!result?.data?.data?.isUsernameAvailable) {
-      // Set error message if email is not available
       console.log(result?.data?.data?.message);
       form.setError("username", { message: result?.data?.data?.message });
       console.log(form.formState, "FORMSTATE");
     } else {
-      // Clear error if email is available
       form.clearErrors("email");
     }
   };
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log(form.formState, "FORMSTATE", showPricing, form.formState.isValid);
+      if (showPricing) {
+        setFormState("select_pricing_plan");
+      } else {
+        setFormState("payment_form");
+      }
+  };
+  console.log(selectedPlan, "SELECTED PLAN");
   return (
     <Form {...form}>
-      <div className="">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div
           className="flex align-middle text-center items-center justify-center mb-10 cursor-pointer"
           onClick={() => navigate("/landing-page")}
@@ -220,20 +126,20 @@ const SignUpForm = () => {
         </div>
         {formState === "sign-up-form" ? (
           <Card
-            className=""
+            className="w-full max-w-md"
             pt={{
-              root: { className: "login_cards rounded-xl" },
+              root: { className: "login_cards rounded-xl shadow-lg" },
               title: {
                 className: "text-main-bg-900 card_headings inter-regular-32",
               },
             }}
           >
             <form
-              onSubmit={() => setFormState("select_pricing_plan")}
+              onSubmit={handleFormSubmit}
               className="space-y-1 flex flex-col w-full mt-4 signup_form_container"
             >
               <div className="flex flex-col gap-5">
-                <h1 className="text-main-bg-900 card_headings inter-regular-32 mb-5">
+                <h1 className="text-main-bg-900 card_headings inter-regular-32 mb-5 text-center">
                   Sign Up
                 </h1>
                 {/* Username Field */}
@@ -404,26 +310,29 @@ const SignUpForm = () => {
               </Link>
             </p>
           </Card>
-        ) : formState === "select_pricing_plan" ? (
-          <>
-            <div className="flex align-middle text-center items-center justify-center mb-10">
-              {pricingPlans.map((plan, index) => (
-                <PricingCard key={index} plan={plan} />
-              ))}
+        ) : formState === "select_pricing_plan" && showPricing ? (
+          <div className="w-full max-w-7xl">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Choose Your Plan</h2>
+              <p className="text-gray-600">Select the perfect plan for your needs</p>
             </div>
-          </>
+            <PricingSection />
+          </div>
         ) : formState === "payment_form" ? (
-          <>
-            <div className="signup_form_container min-w-[550px]">
+          <div className="w-full max-w-2xl">
+            <Card className="shadow-lg">
               <Elements stripe={stripePromise}>
                 <CheckoutForm
-                  productId={planId}
-                  setSubsbcriptionData={setSubsbcriptionData}
-                  formValues={form.getValues()}
+                  productId={selectedPlan?.planId || ""}
+                  priceId={selectedPlan?.priceId || ""}
+                  planName={selectedPlan?.planName || ""}
+                  planPrice={selectedPlan?.price || 0}
+                  setSubsbcriptionData={setSubsbcriptionData} // @ts-ignore
+                  formValues={form.getValues()} // @ts-ignore
                 />
               </Elements>
-            </div>
-          </>
+            </Card>
+          </div>
         ) : null}
       </div>
     </Form>

@@ -11,9 +11,8 @@ import SvgComponent from '@/utils/SvgComponent';
 import Loader from '@/components/shared/Loader';
 
 // Custom hook for debouncing
-//@ts-ignore
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -31,15 +30,15 @@ function useDebounce(value, delay) {
 export default function Media() {
   const { domain } = useParams();
   const { media: contextMedia, setMedia } = useMedia();
-  const [paginate, setPaginate] = useState(false);
   const [localMedia, setLocalMedia] = useState(contextMedia);
-  const { toast } = useToast();
+  const { toast } = useToast(); // @ts-ignore 
   const { currentDomain, setCurrentDomain } = useUserContext();
   const [searchInput, setSearchInput] = useState('');
-  const debouncedSearchInput = useDebounce(searchInput, 500); // Adjust delay as needed
-  const [loadMore, setLoadMore] = useState(false);
-  const [canEdit, setCanEdit] = useState(false)
-  console.log(currentDomain); //@ts-ignore
+  const debouncedSearchInput = useDebounce(searchInput, 500);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  // @ts-ignore 
   setCurrentDomain(domain);
 
   const initialPaginationState = {
@@ -49,10 +48,8 @@ export default function Media() {
     totalPages: 1,
     totalItems: 0,
   };
-  
-  const [pagination, setPagination] = useState(initialPaginationState);
-  
 
+  const [pagination, setPagination] = useState(initialPaginationState);
   const { mutateAsync: getAllMedia, isPending: isLoading } = useGetAllMediaFiles();
 
   useEffect(() => {
@@ -60,56 +57,78 @@ export default function Media() {
   }, [contextMedia]);
 
   useEffect(() => {
-    console.log(debouncedSearchInput, "USEFFETC CATLE")
-    fetchData();
-    console.log(debouncedSearchInput)
-  }, [debouncedSearchInput, paginate, pagination.page]); // Listen to debounced search input and page changes
+    // Reset pagination and hasMore when search changes
+    if (debouncedSearchInput) {
+      setPagination(initialPaginationState);
+      setHasMore(true);
+    }
+    fetchData(false);
+  }, [debouncedSearchInput]);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    if (pagination.page > 1) {
+      fetchData(true);
+    }
+  }, [pagination.page]);
+
+  const fetchData = async (isLoadMore: boolean) => {
     try {
-      const mediaResponse = await getAllMedia({ page: pagination.page, limit: pagination.limit, search: debouncedSearchInput });
-      if(loadMore){
-        setMedia((prevMedia) => {
-          // @ts-ignore
-           return  [...prevMedia, ...mediaResponse?.data?.mediadata];
-       });
-      }else{
-        setMedia(mediaResponse?.data?.mediadata);
+      const mediaResponse = await getAllMedia({
+        page: pagination.page,
+        limit: pagination.limit,
+        search: debouncedSearchInput
+      });
+
+      const newMedia = mediaResponse?.data?.mediadata || [];
+      const totalItems = mediaResponse?.data?.pagination?.totalItems || 0;
+      const totalPages = mediaResponse?.data?.pagination?.totalPages || 1;
+
+      if (isLoadMore) {
+        setMedia(prevMedia => [...prevMedia, ...newMedia]);
+      } else {
+        setMedia(newMedia);
       }
-      setLoadMore(false);
-      setCanEdit(mediaResponse?.data?.can_edit)
-      setPagination(mediaResponse?.data?.pagination || {});
+
+      setCanEdit(mediaResponse?.data?.can_edit);
+      setPagination(prev => ({
+        ...prev,
+        totalItems,
+        totalPages
+      }));
+
+      // Update hasMore based on whether we've reached the last page
+      setHasMore(pagination.page < totalPages);
     } catch (error) {
-      toast({ variant: "destructive", description: "Something went wrong", duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> });
+      toast({
+        variant: "destructive",
+        description: "Something went wrong",
+        duration: import.meta.env.VITE_TOAST_DURATION,
+        icon: <SvgComponent className="" svgName="close_toaster" />
+      });
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
-  //@ts-ignore
-  const onPageChange = (event) => {
-    setPaginate(!paginate);
-    setPagination({ ...pagination, page: event.page + 1 });
-  };
-
   const handleLoadMore = () => {
-    if (pagination.page < pagination.totalPages) {
-      setLoadMore(true);
-      setPagination((prevPagination) => ({
-        ...prevPagination,
-        page: prevPagination.page + 1,
+    if (hasMore && !isLoadingMore) {
+      setIsLoadingMore(true);
+      setPagination(prev => ({
+        ...prev,
+        page: prev.page + 1
       }));
     }
   };
 
   return (
-    <div className="main-container w-full overflow-hidden ">
+    <div className="main-container w-full overflow-hidden">
       <div className="w-full flex items-center justify-between header-bar h-[10vh] min-h-[10vh] max-h-[10vh] justify pl-5 pr-[31px]">
         <h3 className="page-titles">Media</h3>
         <div className="flex justify-start items-center py-7 relative">
           <input
-            // @ts-ignore
-            onChange={() => {setSearchInput(event?.target.value);}}
+            onChange={(e) => setSearchInput(e.target.value)}
             value={searchInput}
-            className="leading-none text-left text-gray-600 px-4 py-3 border rounded border-gray-300 outline-none w-[239px] h-10 text-[14px] font-medium hover:rounded-[50px] "
+            className="leading-none text-left text-gray-600 px-4 py-3 border rounded border-gray-300 outline-none w-[239px] h-10 text-[14px] font-medium hover:rounded-[50px]"
             type="text"
             placeholder="Search"
           />
@@ -119,25 +138,36 @@ export default function Media() {
         </div>
       </div>
       <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto overflow-x-hidden px-5">
-        {isLoading && pagination.page == 1 ? (
+        {isLoading && pagination.page === 1 ? (
           <div className="w-full mx-auto mt-[24px]"><MediaGridSkeletonDemo /></div>
         ) : (
           localMedia.length > 0 ? (
             <div className="w-full mt-6">
-              <ImageUploader setPaginate={setPaginate} />
+              <ImageUploader setPaginate={() => {
+                setPagination(initialPaginationState);
+                setHasMore(true);
+              }} />
               <>
                 <div className="mx-auto w-full mt-6">
                   <h2 className="sr-only">Media</h2>
-                  <MediaGrid media={localMedia} isLoading={isLoading} setPaginate={setPaginate} canEdit={canEdit} />
+                  <MediaGrid
+                    media={localMedia}
+                    isLoading={isLoading}
+                    setPaginate={() => {
+                      setPagination(initialPaginationState);
+                      setHasMore(true);
+                    }}
+                    canEdit={canEdit}
+                  />
                 </div>
                 <div className="card text-center mb-14">
-                  {pagination.totalItems > localMedia.length && (
+                  {hasMore && (
                     <button
                       className="load-more-button"
                       onClick={handleLoadMore}
-                      disabled={isLoading}
+                      disabled={isLoadingMore}
                     >
-                        {isLoading ? <Loader /> : 'Load more'}
+                      {isLoadingMore ? <Loader /> : 'Load more'}
                     </button>
                   )}
                 </div>
@@ -145,7 +175,10 @@ export default function Media() {
             </div>
           ) : (
             <>
-              <ImageUploader setPaginate={setPaginate} />
+              <ImageUploader setPaginate={() => {
+                setPagination(initialPaginationState);
+                setHasMore(true);
+              }} />
               <div className="text-center p-5">
                 <svg
                   className="mx-auto h-12 w-12 text-gray-400"

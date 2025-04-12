@@ -1,108 +1,170 @@
-import { useRef, useState } from 'react';
-import { Toast } from 'primereact/toast';
-import { FileUpload } from 'primereact/fileupload';
-import { ProgressBar } from 'primereact/progressbar';
-import { Button } from 'primereact/button';
-import { Tooltip } from 'primereact/tooltip';
-import { Tag } from 'primereact/tag';
+import { useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useUploadFiles } from '@/lib/react-query/queriesAndMutations';
+import { UploadIcon, AlertCircle } from 'lucide-react';
 
-export default function TemplateDemo() {
-    const toast = useRef(null);
-    const [totalSize, setTotalSize] = useState(0);
-    const fileUploadRef = useRef(null);
-    //@ts-ignore
-    const onTemplateSelect = (e) => {
-        let _totalSize = totalSize;
-        let files = e.files;
+interface FileUploaderProps {
+    onFileUpload: (fileData: { id: string; url: string; name: string; type: string }) => void;
+    accept?: string;
+    maxSize?: number;
+    className?: string;
+}
 
-        Object.keys(files).forEach((key) => {
-            _totalSize += files[key].size || 0;
-        });
+interface ErrorState {
+    message: string;
+    type: 'size' | 'format' | 'upload' | 'other';
+}
 
-        setTotalSize(_totalSize);
-    };
-    //@ts-ignore
-    const onTemplateUpload = (e) => {
-        let _totalSize = 0;
-        //@ts-ignore
-        e.files.forEach((file) => {
-            _totalSize += file.size || 0;
-        });
-        //@ts-ignore
-        setTotalSize(_totalSize);//@ts-ignore
-        toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
-    };
-    //@ts-ignore
-    const onTemplateRemove = (file, callback) => {
-        setTotalSize(totalSize - file.size);
-        callback();
+const FileUploader: React.FC<FileUploaderProps> = ({
+    onFileUpload,
+    accept = '*/*',
+    maxSize = 4 * 1024 * 1024, // 4MB default
+    className = ''
+}) => {
+    const [error, setError] = useState<ErrorState | null>(null);
+    const { mutateAsync: uploadMediaFile, isPending: isUploading } = useUploadFiles();
+
+    const formatFileSize = (bytes: number): string => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    const onTemplateClear = () => {
-        setTotalSize(0);
-    };
-    //@ts-ignore
-    const headerTemplate = (options) => {
-        const { className, chooseButton, uploadButton, cancelButton } = options;
-        const value = totalSize / 10000;//@ts-ignore
-        const formatedValue = fileUploadRef && fileUploadRef.current ? fileUploadRef.current.formatSize(totalSize) : '0 B';
+    const validateFileType = (file: File, acceptedFormats: string): boolean => {
+        if (acceptedFormats === '*/*') return true;
+        const acceptedTypes = acceptedFormats.split(',').map(type => type.trim());
 
-        return (
-            <div className={className} style={{ backgroundColor: 'transparent', display: 'flex', alignItems: 'center' }}>
-                {chooseButton}
-                {uploadButton}
-                {cancelButton}
-                <div className="flex align-items-center gap-3 ml-auto">
-                    <span>{formatedValue} / 1 MB</span>
-                    <ProgressBar value={value} showValue={false} style={{ width: '10rem', height: '12px' }}></ProgressBar>
-                </div>
-            </div>
-        );
-    };
-    //@ts-ignore
-    const itemTemplate = (file, props) => {
-        return (
-            <div className="flex align-items-center flex-wrap">
-                <div className="flex align-items-center" style={{ width: '40%' }}>
-                    <img alt={file.name} role="presentation" src={file.objectURL} width={100} />
-                    <span className="flex flex-column text-left ml-3">
-                        {file.name}
-                        <small>{new Date().toLocaleDateString()}</small>
-                    </span>
-                </div>
-                <Tag value={props.formatSize} severity="warning" className="px-3 py-2" />
-                <Button type="button" icon="pi pi-times" className="p-button-outlined p-button-rounded p-button-danger ml-auto" onClick={() => onTemplateRemove(file, props.onRemove)} />
-            </div>
+        // Handle mime types (e.g., image/*)
+        if (acceptedTypes.some(type => type.endsWith('/*'))) {
+            const generalTypes = acceptedTypes
+                .filter(type => type.endsWith('/*'))
+                .map(type => type.split('/')[0]);
+            if (generalTypes.some(type => file.type.startsWith(type))) {
+                return true;
+            }
+        }
+
+        // Handle specific extensions (e.g., .pdf)
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+        console.log("FILE EXTENSION", fileExtension)
+        return acceptedTypes.some(type =>
+            type.startsWith('.') ? type.toLowerCase() === fileExtension : file.type === type
         );
     };
 
-    const emptyTemplate = () => {
-        return (
-            <div className="flex align-items-center flex-column">
-                <i className="pi pi-image mt-3 p-5" style={{ fontSize: '5em', borderRadius: '50%', backgroundColor: 'var(--surface-b)', color: 'var(--surface-d)' }}></i>
-                <span style={{ fontSize: '1.2em', color: 'var(--text-color-secondary)' }} className="my-5">
-                    Drag and Drop Image Here
-                </span>
-            </div>
-        );
+    const handleUpload = async (file: File) => {
+        try {
+            // Size validation
+            if (file.size > maxSize) {
+                setError({
+                    type: 'size',
+                    message: `File size (${formatFileSize(file.size)}) exceeds the limit of ${formatFileSize(maxSize)}`
+                });
+                return;
+            }
+
+            // Format validation
+            if (!validateFileType(file, accept)) {
+                setError({
+                    type: 'format',
+                    message: `File type not supported. Accepted formats: ${accept}`
+                });
+                return;
+            }
+
+            setError(null);
+
+            try {
+                const response = await uploadMediaFile(file);
+                onFileUpload({
+                    id: response.data._id,
+                    url: response.data.url,
+                    name: file.name,
+                    type: file.type
+                });
+            } catch (uploadError: any) {
+                setError({
+                    type: 'upload',
+                    message: uploadError.message || 'Failed to upload file. Please try again.'
+                });
+            }
+        } catch (error: any) {
+            setError({
+                type: 'other',
+                message: error.message || 'An unexpected error occurred.'
+            });
+        }
     };
 
-    const chooseOptions = { icon: 'pi pi-fw pi-images', iconOnly: true, className: 'custom-choose-btn p-button-rounded p-button-outlined' };
-    const uploadOptions = { icon: 'pi pi-fw pi-cloud-upload', iconOnly: true, className: 'custom-upload-btn p-button-success p-button-rounded p-button-outlined' };
-    const cancelOptions = { icon: 'pi pi-fw pi-times', iconOnly: true, className: 'custom-cancel-btn p-button-danger p-button-rounded p-button-outlined' };
+    const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+        onDrop: async (acceptedFiles, rejectedFiles) => {
+            if (rejectedFiles.length > 0) {
+                const [firstRejection] = rejectedFiles;
+                const [firstError] = firstRejection.errors;
+                setError({
+                    type: firstError.code === 'file-too-large' ? 'size' : 'format',
+                    message: firstError.message
+                });
+                return;
+            }
+
+            if (acceptedFiles.length > 0) {
+                await handleUpload(acceptedFiles[0]);
+            }
+        },
+        accept: accept ? { [accept.includes('/') ? accept : 'application/*']: accept.split(',') } : undefined,
+        maxSize,
+        multiple: false
+    });
 
     return (
-        <div>
-            <Toast ref={toast}></Toast>
-
-            <Tooltip target=".custom-choose-btn" content="Choose" position="bottom" />
-            <Tooltip target=".custom-upload-btn" content="Upload" position="bottom" />
-            <Tooltip target=".custom-cancel-btn" content="Clear" position="bottom" />
-
-            <FileUpload ref={fileUploadRef} name="demo[]" url="/api/upload" multiple accept="image/*" maxFileSize={1000000}
-                onUpload={onTemplateUpload} onSelect={onTemplateSelect} onError={onTemplateClear} onClear={onTemplateClear}
-                headerTemplate={headerTemplate} itemTemplate={itemTemplate} emptyTemplate={emptyTemplate}
-                chooseOptions={chooseOptions} uploadOptions={uploadOptions} cancelOptions={cancelOptions} />
+        <div className={className}>
+            <div
+                {...getRootProps()}
+                className={`relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
+          ${isDragActive && !isDragReject ? 'border-primary-500 bg-primary-50' : ''}
+          ${isDragReject || error ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-primary-500'}
+          ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+            >
+                <input {...getInputProps()} />
+                <div className="flex flex-col items-center justify-center gap-2">
+                    {error ? (
+                        <AlertCircle className="w-6 h-6 text-red-500" />
+                    ) : (
+                        <UploadIcon className="w-6 h-6 text-gray-400" />
+                    )}
+                    <div className="text-sm text-gray-600">
+                        {isDragActive ? (
+                            <p>Drop the file here</p>
+                        ) : error ? (
+                            <p className="text-red-500">{error.message}</p>
+                        ) : (
+                            <p>
+                                Drag & drop or <span className="text-primary-500">browse</span>
+                            </p>
+                        )}
+                    </div>
+                    {!error && accept && accept !== '*/*' && (
+                        <p className="text-xs text-gray-500">
+                            Accepted formats: {accept}
+                        </p>
+                    )}
+                    {!error && (
+                        <p className="text-xs text-gray-500">
+                            Maximum size: {formatFileSize(maxSize)}
+                        </p>
+                    )}
+                </div>
+                {isUploading && (
+                    <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+                    </div>
+                )}
+            </div>
         </div>
-    )
-}
+    );
+};
+
+export default FileUploader;

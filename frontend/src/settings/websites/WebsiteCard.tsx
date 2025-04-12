@@ -1,43 +1,72 @@
 import React from 'react';
-import SvgComponent from '@/utils/SvgComponent';
 import { IWebsite } from '@/lib/types';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useUserContext } from '@/context/AuthProvider';
+import { Edit2, Globe, ExternalLink } from 'lucide-react';
 
 interface WebsiteCardProps {
   item: IWebsite;
   index: number;
 }
 
-const WebsiteCard: React.FC<WebsiteCardProps> = ({ item, index }) => {
+const WebsiteCard: React.FC<WebsiteCardProps> = ({ item }) => {
   const navigate = useNavigate();
   const { user } = useUserContext();
-  return (
-    <li key={index} className="col-span-1 divide-y divide-gray-200 rounded-lg border border-1 min-h-[172px]  p-3">
-      <div className="flex w-full items-center justify-between space-x-6">
-        <div className="flex-1 truncate">
 
-          <div className="flex justify-between space-x-3 mb-4">
-            <div className="img_container w-8 h-8">
-              {item?.icon == '' || item?.icon == undefined ? (<SvgComponent className='' svgName='website_icon' />) : <img src={`${item?.icon}`} alt="" className="w-8 h-8 rounded-full" />}
-            </div>
-            {(user.role === 'super_admin' || user?.role === 'admin' ||  user?.role === 'user') && <button onClick={() => { user?.id == item.id ? navigate('/profile/' + item.id) : navigate('/website/edit/' + item.id) }}><SvgComponent className="" svgName="edit_action" /></button>}
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 p-3 flex flex-col gap-2 group relative">
+      {/* Header Section */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          {/* Website Icon */}
+          <div className="w-10 h-10 rounded-lg bg-gray-50 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100">
+            {item?.icon ? (
+              <img 
+                src={item.icon} 
+                alt={item.business_name} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Globe className="w-5 h-5 text-gray-400" />
+            )}
           </div>
 
-          <div className="flex m-0 gap-[15px] items-center h-full">
-            <div className="flex flex-col gap-2">
-              <div className="body-bold flex items-center gap-1">
-                <span className="flex flex-col">
-                  <p className="font-inter font-semibold text-xl text-title-headings">{item.business_name}</p>
-                  <NavLink className="flex gap-[2.5px] font-inter font-semibold text-xs text-main-bg-900" to={item.url}><SvgComponent className='' svgName='target_icon' />{item.url}</NavLink>
-                </span>
-              </div>
-              <p className="font-inter text-xs font-medium text-secondary-label text-pretty ">{item.description}</p>
-            </div>
+          {/* Website Details */}
+          <div className="min-w-0 flex-1">
+            <h3 className="font-medium text-gray-900 text-base leading-tight truncate">
+              {item.business_name}
+            </h3>
+            <NavLink 
+              to={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-gray-500 hover:text-primary-500 flex items-center gap-1 w-fit group-hover:text-primary-600 transition-colors"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span className="truncate max-w-[200px]">{item.url}</span>
+              <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </NavLink>
           </div>
         </div>
+
+        {/* Edit Button */}
+        {(user?.role === 'super_admin' || user?.role === 'admin' || user?.role === 'user') && (
+          <button 
+            onClick={() => navigate(user?.id === item.id ? `/profile/${item.id}` : `/website/edit/${item.id}`)}
+            className="p-1.5 rounded-lg absolute top-2 right-2 transition-all flex-shrink-0"
+          >
+            <Edit2 className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+          </button>
+        )}
       </div>
-    </li>
+      
+      {/* Description */}
+      {item.description && (
+        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+          {item.description}
+        </p>
+      )}
+    </div>
   );
 };
 

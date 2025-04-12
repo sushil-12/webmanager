@@ -7,167 +7,230 @@ import { useGetAllPosts } from '@/lib/react-query/queriesAndMutations';
 import SvgComponent from '@/utils/SvgComponent';
 import PostDataTable from '@/components/datatable/PostDataTable';
 import Loader from '@/components/shared/Loader';
+import { Search } from 'lucide-react';
+
+function useDebounce(value: string, delay: number) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+}
 
 const PostComponent = () => {
-  const { post_type, domain } = useParams();
-  const { setCurrentDomain, currentDomain } = useUserContext();
-  // @ts-ignore
-  setCurrentDomain(domain);
-  const defaultPostType = post_type || 'default';
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const [searchInput, setSearchInput] = useState('');
-  const [posts, setPosts] = useState([]);
-  const [render, setRerender] = useState(true);
-  const [filter, setFilter] = useState('All');
-  const [publishedCount, setpublishedCount] = useState(0);
-  const [draftCount, setdraftCount] = useState(0);
-  const [totalCount, settotalCount] = useState(0);
-  const [canEdit, setCanEdit] = useState(false);
-  const [loadMore, setLoadMore] = useState(false);
-  const [changeFilterCount, setChangeFilterCount] = useState(false);
-  const [deletedPostFilter, setDeletedPostFilter] = useState('All');
-  const [isLoadingMore, setIsLoadingMore]= useState(false);
-  // @ts-ignore
-  const handleFilterChange = (filterValue) => {
-    setFilter(filterValue);
-  };
-  const initialPaginationState = {
-    page: 1,
-    limit: import.meta.env.VITE_POST_PAGINATION,
-    skip: 0,
-    totalPages: 1,
-    totalItems: 0,
-  };
-  
-  const [pagination, setPagination] = useState(initialPaginationState);
-  
-  const resetPagination = () => {
-    setPagination(initialPaginationState);
-  };
+    const { post_type, domain } = useParams();
+    const { setCurrentDomain, currentDomain } = useUserContext(); // @ts-ignore
+    setCurrentDomain(domain);
+    const defaultPostType = post_type || 'default';
+    const { toast } = useToast();
+    const navigate = useNavigate();
+    const [searchInput, setSearchInput] = useState('');
+    const debouncedSearchInput = useDebounce(searchInput, 500);
+    const [posts, setPosts] = useState([]);
+    const [render, setRerender] = useState(true);
+    const [filter, setFilter] = useState('All');
+    const [publishedCount, setPublishedCount] = useState(0);
+    const [draftCount, setDraftCount] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
+    const [canEdit, setCanEdit] = useState(false);
+    const [loadMore, setLoadMore] = useState(false); // @ts-ignore
+    const [changeFilterCount, setChangeFilterCount] = useState(false);// @ts-ignore
+    const [deletedPostFilter, setDeletedPostFilter] = useState('All');
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  useEffect(()=>{
-   if(posts.length > 0){
-    console.log(deletedPostFilter, "DELETED POST FILTER");
-    settotalCount(totalCount - 1)
-    console.log(filter);
-    if(filter !== 'All'){
-      console.log(filter);
-      filter === 'draft'  || deletedPostFilter === 'draft'? setdraftCount(draftCount - 1)  : setpublishedCount(publishedCount- 1)
-    }
-    else{
-      deletedPostFilter === 'draft'? setdraftCount(draftCount - 1)  : setpublishedCount(publishedCount- 1)
-    }
-   }
-  }, [changeFilterCount])
-   
-  const { mutateAsync: getAllPosts, isPending: isLoading } = useGetAllPosts();
+    const initialPaginationState = {
+        page: 1,
+        limit: import.meta.env.VITE_POST_PAGINATION,
+        skip: 0,
+        totalPages: 1,
+        totalItems: 0,
+    };
+    
+    const [pagination, setPagination] = useState(initialPaginationState);
+    
+    const { mutateAsync: getAllPosts, isPending: isLoading } = useGetAllPosts();
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const postResponse = await getAllPosts({
-          page: pagination.page,
-          limit: pagination.limit,
-          post_type: defaultPostType,
-          search: searchInput,
-          filter: filter,
-        });
-        console.log(postResponse?.data?.can_edit, "CAN EDIT")
-         
-         if(loadMore){// @ts-ignore
-          setPosts((prevPosts) => [...prevPosts,...postResponse?.data?.posts ]);
-          setLoadMore(false);
-         }else{
-          setPosts(postResponse?.data?.posts);
-         }
-        
-        setpublishedCount(postResponse?.data?.published_posts)
-        setCanEdit(postResponse?.data?.can_edit)
-        setdraftCount(postResponse?.data?.draft_posts)
-        settotalCount(postResponse?.data?.totalCount)
-        setPagination(postResponse?.data?.pagination || {});
-      } catch (error) {
-        toast({ variant: "destructive", title: "Unable to fetch Posts", duration: import.meta.env.VITE_TOAST_DURATION, icon: <SvgComponent className="" svgName="close_toaster" /> });
-      }
+    const fetchPosts = async (resetPage = false) => {
+        try {
+            const currentPage = resetPage ? 1 : pagination.page;
+            const postResponse = await getAllPosts({
+                page: currentPage,
+                limit: pagination.limit,
+                post_type: defaultPostType,
+                search: debouncedSearchInput,
+                filter: filter,
+            });
+
+            if (postResponse?.data?.posts) {
+                if (loadMore) {// @ts-ignore
+                    setPosts(prevPosts => [...prevPosts, ...postResponse.data.posts]);
+                    setLoadMore(false);
+                } else {
+                    setPosts(postResponse.data.posts);
+                }
+            }
+
+            setCanEdit(postResponse?.data?.can_edit);
+            setPublishedCount(postResponse?.data?.published_posts);
+            setDraftCount(postResponse?.data?.draft_posts);
+            setTotalCount(postResponse?.data?.totalCount);
+            
+            if (postResponse?.data?.pagination) {
+                setPagination(prev => ({
+                    ...prev,
+                    ...postResponse.data.pagination,
+                    page: currentPage
+                }));
+            }
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Fetch Failed',
+                description: 'Something went wrong',
+                duration: import.meta.env.VITE_TOAST_DURATION,
+                icon: <SvgComponent className="" svgName="close_toaster" />,
+            });
+        }
     };
 
-    // Set a timer to delay fetching posts
-    const timer = setTimeout(fetchPosts, 500);
-    console.log(render);
+    // Reset page when search or filter changes, but maintain load more state
+    useEffect(() => {
+        if (!loadMore) {
+            setPagination(prev => ({ ...prev, page: 1 }));
+            fetchPosts(true);
+        }
+    }, [debouncedSearchInput, filter]);
 
-    // Cleanup the timer on each key stroke
-    return () => clearTimeout(timer);
-  }, [getAllPosts, setPosts, searchInput, filter, post_type, render, pagination.page]);
-  // @ts-ignore
-  const handleInputChange = (event) => {
-    setSearchInput(event.target.value);
-  };
+    // Fetch data when page changes
+    useEffect(() => {
+        if (pagination.page > 1) {
+            fetchPosts();
+        }
+    }, [pagination.page]);
 
-  const handleSearch = () => {
-    // @ts-ignore
-    // Trigger search when user explicitly clicks search button
-    fetchPosts();
-  };
-  const handleLoadMore = () => {
-    setIsLoadingMore(true);
-    if (pagination.page < pagination.totalPages) {
-      setLoadMore(true);
-      setPagination((prevPagination) => ({
-        ...prevPagination,
-        page: prevPagination.page + 1,
-      }));
-      setIsLoadingMore(false);
-    }
-  };
-  return (
-    <div className="main-container w-full overflow-hidden ">
-      <div className="w-full flex items-center header-bar justify-between h-[10vh]  min-h-[10vh] max-h-[10vh] justify pl-5 pr-[31px]">
-        <div className="flex gap-[15px]">
-          <h3 className="page-titles capitalize">{defaultPostType }</h3>
-          {canEdit && (
-            <Button className="shad-button_primary place-self-end" size="sm" onClick={() => navigate(`/${btoa(currentDomain)}/post/${defaultPostType}`)}>
-              <SvgComponent className='' svgName='plus-circle' /> Add {defaultPostType}
-            </Button>
-          )}
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(event.target.value);
+    };
 
+    const handleFilterChange = (filterValue: string) => {
+        setFilter(filterValue);
+        setPagination(initialPaginationState);
+    };
+
+    const handleLoadMore = () => {
+        if (pagination.page < pagination.totalPages) {
+            setIsLoadingMore(true);
+            setLoadMore(true);
+            setPagination(prev => ({
+                ...prev,
+                page: prev.page + 1
+            }));
+            setIsLoadingMore(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-gray-50">
+            {/* Header Section */}
+            <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                    <h1 className="text-lg font-medium text-gray-900 capitalize">{defaultPostType}s</h1>
+                    {canEdit && (
+                        <Button 
+                            className="shad-button_primary h-8 px-3 text-sm" 
+                            size="sm" 
+                            onClick={() => navigate(`/${btoa(currentDomain)}/post/${defaultPostType}`)}
+                        >
+                            <SvgComponent className="w-3.5 mr-1.5" svgName='plus-circle' /> 
+                            Add {defaultPostType}
+                        </Button>
+                    )}
+                </div>
+                
+                {/* Search Bar */}
+                <div className="relative flex-1 max-w-xs">
+                    <input
+                        onChange={handleInputChange}
+                        value={searchInput}
+                        className="w-full h-8 pl-9 pr-3 text-sm bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                        type="text"
+                        placeholder={`Search ${defaultPostType}s...`}
+                    />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                </div>
+            </div>
+
+            {/* Filter Buttons */}
+            <div className="flex items-center gap-4 px-5 py-3 bg-white border-b border-gray-200">
+                <button 
+                    className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
+                        filter === 'All' 
+                            ? 'bg-primary-50 text-primary-600' 
+                            : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    onClick={() => handleFilterChange('All')}
+                >
+                    All ({totalCount})
+                </button>
+                <button 
+                    className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
+                        filter === 'draft' 
+                            ? 'bg-primary-50 text-primary-600' 
+                            : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    onClick={() => handleFilterChange('draft')}
+                >
+                    Drafts ({draftCount})
+                </button>
+                <button 
+                    className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
+                        filter === 'published' 
+                            ? 'bg-primary-50 text-primary-600' 
+                            : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    onClick={() => handleFilterChange('published')}
+                >
+                    Published ({publishedCount})
+                </button>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 p-4">
+                <PostDataTable 
+                    posts={posts} 
+                    post_type={defaultPostType} 
+                    isPostLoading={isLoading && pagination.page === 1} 
+                    setRerender={setRerender} 
+                    render={render} 
+                    canEdit={canEdit} 
+                    setPosts={setPosts} 
+                    setChangeFilterCount={setChangeFilterCount} 
+                    setDeletedPostFilter={setDeletedPostFilter} 
+                />
+
+                {/* Load More Button */}
+                {pagination.totalItems > posts.length && (
+                    <div className="flex justify-center pt-6">
+                        <button
+                            className="px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-md hover:bg-primary-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleLoadMore}
+                            disabled={isLoading || isLoadingMore}
+                        >
+                            {isLoadingMore ? <Loader /> : 'Load more'}
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
-        <div className="flex justify-start items-center py-7 ">
-          <input
-            onChange={handleInputChange}
-            value={searchInput}
-            className="leading-none text-left text-gray-600 px-4 py-3 border rounded border-gray-300 outline-none w-[239px] h-10 text-[14px] font-medium hover:rounded-[50px]"
-            type="text"
-            placeholder="Search"
-          />
-          <button className="absolute right-3 z-10 cursor-pointer" onClick={handleSearch}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8.33333 7.33333H7.80667L7.62 7.15333C8.27333 6.39333 8.66667 5.40667 8.66667 4.33333C8.66667 1.94 6.72667 0 4.33333 0C1.94 0 0 1.94 0 4.33333C0 6.72667 1.94 8.66667 4.33333 8.66667C5.40667 8.66667 6.39333 8.27333 7.15333 7.62L7.33333 7.80667V8.33333L10.6667 11.66L11.66 10.6667L8.33333 7.33333ZM4.33333 7.33333C2.67333 7.33333 1.33333 5.99333 1.33333 4.33333C1.33333 2.67333 2.67333 1.33333 4.33333 1.33333C5.99333 1.33333 7.33333 2.67333 7.33333 4.33333C7.33333 5.99333 5.99333 7.33333 4.33333 7.33333Z" fill="#4F5B67" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="h-[90vh] min-h-[90vh] max-h-[90vh] overflow-y-auto overflow-x-hidden  relative  pl-5 px-[31px] py-5">
-        <div className="flex mb-4 mt-[-2px]">
-          <button className={`mr-2 ${filter === 'All' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('All'); resetPagination();}}>All {`(${totalCount})`}</button>
-          <button className={`mr-2 ${filter === 'draft' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('draft'); resetPagination()} }>Drafts{`(${draftCount})`}</button>
-          <button className={`mr-2 ${filter === 'published' && 'font-bold pointer-events-none'}`} onClick={() => {handleFilterChange('published'); resetPagination()}}>Published{`(${publishedCount})`}</button>
-        </div>
-        <PostDataTable posts={posts} post_type={defaultPostType} isPostLoading={isLoading && pagination.page == 1 } setRerender={setRerender} render={render} canEdit={canEdit} setPosts= {setPosts} setChangeFilterCount= {setChangeFilterCount} setDeletedPostFilter = {setDeletedPostFilter} />
-        <div className="card text-center mb-14 mt-8">
-          {pagination.totalItems > posts.length && searchInput == '' && (
-            <button
-              className="load-more-button"
-              onClick={handleLoadMore}
-              disabled={isLoading}
-            >
-              {isLoading || isLoadingMore ? <Loader /> : 'Load more'}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default PostComponent;

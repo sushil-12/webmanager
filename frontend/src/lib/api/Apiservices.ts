@@ -8,8 +8,8 @@ class ApiService {
   public commonService: CommanService;
  
   constructor() {
-    this.api = axios.create({
-      baseURL: import.meta.env.VITE_API_URL,
+    this.api = axios.create({ // @ts-ignore
+      baseURL: import.meta.env.VITE_API_URL+ '/api',
     });
 
 

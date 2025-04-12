@@ -1,80 +1,59 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
-import { useCreateUserAccount, useGetStripeProductListing, useGetStripeProducts } from "@/lib/react-query/queriesAndMutations";
+import { useCreateUserAccount } from "@/lib/react-query/queriesAndMutations";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "@/context/AuthProvider";
 import SvgComponent from "@/utils/SvgComponent";
+import { Card } from "primereact/card";
+import { ProgressSpinner } from "primereact/progressspinner";
 
-// Accept product as a prop
 interface CheckoutFormProps {
     productId: string;
-    setSubsbcriptionData: any;
-    formValues: any;
+    priceId: string;
+    planName: string;
+    planPrice: number;
+    setSubsbcriptionData: (data: SubscriptionData) => void;
+    formValues: {
+        firstName: string;
+        lastName: string;
+        username: string;
+        email: string | null;
+        password: string;
+    };
 }
 
-const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcriptionData, formValues }) => {
+interface SubscriptionData {
+    priceId: string;
+    productId: string;
+    paymentMethodId: string;
+}
+
+const CheckoutForm: React.FC<CheckoutFormProps> = ({ 
+    productId, 
+    priceId, 
+    planName, 
+    planPrice,
+    setSubsbcriptionData, 
+    formValues 
+}) => {
     const stripe = useStripe();
     const elements = useElements();
-    const { toast } = useToast()
-    const { mutateAsync: getStripeProductListing, isPending: isFetchingProductLists } = useGetStripeProductListing();
-    const { mutateAsync: getStripeProductById, isPending: isFetchingProduct } = useGetStripeProducts();
+    const { toast } = useToast();
     const { mutateAsync: createUserAccount, isPending: isCreatingUser } = useCreateUserAccount();
-    const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
-    const [selectedProductId, setSelectedProductId] = useState<string | null>(productId);
-    const [productDetails, setProductDetails] = useState<any | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const { checkAuthUser } = useUserContext();
     const navigate = useNavigate();
-
     const formRef = useRef<HTMLFormElement>(null);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const productList = await getStripeProductListing();
-                setProducts(productList?.data?.products);
-                if (productList.length > 0) {
-                    setSelectedProductId(productList[0].id); // Set the first product as default
-                }
-            } catch (error) {
-                console.error("Failed to fetch product list:", error);
-            }
-        };
-
-        fetchProducts();
-    }, [getStripeProductListing]);
-
-    useEffect(() => {
-        if (selectedProductId) {
-            const fetchProductDetails = async () => {
-                try {
-                    const product = await getStripeProductById(selectedProductId);
-                    setProductDetails(product?.data?.product);
-                    setErrorMessage(null); // Clear any previous errors
-                } catch (error) {
-                    console.error("Failed to fetch product details:", error);
-                    setErrorMessage("Failed to load product details. Please try again.");
-                }
-            };
-
-            fetchProductDetails();
-        }
-    }, [selectedProductId, getStripeProductById]);
-
-    const totalAmount = productDetails ? productDetails?.price?.unit_amount / 100 * (productDetails.quantity || 1) : 0;
-
-    // Handle form submission
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        // Check if dependencies are loaded and product is selected
-        if (!stripe || !elements || !productDetails) {
-            setErrorMessage("Stripe.js is not loaded or product details are missing.");
+        if (!stripe || !elements) {
+            setErrorMessage("Stripe.js is not loaded.");
             return;
         }
 
-        // Get elements for card details
         const cardNumber = elements.getElement(CardNumberElement);
         const cardExpiry = elements.getElement(CardExpiryElement);
         const cardCvc = elements.getElement(CardCvcElement);
@@ -84,32 +63,40 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcription
             return;
         }
 
-        // Create a payment method using the card details
-        const { error, paymentMethod } = await stripe.createPaymentMethod({
-            type: 'card',
-            card: cardNumber, // Provide the CardNumberElement reference
-        });
-
-        console.log(paymentMethod, "paymentMethod")
-
-        if (error) {
-            setErrorMessage(error.message || "An error occurred while processing the payment method.");
-            return;
-        }
-
-        // Now you have the paymentMethod object which contains card details securely
-        const subscriptionData = {
-            priceId: productDetails?.default_price,
-            productId: selectedProductId,
-            paymentMethodId: paymentMethod.id, // Send the PaymentMethod ID to your server
-        };
-
-        setSubsbcriptionData(subscriptionData);
-        console.log(subscriptionData); // For debugging
-
-        // Attempt to create a new user account with subscription data
         try {
-            const updatedFormValues = { ...formValues, ...subscriptionData };
+            // Create payment method
+            const { error: paymentError, paymentMethod } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardNumber,
+                billing_details: {
+                    name: `${formValues.firstName} ${formValues.lastName}`,
+                    email: formValues.email,
+                },
+            });
+
+            if (paymentError) {
+                setErrorMessage(paymentError.message || "An error occurred while processing the payment method.");
+                return;
+            }
+
+            if (!paymentMethod) {
+                setErrorMessage("Failed to create payment method. Please try again.");
+                return;
+            }
+
+            const subscriptionData: SubscriptionData = {
+                priceId: priceId,
+                productId: productId,
+                paymentMethodId: paymentMethod.id,
+            };
+
+            setSubsbcriptionData(subscriptionData);
+
+            const updatedFormValues = {
+                ...formValues,
+                ...subscriptionData,
+                email: formValues.email || '',
+            };
             const newUser = await createUserAccount(updatedFormValues);
 
             if (!newUser) {
@@ -132,8 +119,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcription
                 });
             }
 
-            // Check if session is valid
-            const sessionValid = await checkAuthUser(); // Replace with actual session validation logic
+            const sessionValid = await checkAuthUser();
             if (!sessionValid) {
                 return toast({
                     variant: "destructive",
@@ -157,101 +143,80 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ productId, setSubsbcription
     };
 
     return (
-        <div className="flex flex-col max-w-lg mx-auto p-8 bg-white rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Checkout</h2>
-
-            {/* Product Selection */}
-            <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Select a Product</h3>
-                {isFetchingProductLists ? (
-                    <p>Loading products...</p>
-                ) : (
+        <div className="p-6 w-[550px]">
+            <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Complete Your Purchase</h2>
+            
+            <Card className="mb-6">
+                <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Order Summary</h3>
                     <div className="space-y-2">
-                        {products?.map((product) => (
-                            <label
-                                key={product.id}
-                                className="flex items-center p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
-                            >
-                                <input
-                                    type="radio"
-                                    name="product"
-                                    value={product.id}
-                                    checked={selectedProductId === product.id}
-                                    onChange={() => setSelectedProductId(product.id)}
-                                    className="mr-3"
-                                />
-                                <span className="text-gray-800">{product.name}</span>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">Plan</span>
+                            <span className="font-medium">{planName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">Price</span>
+                            <span className="font-medium">${planPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="border-t pt-2 mt-2">
+                            <div className="flex justify-between font-semibold">
+                                <span>Total</span>
+                                <span>${planPrice.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+
+            <form onSubmit={handleSubmit} ref={formRef} className="space-y-6">
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Card Number
+                        </label>
+                        <div className="border rounded-lg p-3 bg-gray-50">
+                            <CardNumberElement className="w-full" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Expiration Date
                             </label>
-                        ))}
+                            <div className="border rounded-lg p-3 bg-gray-50">
+                                <CardExpiryElement className="w-full" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                CVC
+                            </label>
+                            <div className="border rounded-lg p-3 bg-gray-50">
+                                <CardCvcElement className="w-full" />
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                {errorMessage && (
+                    <div className="text-red-600 text-sm text-center">{errorMessage}</div>
                 )}
-            </div>
 
-            {/* Product Details */}
-            {isFetchingProduct ? (
-                <p>Loading product details...</p>
-            ) : productDetails ? (
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Product Details</h3>
-                    <div className="border-t border-gray-200 pt-4">
-                        <div className="flex justify-between mb-2">
-                            <span className="text-gray-700">Product Name</span>
-                            <span className="text-gray-900">{productDetails.name}</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                            <span className="text-gray-700">Price</span>
-                            <span className="text-gray-900">${productDetails.price?.unit_amount / 100}</span>
-                        </div>
-                        <div className="flex justify-between font-semibold mt-4">
-                            <span className="text-gray-700">Total Amount</span>
-                            <span className="text-green-600">${totalAmount?.toFixed(2)}</span>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                errorMessage && <p className="text-red-600">{errorMessage}</p>
-            )}
-
-            {/* Payment Section */}
-            <form onSubmit={handleSubmit} ref={formRef} className="mb-6">
-                {/* Card Number Section */}
-                <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
-                    <div className="border-gray-300 rounded-lg bg-gray-50">
-                        <CardNumberElement
-                            className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-                </div>
-
-                {/* Card Expiry Section */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Expiration Date</label>
-                        <div className="rounded-lg bg-gray-50">
-                            <CardExpiryElement
-                                className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Card CVC Section */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">CVC</label>
-                        <div className="rounded-lg bg-gray-50">
-                            <CardCvcElement
-                                className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                        </div>
-                    </div>
-                </div>
-                {errorMessage && <p className="text-red-600 mt-2">{errorMessage}</p>}
                 <button
                     type="submit"
-                    className="w-full py-3 mt-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-500 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled={!stripe || isFetchingProduct || isFetchingProductLists}
+                    disabled={!stripe || isCreatingUser}
+                    className="w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-500 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                    {isFetchingProduct || isFetchingProductLists || isCreatingUser ? "Processing..." : "Pay Now"}
+                    {isCreatingUser ? (
+                        <>
+                            <ProgressSpinner style={{ width: '20px', height: '20px' }} className="mr-2" />
+                            Processing...
+                        </>
+                    ) : (
+                        'Pay Now'
+                    )}
                 </button>
             </form>
         </div>

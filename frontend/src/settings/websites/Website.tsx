@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import WebsiteCard from "./WebsiteCard";
 import { Message } from "@/components/ui/message";
 import { useUserContext } from "@/context/AuthProvider";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -24,14 +26,14 @@ function useDebounce(value: string, delay: number) {
 
   return debouncedValue;
 }
+
 export default function Website() {
   const { toast } = useToast();
   const [searchInput, setSearchInput] = useState("");
   const [websites, setwebsites] = useState([]);
-  const { mutateAsync: getWebsiteListing, isPending: isLoading } =
-    useGetWebsiteListing();
+  const { mutateAsync: getWebsiteListing, isPending: isLoading } = useGetWebsiteListing();
   const navigate = useNavigate();
-  const debouncedSearchInput = useDebounce(searchInput, 500); // Adjust delay as needed
+  const debouncedSearchInput = useDebounce(searchInput, 500);
   const { user } = useUserContext();
 
   const [pagination, setPagination] = useState({
@@ -40,6 +42,7 @@ export default function Website() {
     totalPages: 1,
     totalItems: 0,
   });
+
   const fetchData = async () => {
     try {
       const userListingdata = await getWebsiteListing({
@@ -47,7 +50,6 @@ export default function Website() {
         limit: pagination.limit,
         search: debouncedSearchInput,
       });
-      console.log(userListingdata);
       setwebsites(userListingdata?.data?.websites);
       setPagination(userListingdata?.data?.pagination || {});
     } catch (error) {
@@ -59,77 +61,56 @@ export default function Website() {
       });
     }
   };
+
   useEffect(() => {
     fetchData();
   }, [debouncedSearchInput]);
-  // @ts-ignore
-  const handleInputChange = (event) => {
-    // @ts-ignore
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
   };
 
-  const handleSearch = () => {
-    // @ts-ignore
-    fetchData();
-  };
   return (
-    <div className="main-container w-full overflow-hidden ">
-      <div className="w-full flex items-center justify-between h-[10vh] min-h-[10vh] max-h-[10vh] justify pl-5 pr-[44px] header-bar">
-        <h3 className="page-titles">Settings</h3>
+    <div className="flex flex-col h-screen bg-gray-50">
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-b">
+        <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
       </div>
-      <div className="user-container px-5">
-        <div className="w-full flex justify-between pt-6 pb-3 ">
-          <div className="flex justify-start items-center relative overflow-hidden">
-            <input
-              onChange={handleInputChange}
-              value={searchInput}
-              className="leading-none text-left text-gray-600 px-4 py-3 border rounded border-gray-300 outline-none w-[239px] h-10 text-[14px] font-medium"
+      
+      <div className="flex-1 p-6 overflow-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div className="relative w-72">
+            <Input
               type="text"
-              placeholder="Search"
+              placeholder="Search websites..."
+              value={searchInput}
+              onChange={handleInputChange}
+              className="pl-10 bg-white"
             />
-            <button
-              className="absolute right-3 z-10 cursor-pointer"
-              onClick={handleSearch}
-            >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8.33333 7.33333H7.80667L7.62 7.15333C8.27333 6.39333 8.66667 5.40667 8.66667 4.33333C8.66667 1.94 6.72667 0 4.33333 0C1.94 0 0 1.94 0 4.33333C0 6.72667 1.94 8.66667 4.33333 8.66667C5.40667 8.66667 6.39333 8.27333 7.15333 7.62L7.33333 7.80667V8.33333L10.6667 11.66L11.66 10.6667L8.33333 7.33333ZM4.33333 7.33333C2.67333 7.33333 1.33333 5.99333 1.33333 4.33333C1.33333 2.67333 2.67333 1.33333 4.33333 1.33333C5.99333 1.33333 7.33333 2.67333 7.33333 4.33333C7.33333 5.99333 5.99333 7.33333 4.33333 7.33333Z"
-                  fill="#4F5B67"
-                />
-              </svg>
-            </button>
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           </div>
-          {user?.role !== "user" && (
-            <Button
-              className="shad-button_primary place-self-end h-10"
-              size="sm"
-              onClick={() => {
-                navigate("/website/new");
-              }}
-            >
-              <SvgComponent className="" svgName="plus-circle" /> Add website
-            </Button>
-          )}
+          
+          <Button
+            onClick={() => navigate("/website/new")}
+            className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white"
+            size="sm"
+          >
+            <SvgComponent svgName="plus-circle" />
+            Add website
+          </Button>
         </div>
-        <div className="card_container w-full">
-          {isLoading ? (
+
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
             <Loader type="list-loader" />
-          ) : (
-            <ul
-              role="list"
-              className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 py-2"
-            >
-              {websites && websites.length > 0 ? (
-                websites.map((item: any, index: number) => {
-                  return <WebsiteCard item={item} index={index} key={index} />;
-                })
-              ) : (
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {websites && websites.length > 0 ? (
+              websites.map((item: any, index: number) => (
+                <WebsiteCard key={index} item={item} index={index} />
+              ))
+            ) : (
+              <div className="col-span-full">
                 <Message
                   style={{
                     borderWidth: "0 0 0 6px",
@@ -137,12 +118,12 @@ export default function Website() {
                   }}
                   color="green"
                   className="border-primary w-full justify-content-start text-left displayMessage block"
-                  text={"No Websites are there !"}
+                  text={"No websites found"}
                 />
-              )}
-            </ul>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

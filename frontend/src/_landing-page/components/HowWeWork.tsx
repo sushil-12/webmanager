@@ -45,37 +45,43 @@ const StepCard: React.FC<StepCardProps> = ({ number, title, imageSrc, descriptio
 
 const HowWeWork: React.FC<HowWeWorkProps> = ({ sectionTitle, sectionDescription, steps }) => {
     return (
-        <section className="py-20 bg-blueGray-50" id="how-we-work" title={sectionTitle}>
-            <div className="container px-4 mx-auto">
-                <div className="flex flex-wrap items-center justify-between max-w-2xl lg:max-w-full mb-12">
-                    <div className="w-full lg:w-1/2 mb-4 lg:mb-0">
-                        <h2 className="text-3xl md:text-4xl font-bold font-heading wow animate__animated animate__fadeInDown">
-                            <span>Content Locker </span>
-                            <span className="text-blue-500">Headless CMS</span>
-                            <br />
-                            <span>for all your business needs</span>
-                        </h2>
-                    </div>
-                    <div className="w-full lg:w-1/2 lg:pl-16">
-                        <p className="text-blueGray-400 leading-loose wow animate__animated animate__fadeInUp">
-                            {sectionDescription}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex flex-wrap -mx-3 -mb-6 text-center">
-                    {steps.map((step, index) => (
-                        <StepCard
-                            key={step.number}
-                            number={step.number}
-                            title={step.title}
-                            imageSrc={step.imageSrc}
-                            description={step.description}
-                            delay={((index + 1) * 0.2).toString() + 's'} // Apply delay for animation
-                        />
-                    ))}
-                </div>
+        <section className="py-12 bg-gray-50" id="how-we-work" title={sectionTitle}>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 items-center">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold leading-snug text-gray-900">
+                <span>Content Locker </span>
+                <span className="text-blue-600">Headless CMS</span>
+                <br className="hidden md:block" />
+                <span>for all your business needs</span>
+              </h2>
             </div>
-        </section>
+            <div>
+              <p className="text-gray-600 text-base md:text-lg leading-relaxed">
+                {sectionDescription}
+              </p>
+            </div>
+          </div>
+      
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-center">
+            {steps.map((step, index) => (
+              <div
+                key={step.number}
+                className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300 ease-in-out"
+                style={{ animationDelay: `${(index + 1) * 0.2}s` }}
+              >
+                <div className="mb-4">
+                  <img src={step.imageSrc} alt={step.title} className="w-12 h-12 mx-auto mb-2" />
+                  <div className="text-sm text-blue-500 font-medium">Step {step.number}</div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
     );
 };
 

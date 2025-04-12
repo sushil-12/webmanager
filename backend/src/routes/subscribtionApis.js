@@ -1,6 +1,6 @@
 const express = require('express');
 const { getPostById, getAllPosts, getAllPostTypesAndPages, getSubscriptionPostById } = require('../controllers/sharable/PostOperations.js');
-const validateApiKey = require('../middleware/validateApiKeys.js');
+const validateApiKey = require('../middleware/validateApiKey.js');
 const router = express.Router();
 
 /**
@@ -118,6 +118,7 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.use(validateApiKey);  // Apply API key validation middleware
+console.log("VALIDATE API KEY MIDDLEWARE", validateApiKey);
 router.get('/get-post/:post_id', getSubscriptionPostById);
 router.get('/get-all-post/:website_name/:post_type', getAllPosts);
 

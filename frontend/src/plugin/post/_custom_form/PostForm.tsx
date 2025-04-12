@@ -29,6 +29,7 @@ import { getAllCustomFields } from "@/lib/appwrite/api";
 import DynamicForm from "./DynamicForm";
 import { Accordion, AccordionHeader, AccordionBody } from "@material-tailwind/react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PostFormSchema {
     post_type: string,
@@ -65,14 +66,14 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
             [key]: !prev[key],
         }));
     };
-    console.log(setMetaKey, isCategoryLoading)
-    async function fetchCategories() {
 
+    async function fetchCategories() {
         if (post_type) {
             const categoryData = await getAllCategories(post_type);
             setCategories(categoryData.data.categories);
         }
     }
+
     async function getListSeoFilePath() {
         if (post_type) {
             const seoFilePath = await getSeoFilePath();
@@ -96,7 +97,6 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
                 customFieldsResponse?.data?.customField[0]?.fields?.length > 0 && setCustomFormFields(customFieldsResponse?.data?.customField[0]?.fields)
                 console.log(customFieldsResponse?.data?.customField, "customFormFields")
             }
-
         }
     }
 
@@ -142,6 +142,7 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
         const selectedValuesArray = Object.keys(selectedItems);
         form.setValue('categories', selectedValuesArray);
     };
+
     const form = useForm<z.infer<typeof PostFormSchema>>({
         resolver: zodResolver(PostFormSchema),
         defaultValues: {
@@ -156,7 +157,6 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
             customFields: currentPost?.postMeta?.customFields,
         },
     });
-    console.log("============================", form.getValues('seoData.seoUrl'), currentPost?.seoData)
 
     async function onSubmit(values: z.infer<typeof PostFormSchema>) {
         if (values.seoData === undefined || values?.seoData.seoFilePath === undefined || values?.seoData?.seoFilePath === 'select' || values?.seoData?.seoFilePath === '') {
@@ -211,7 +211,8 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
                                             </FormItem>
                                         )}
                                     />
-                                    {/* Content Field */}
+
+                                    {/* Content Editor */}
                                     <FormField
                                         control={form.control}
                                         name="content"
@@ -293,6 +294,7 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
                                                     <FormLabel>Featured Image</FormLabel>
                                                     <FormControl>
                                                         <MediaPicker
+                                                            filterExtension={['.jpg', '.jpeg', '.png', '.gif', '.webp']}
                                                             defaultValue={post?.featuredImage}
                                                             onSelect={(selectedImage) => {
                                                                 form.setValue(
@@ -306,6 +308,7 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
                                                 </FormItem>
                                             )}
                                         />
+                                        
                                         {/* Categories */}
                                         {categories.length === 0 && post_type !== "page" && (
                                             <FormField
@@ -442,7 +445,6 @@ const PostForm: React.FC<PostFormSchema> = ({ post_type, post }) => {
                                                 </FormItem>
                                             )}
                                         />
-                                        {/* Other SEO Fields */}
                                     </div>
                                 </AccordionBody>
                             </Accordion>

@@ -15,6 +15,16 @@ const Sidebar = require('../../models/Sidebar');
 const AuthValidator = require('../../validator/AuthValidator');
 const cloudinary = require('../../config/cloudinary');
 const Website = require('../../models/Websites');
+const {
+    logUserCreation,
+    logUserUpdate,
+    logUserDeletion,
+    logRoleChange,
+    logPermissionUpdate,
+    logTeamMemberAdded,
+    logTeamMemberRemoved,
+    logTeamRoleChange
+} = require('../../utils/userActivityLogger');
 
 
 const defaultSidebarJson = {
@@ -274,13 +284,40 @@ const createOrEditUser = async (req, res) => {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-
     if (id) {
       // Edit user if id is provided
-      const existingUser = await User.findById(id);
+      const existingUser = await User.findById(id).populate('role');
       if (!existingUser) {
         return ResponseHandler.error(res, { message: 'User not found' }, HTTP_STATUS_CODES.NOT_FOUND);
       }
+
+      // Store old data for comparison
+      const oldData = {
+        username: existingUser.username,
+        email: existingUser.email,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        role: existingUser.role.name,
+        permissions: existingUser.permissions || {},
+        profile_pic: existingUser.profile_pic
+      };
+
+      // Prepare new data for comparison
+      const newData = {
+        username,
+        email,
+        firstName,
+        lastName,
+        role: user_type,
+        permissions: permissions || {},
+        profile_pic: profile_pic || existingUser.profile_pic
+      };
+
+      // Log role change if role is being updated
+      if (userRole && existingUser.role._id.toString() !== userRole._id.toString()) {
+        await logRoleChange(req, id, existingUser.role.name, user_type);
+      }
+
       // Update the user fields
       existingUser.username = username;
       if (hashedPassword) existingUser.password = hashedPassword;
@@ -289,22 +326,17 @@ const createOrEditUser = async (req, res) => {
       existingUser.lastName = lastName;
       existingUser.role = userRole;
       existingUser.temp_email = '';
-      existingUser.permissions = permissions;
-      if (Object.entries(permissions).length === 0) {
-        existingUser.permissions = null;
-      }
-      if (profile_pic == '') {
-        existingUser.profile_pic = profile_pic;
-      }
+      existingUser.permissions = permissions || null;
 
-      if (profile_pic) {
+      if (profile_pic === '') {
+        existingUser.profile_pic = '';
+      } else if (profile_pic) {
         const base64String = profile_pic;
         const buffer = Buffer.from(base64String, 'base64');
         const readableStream = new Readable();
         readableStream.push(buffer);
         readableStream.push(null);
 
-        // Upload the profile picture to cloudinary
         const uploadPromise = new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream({ folder: 'profile_pictures' },
             (error, result) => {
@@ -326,6 +358,10 @@ const createOrEditUser = async (req, res) => {
       }
 
       await existingUser.save();
+      
+      // Log user update with field changes
+      await logUserUpdate(req, id, oldData, newData, 'success');
+
       ResponseHandler.success(res, { message: 'User updated successfully' }, HTTP_STATUS_CODES.OK);
     } else {
       const duplicateUser = await User.findOne({
@@ -334,7 +370,6 @@ const createOrEditUser = async (req, res) => {
 
       if (duplicateUser) {
         let conflictField = '';
-
         if (duplicateUser.username === username) {
           conflictField = 'Username';
         } else if (duplicateUser.email === email) {
@@ -342,6 +377,7 @@ const createOrEditUser = async (req, res) => {
         }
         return ResponseHandler.error(res, HTTP_STATUS_CODES.CONFLICT, `${conflictField} already exists`, HTTP_STATUS_CODES.CONFLICT);
       }
+
       const newUser = new User({
         username,
         password: hashedPassword,
@@ -358,6 +394,14 @@ const createOrEditUser = async (req, res) => {
       // Save the user
       await newUser.save();
 
+      // Log user creation
+      await logUserCreation(req, newUser._id, 'success', {
+        username,
+        email,
+        role: user_type,
+        permissions
+      });
+
       // Handle profile picture upload
       if (profile_pic) {
         const base64String = profile_pic;
@@ -366,7 +410,6 @@ const createOrEditUser = async (req, res) => {
         readableStream.push(buffer);
         readableStream.push(null);
 
-        // Upload the profile picture to cloudinary
         const uploadPromise = new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream({ folder: 'profile_pictures' },
             (error, result) => {
@@ -374,9 +417,6 @@ const createOrEditUser = async (req, res) => {
                 console.error('Upload error:', error);
                 reject(error);
               } else {
-                if (id) {
-
-                }
                 newUser.profile_pic = result.secure_url;
                 console.log('Uploaded profile pic:', result.secure_url);
                 resolve();
@@ -388,13 +428,18 @@ const createOrEditUser = async (req, res) => {
         });
 
         await uploadPromise;
-        await newUser.save(); // Save the user with the updated profile picture
+        await newUser.save();
       }
 
       ResponseHandler.success(res, { message: 'User created successfully' }, HTTP_STATUS_CODES.OK);
     }
   } catch (error) {
-    // Handle errors
+    // Log error for user creation/update
+    if (req.body.id) {
+      await logUserUpdate(req, req.body.id, {}, {}, 'error', { error: error.message });
+    } else {
+      await logUserCreation(req, null, 'error', { error: error.message });
+    }
     ErrorHandler.handleError(error, res);
   }
 };
@@ -443,10 +488,11 @@ const getAllUser = async (req, res) => {
       deleted_at: null, // Exclude deleted users
     };
 
+    const userRole = await Role.findOne({"name": "user"});
     // Add role-based filtering
     if (user?.role?.name !== 'super_admin') {
       query.created_by = createdBy;
-      query.role = '65896a7778d59ca679d53b2d';
+      query.role = userRole?._id;
     }
 
     // Build the search query
@@ -552,20 +598,137 @@ const deleteUser = async (req, res) => {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     const user_id = req.params.user_id;
 
-    // Find the user by ID and delete it
-    // const deletedUser = await User.findByIdAndDelete(user_id);
+    const user = await User.findById(user_id);
+    if (!user) {
+      throw new CustomError(404, 'User not found');
+    }
+
+    // Log user deletion
+    await logUserDeletion(req, user_id, 'success', {
+      username: user.username,
+      email: user.email
+    });
+
+    // Soft delete the user
     const deletedUser = await User.findByIdAndUpdate(user_id, { deleted_at: Date.now() });
     if (!deletedUser) {
       throw new CustomError(404, 'User not found');
     }
 
-    // Respond with success message
     ResponseHandler.success(res, { message: 'User deleted successfully' }, 200);
   } catch (error) {
+    await logUserDeletion(req, req.params.user_id, 'error', { error: error.message });
     ErrorHandler.handleError(error, res);
   }
-}
+};
+
+const addTeamMember = async (req, res) => {
+  try {
+    const { websiteId, userId, role } = req.body;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const currentUserId = decodedToken.userId;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check if user has permission to add team members
+    if (website.created_by.toString() !== currentUserId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return ResponseHandler.error(res, 'User not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Add user to team
+    if (!website.teamMembers.includes(userId)) {
+      website.teamMembers.push(userId);
+      await website.save();
+
+      // Log team member addition
+      await logTeamMemberAdded(req, websiteId, userId, 'success', { role });
+    }
+
+    ResponseHandler.success(res, { message: 'Team member added successfully' }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logTeamMemberAdded(req, req.body.websiteId, req.body.userId, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const removeTeamMember = async (req, res) => {
+  try {
+    const { websiteId, userId } = req.params;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const currentUserId = decodedToken.userId;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check if user has permission to remove team members
+    if (website.created_by.toString() !== currentUserId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    // Remove user from team
+    website.teamMembers = website.teamMembers.filter(member => member.toString() !== userId);
+    await website.save();
+
+    // Log team member removal
+    await logTeamMemberRemoved(req, websiteId, userId);
+
+    ResponseHandler.success(res, { message: 'Team member removed successfully' }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logTeamMemberRemoved(req, req.params.websiteId, req.params.userId, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const updateTeamMemberRole = async (req, res) => {
+  try {
+    const { websiteId, userId } = req.params;
+    const { role } = req.body;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const currentUserId = decodedToken.userId;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check if user has permission to update team member roles
+    if (website.created_by.toString() !== currentUserId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return ResponseHandler.error(res, 'User not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Update team member role
+    const oldRole = user.role;
+    user.role = role;
+    await user.save();
+
+    // Log team role change
+    await logTeamRoleChange(req, websiteId, userId, oldRole, role);
+
+    ResponseHandler.success(res, { message: 'Team member role updated successfully' }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logTeamRoleChange(req, req.params.websiteId, req.params.userId, null, null, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
 
 module.exports = {
-  getProfile, checkPassword, sendOtpVerificationOnEmail, logout, getSidebarData, saveSidebarData, cancelEmailChangeRequest, createOrEditUser, getUserProfile, getAllUser, deleteUser
+  getProfile, checkPassword, sendOtpVerificationOnEmail, logout, getSidebarData, saveSidebarData, cancelEmailChangeRequest, createOrEditUser, getUserProfile, getAllUser, deleteUser, addTeamMember, removeTeamMember, updateTeamMemberRole
 };

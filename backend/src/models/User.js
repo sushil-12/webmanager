@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
   resetToken: { type: String },
   otpExpiry: { type: Date },
   resetTokenExpiry: { type: Date },
+  apiKey: { type: String },
   verificationLinkExpiryTime: { type: Date },
   staySignedIn: { type: Boolean, default: false }, // Whether the user has opted to stay signed in for 7 days
   signInTimestamp: { type: Date }, // Timestamp when the user signed in

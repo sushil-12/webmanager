@@ -1,94 +1,66 @@
-import React from "react";
+import React from 'react';
+import { RocketLaunchIcon, ShieldCheckIcon, PuzzlePieceIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 
-// Define types for the Hero Section props
-interface HeroProps {
-  title: string;
-  subtitle: string;
-  backgroundImage: string;
-  features: {
-    label: string;
-    count: string;
-    icon: JSX.Element;
-  }[];
-  cta: {
-    keyFeatures: string;
-    howWeWork: string;
-  };
-}
-
-const Hero: React.FC<HeroProps> = ({ title, subtitle, backgroundImage, features, cta }) => {
-  console.log(features)
+const Hero: React.FC = () => {
   return (
-    <section
-      className="xl:bg-contain bg-top bg-no-repeat -mt-24 pt-24"
-      style={{ backgroundImage: `url(${backgroundImage})` }}
-    >
-      {/* Hero Content */}
-      <div className="container px-4 mx-auto">
-        <div className="pt-12 text-center">
-          <div className="max-w-2xl mx-auto mb-8">
-            <h2 className="text-2xl lg:text-5xl lg:leading-normal mb-4 font-bold font-heading wow animate__animated animate__fadeIn">
-              {title} <br />
-              <span className="text-blue-500">{subtitle}</span>
-            </h2>
-          </div>
+    <section className="bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
+          {/* Left column - Content */}
           <div>
-            <a
-              className="btn-primary py-4 px-8 mr-2 wow animate__animated animate__fadeInUp hover-up-2"
-              href="#key-features"
-            >
-              {cta.keyFeatures}
-            </a>
-            <a
-              className="btn-white wow animate__animated animate__fadeInUp hover-up-2"
-              data-wow-delay=".3s"
-              href="#how-we-work"
-            >
-              {cta.howWeWork}
-            </a>
-          </div>
-        </div>
-      </div>
+            <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+              <span className="block text-3xl leading-20">Create Seamless Online Experiences</span>
+              <span className="block text-blue-600">Without the Backend Hassle</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-xl text-gray-500">
+              A powerful headless CMS that lets you focus on creating amazing content experiences. 
+              Perfect for blogs, e-commerce, documentation sites, and more.
+            </p>
+            <div className="mt-10 flex gap-4">
+              <a
+                href="#pricing"
+                className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+              >
+                Get Started
+              </a>
+              <a
+                href="#demo"
+                className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
+              >
+                View Demo
+              </a>
+            </div>
 
-      {/* Image Section */}
-      <div className="relative max-w-6xl mt-16 md:mt-8 mb-8 mx-auto">
-        <img
-          src="/pattern.png"
-          alt="Background pattern"
-        />
-        <div
-          className="absolute"
-          style={{ top: "9%", left: "14%", width: "72%", height: "66%" }}
-        >
-          <img
-            className="jump wow animate__animated animate__fadeIn rounded-lg"
-            src="/demo-dashboard.png"
-            alt="Dashboard image"
-          />
-        </div>
-      </div>
-
-      {/* Statistics Section */}
-      {/* <div className="container px-4 mx-auto">
-        <div className="flex flex-wrap justify-between pt-8 pb-16">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="hover-up-5 flex w-1/2 lg:w-auto py-4 wow animate__animated animate__fadeInUp"
-              data-wow-delay={`${0.2 * (index + 1)}s`}
-            >
-              <div className="flex justify-center items-center text-xl bg-blueGray-50 text-blue-500 rounded-xl h-12 w-12 sm:h-20 sm:w-20">
-                {feature.icon}
+            <div className="mt-12 grid grid-cols-2 gap-4">
+              <div className="flex items-center">
+                <RocketLaunchIcon className="h-5 w-5 text-blue-500 mr-2" />
+                <span className="text-sm text-gray-600">Lightning Fast</span>
               </div>
-              <div className="sm:py-2 ml-2 sm:ml-6">
-                <span className="sm:text-2xl font-bold font-heading">+ </span>
-                <span className="sm:text-2xl font-bold font-heading">{feature.count}</span>
-                <p className="text-xs sm:text-base text-blueGray-400">{feature.label}</p>
+              <div className="flex items-center">
+                <ShieldCheckIcon className="h-5 w-5 text-blue-500 mr-2" />
+                <span className="text-sm text-gray-600">Enterprise Security</span>
+              </div>
+              <div className="flex items-center">
+                <PuzzlePieceIcon className="h-5 w-5 text-blue-500 mr-2" />
+                <span className="text-sm text-gray-600">Easy Integration</span>
+              </div>
+              <div className="flex items-center">
+                <CloudArrowUpIcon className="h-5 w-5 text-blue-500 mr-2" />
+                <span className="text-sm text-gray-600">Scalable Infrastructure</span>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Right column - Dashboard Image */}
+          <div className="mt-12 lg:mt-0">
+            <img
+              className="rounded-lg shadow-xl"
+              src="/dashboard.png"
+              alt="Dashboard preview"
+            />
+          </div>
         </div>
-      </div> */}
+      </div>
     </section>
   );
 };

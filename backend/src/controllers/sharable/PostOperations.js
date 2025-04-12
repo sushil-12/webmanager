@@ -240,7 +240,6 @@ const getSubscriptionPostById = async (req, res) => {
     try {
         const postId = req.params.post_id;
         const requestedFields = parseFields(req.query._fields);
-
         // Validate post ID
         if (!mongoose.Types.ObjectId.isValid(postId)) {
             throw new CustomError(400, 'Invalid post ID');

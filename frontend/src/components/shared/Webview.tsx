@@ -1,6 +1,10 @@
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import { useState, useEffect } from "react";
+import { Card } from "primereact/card";
+import { Button } from "../ui/button";
+import { Copy, Download, RefreshCw } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface SwaggerDocsProps {
   apiKey: string;
@@ -61,239 +65,93 @@ interface SwaggerSpec {
 
 const SwaggerDocs = ({
   apiKey,
-  postId='',
+  postId = '',
   singlePost = false,
   website_name = "",
   post_type = "",
 }: SwaggerDocsProps) => {
   const [swaggerSpec, setSwaggerSpec] = useState<SwaggerSpec | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      variant: "default",
+      title: "Copied to clipboard!"
+    });
+  };
+
+  const downloadSpec = () => {
+    if (!swaggerSpec) return;
+    const blob = new Blob([JSON.stringify(swaggerSpec, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'api-spec.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL; // Base URL (e.g., http://localhost:3000)
+    const generateSwaggerSpec = async () => {
+      setIsLoading(true);
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const fullUrl = singlePost
+          ? `/subscription-api/get-post/{id}`
+          : `/subscription-api/get-all-post/{website_name}/{post_type}`;
 
-    // Dynamically choose the API path based on `singlePost`
-    const fullUrl = singlePost
-      ? `/subscription-api/get-post/{id}`
-      : `/subscription-api/get-all-post/{website_name}/{post_type}`;
+        let dynamicSwaggerJson: SwaggerSpec;
 
-    let dynamicSwaggerJson: SwaggerSpec;
-
-    if (singlePost) {
-      dynamicSwaggerJson = {
-        openapi: "3.0.0",
-        info: {
-          title: "Content Locker - A Powerful Headless CMS Web Application",
-          version: "2.0.0",
-          description: "For particular posts and pages by their respective IDs",
-        },
-        servers: [
-          {
-            url: apiUrl, // Base URL for the API (e.g., http://localhost:3000)
-          },
-        ],
-        paths: {
-          [fullUrl]: {
-            get: {
-              summary: "Get post by ID",
-              description: "Fetches a post by ID from the database",
-              parameters: [
-                {
-                  name: "id",
-                  in: "path",
-                  required: true,
-                  description: "The ID of the post",
-                  schema: {
-                    type: "string",
-                    default: postId || "defaultPostId", // Dynamic post_id
-                  },
-                },
-                {
-                  name: "api_key",
-                  in: "query",
-                  required: true,
-                  description: "API Key for authentication",
-                  schema: {
-                    type: "string",
-                    default: apiKey || "defaultApiKey", // Dynamic api_key
-                  },
-                },
-              ],
-              responses: {
-                "200": {
-                  description: "Successfully fetched the post",
-                  content: {
-                    "application/json": {
+        if (singlePost) {
+          dynamicSwaggerJson = {
+            openapi: "3.0.0",
+            info: {
+              title: "Content Locker API",
+              version: "2.0.0",
+              description: "API endpoint for fetching individual posts by ID",
+            },
+            servers: [{ url: apiUrl }],
+            paths: {
+              [fullUrl]: {
+                get: {
+                  summary: "Get post by ID",
+                  description: "Fetches a specific post by its unique identifier",
+                  parameters: [
+                    {
+                      name: "id",
+                      in: "path",
+                      required: true,
+                      description: "Unique identifier of the post",
                       schema: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string" },
-                          title: { type: "string" },
-                          content: { type: "string" },
-                        },
+                        type: "string",
+                        default: postId || "defaultPostId",
                       },
                     },
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-    } else {
-      dynamicSwaggerJson = { 
-        openapi: "3.0.0",
-        info: {
-          title: "Content Locker - A Powerful Headless CMS Web Application",
-          description: "API for fetching posts by website and post type",
-          version: "1.0.0",
-        },
-        servers: [
-          {
-            url: apiUrl, // Base URL for the API (e.g., http://localhost:3000)
-          },
-        ], //@ts-ignore
-        paths: {
-          [fullUrl]: {
-            get: {
-              summary: "Get all posts of a specific website and post type",
-              description:
-                "Fetches all posts based on the provided website name and post type. Supports optional query parameters for pagination, filtering, and field selection.",
-              tags: ["PostOperations"],
-              parameters: [
-                {
-                  in: "path",
-                  name: "website_name",
-                  required: true,
-                  description: "The website name to fetch posts from",
-                  schema: {
-                    type: "string",
-                    default: website_name || "defaultWebsiteName",
-                  },
-                },
-                {
-                  in: "path",
-                  name: "post_type",
-                  required: true,
-                  description: "The type of post (e.g., blog, news, etc.)",
-                  schema: {
-                    type: "string",
-                    default: post_type || "defaultPostType",
-                  },
-                },
-                {
-                  in: "query",
-                  name: "api_key",
-                  required: true,
-                  description: "The API key used for authentication",
-                  schema: {
-                    type: "string",
-                    default: apiKey || "defaultApiKey",
-                  },
-                },
-                {
-                  in: "query",
-                  name: "page",
-                  required: false,
-                  description: "The page number for pagination",
-                  schema: {
-                    type: "integer",
-                    default: 1,
-                    example: 2,
-                  },
-                },
-                {
-                  in: "query",
-                  name: "limit",
-                  required: false,
-                  description: "The number of posts per page",
-                  schema: {
-                    type: "integer",
-                    default: 10,
-                    example: 20,
-                  },
-                },
-                {
-                  in: "query",
-                  name: "search",
-                  required: false,
-                  description: "A search term to filter posts by title or content",
-                  schema: {
-                    type: "string",
-                    example: "search-for-any-string",
-                  },
-                },
-                {
-                  in: "query",
-                  name: "filter",
-                  required: false,
-                  description: "Filter posts by status (e.g., draft, published, trash)",
-                  schema: {
-                    type: "string",
-                    enum: ["draft", "published", "trash", "all"],
-                    default: "All",
-                    example: "draft",
-                  },
-                },
-                {
-                  in: "query",
-                  name: "fields",
-                  required: false,
-                  description:
-                    "Comma-separated list of fields to include in the response. Example: 'title,content,categories,featuredImage,postMeta'",
-                  schema: {
-                    type: "string",
-                    example: "title,content,featuredImage,postMeta",
-                  },
-                },
-              ],
-              responses: {
-                "200": {
-                  description: "Successfully retrieved the posts",
-                  content: {
-                    "application/json": {
+                    {
+                      name: "api_key",
+                      in: "query",
+                      required: true,
+                      description: "API Key for authentication",
                       schema: {
-                        type: "array",
-                        items: {
-                          type: "object",
-                          properties: {
-                            post_id: {
-                              type: "string",
-                              description: "The unique ID of the post",
-                              example: "672878d9637cdd901d2f25d8",
-                            },
-                            title: {
-                              type: "string",
-                              description: "The title of the post",
-                              example: "Homepage",
-                            },
-                            content: {
-                              type: "string",
-                              description: "The content of the post",
-                              example: "<p>Lorem ipsum dolor sit amet...</p>",
-                            },
-                            featuredImage: {
-                              type: "object",
-                              description: "Details of the featured image",
-                              properties: {
-                                url: {
-                                  type: "string",
-                                  description: "URL of the image",
-                                  example: "https://example.com/image.jpg",
-                                },
-                                alt_text: {
-                                  type: "string",
-                                  description: "Alternative text for the image",
-                                  example: "An example image",
-                                },
-                              },
-                            },
-                            categories: {
-                              type: "array",
-                              description: "List of associated categories",
-                              items: {
-                                type: "string",
-                                example: "Technology",
-                              },
+                        type: "string",
+                        default: apiKey || "defaultApiKey",
+                      },
+                    },
+                  ],
+                  responses: {
+                    "200": {
+                      description: "Successfully retrieved the post",
+                      content: {
+                        "application/json": {
+                          schema: {
+                            type: "object",
+                            properties: {
+                              id: { type: "string" },
+                              title: { type: "string" },
+                              content: { type: "string" },
                             },
                           },
                         },
@@ -301,32 +159,248 @@ const SwaggerDocs = ({
                     },
                   },
                 },
-                "400": {
-                  description: "Invalid website name or post type",
-                },
-                "401": {
-                  description: "Invalid or missing API key",
-                },
-                "404": {
-                  description: "No posts found for the given website and post type",
-                },
-                "500": {
-                  description: "Internal server error",
+              },
+            },
+          };
+        } else {
+          dynamicSwaggerJson = {
+            openapi: "3.0.0",
+            info: {
+              title: "Content Locker API",
+              description: "API for fetching posts by website and post type",
+              version: "1.0.0",
+            },
+            servers: [{ url: apiUrl }], // @ts-ignore
+            paths: {
+              [fullUrl]: {
+                get: {
+                  summary: "Get posts by website and type",
+                  description: "Fetches posts based on website name and post type with pagination and filtering options",
+                  tags: ["PostOperations"],
+                  parameters: [
+                    {
+                      in: "path",
+                      name: "website_name",
+                      required: true,
+                      description: "Name of the website to fetch posts from",
+                      schema: {
+                        type: "string",
+                        default: website_name || "defaultWebsiteName",
+                      },
+                    },
+                    {
+                      in: "path",
+                      name: "post_type",
+                      required: true,
+                      description: "Type of posts to fetch",
+                      schema: {
+                        type: "string",
+                        default: post_type || "defaultPostType",
+                      },
+                    },
+                    {
+                      in: "query",
+                      name: "api_key",
+                      required: true,
+                      description: "API Key for authentication",
+                      schema: {
+                        type: "string",
+                        default: apiKey || "defaultApiKey",
+                      },
+                    },
+                    {
+                      in: "query",
+                      name: "page",
+                      required: false,
+                      description: "Page number for pagination",
+                      schema: {
+                        type: "integer",
+                        default: 1,
+                        example: 2,
+                      },
+                    },
+                    {
+                      in: "query",
+                      name: "limit",
+                      required: false,
+                      description: "Number of posts per page",
+                      schema: {
+                        type: "integer",
+                        default: 10,
+                        example: 20,
+                      },
+                    },
+                    {
+                      in: "query",
+                      name: "search",
+                      required: false,
+                      description: "Search term for filtering posts",
+                      schema: {
+                        type: "string",
+                        example: "search-term",
+                      },
+                    },
+                    {
+                      in: "query",
+                      name: "filter",
+                      required: false,
+                      description: "Filter posts by status",
+                      schema: {
+                        type: "string",
+                        enum: ["draft", "published", "trash", "all"],
+                        default: "all",
+                        example: "published",
+                      },
+                    },
+                    {
+                      in: "query",
+                      name: "fields",
+                      required: false,
+                      description: "Fields to include in response",
+                      schema: {
+                        type: "string",
+                        example: "title,content,featuredImage",
+                      },
+                    },
+                  ],
+                  responses: {
+                    "200": {
+                      description: "Successfully retrieved posts",
+                      content: {
+                        "application/json": {
+                          schema: {
+                            type: "array",
+                            items: {
+                              type: "object",
+                              properties: {
+                                post_id: {
+                                  type: "string",
+                                  description: "Unique post identifier",
+                                  example: "672878d9637cdd901d2f25d8",
+                                },
+                                title: {
+                                  type: "string",
+                                  description: "Post title",
+                                  example: "Sample Post",
+                                },
+                                content: {
+                                  type: "string",
+                                  description: "Post content",
+                                  example: "<p>Post content...</p>",
+                                },
+                                featuredImage: {
+                                  type: "object",
+                                  description: "Featured image details",
+                                  properties: {
+                                    url: {
+                                      type: "string",
+                                      description: "Image URL",
+                                      example: "https://example.com/image.jpg",
+                                    },
+                                    alt_text: {
+                                      type: "string",
+                                      description: "Image alt text",
+                                      example: "Sample image",
+                                    },
+                                  },
+                                },
+                                categories: {
+                                  type: "array",
+                                  description: "Post categories",
+                                  items: {
+                                    type: "string",
+                                    example: "Technology",
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    "400": {
+                      description: "Invalid request parameters",
+                    },
+                    "401": {
+                      description: "Unauthorized - Invalid API key",
+                    },
+                    "404": {
+                      description: "No posts found",
+                    },
+                    "500": {
+                      description: "Internal server error",
+                    },
+                  },
                 },
               },
             },
-          },
-        },
-      };
-    }
+          };
+        }
 
-    setSwaggerSpec(dynamicSwaggerJson);
-  }, [apiKey, postId, singlePost]);
+        setSwaggerSpec(dynamicSwaggerJson);
+      } catch (error) {
+        console.error('Error generating Swagger spec:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to generate API documentation"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  return swaggerSpec ? (
-    <SwaggerUI spec={swaggerSpec} />
-  ) : (
-    <div>Loading Swagger UI...</div>
+    generateSwaggerSpec();
+  }, [apiKey, postId, singlePost, website_name, post_type]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="swagger-container h-full flex flex-col overflow-hidden">
+      <div className="swagger-header p-3 border-b bg-white flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">API Documentation</h2>
+          <span className="text-xs text-gray-500">
+            {singlePost ? 'Single Post Endpoint' : 'Posts Collection Endpoint'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => copyToClipboard(JSON.stringify(swaggerSpec, null, 2))}
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Copy Spec
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={downloadSpec}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+      <div className="swagger-content flex-1 overflow-auto">
+        {/* @ts-ignore */}
+        <SwaggerUI spec={swaggerSpec} />
+      </div>
+    </div>
   );
 };
 
@@ -347,9 +421,17 @@ const WebView = ({
   post_type = "",
 }: WebViewProps) => {
   return (
-    <div style={{ width: "100%", height: "50vh" }}>
-      <SwaggerDocs apiKey={apiKey} postId={postId} singlePost={singlePost}  website_name ={website_name} post_type = {post_type}/>
-    </div>
+    <Card className="w-full p-0">
+      <div className="h-full">
+        <SwaggerDocs
+          apiKey={apiKey}
+          postId={postId}
+          singlePost={singlePost}
+          website_name={website_name}
+          post_type={post_type}
+        />
+      </div>
+    </Card>
   );
 };
 

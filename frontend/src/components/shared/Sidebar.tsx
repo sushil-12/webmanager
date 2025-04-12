@@ -11,7 +11,6 @@ import {
 } from "@material-tailwind/react";
 import {
   UserCircleIcon,
-  Cog6ToothIcon,
   PowerIcon,
   UsersIcon,
 } from "@heroicons/react/24/solid";
@@ -23,19 +22,19 @@ import SvgComponent from "@/utils/SvgComponent";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { createSlug } from "@/lib/utils";
 import { getHeroIcon } from "@/lib/HeroIcon";
+import { Globe2Icon } from "lucide-react";
 
 export function SidebarWithLogo() {
   const [open, setOpen] = React.useState("");
   const navigate = useNavigate();
   const { pathname } = useLocation();
-
   const { user, navItems, setIsLoading } = useUserContext();
   const [websites, setWebsites] = useState<IWebsite[]>([]);
 
   const logout = async () => {
     confirmDialog({
-      header: "Are you sure you want to sign out of application?",
-      headerClassName: "font-inter text-[2rem]",
+      header: "Are you sure you want to sign out?",
+      headerClassName: "font-inter text-xl",
       acceptClassName: "accept_button text-left",
       rejectClassName: "reject_button",
       className: "border bg-light-1 shadow-lg p-0 confirm_dialogue",
@@ -71,21 +70,21 @@ export function SidebarWithLogo() {
   const isActive = (url: string) => pathname.includes(url);
 
   return (
-    <Card placeholder={""} className="h-screen w-full p-4 shadow-xl min-w-[300px] ">
+    <Card placeholder={""} className="h-screen w-full max-w-[280px] p-3 shadow-sm border-r bg-white">
       <ConfirmDialog />
       <div
-        className="mb-2 flex items-center gap-2 p-2 cursor-pointer"
+        className="mb-4 flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-50 rounded-lg transition-all"
         onClick={() => {
           navigate("/dashboard");
         }}
       >
-        <img src="/logo.png" alt="brand" className="h-8 w-8" />
-        <Typography placeholder={""} variant="h5" color="blue-gray">
+        <img src="/logo.png" alt="brand" className="h-7 w-7" />
+        <Typography placeholder={""} className="font-semibold text-gray-800 text-lg">
           Content Locker
         </Typography>
       </div>
 
-      <List placeholder={""} className="overflow-auto">
+      <List placeholder={""} className="overflow-auto space-y-1">
         {websites.map(({ id, business_name, icon, menus }) => {
           const baseRoute = btoa(createSlug(business_name, "_"));
           return (
@@ -96,7 +95,7 @@ export function SidebarWithLogo() {
               icon={
                 <ChevronDownIcon
                   strokeWidth={2.5}
-                  className={`mx-auto h-4 w-4 transition-transform ${
+                  className={`mx-auto h-3.5 w-3.5 transition-transform ${
                     open === id ? "rotate-180" : ""
                   }`}
                 />
@@ -104,30 +103,33 @@ export function SidebarWithLogo() {
             >
               <ListItem
                 placeholder={""}
-                className={`p-0 hover:bg-primary-500 hover:text-white ${
-                  isActive(baseRoute) ? "bg-primary-500 text-white" : ""
+                className={`p-0 rounded-lg transition-all ${
+                  isActive(baseRoute) 
+                    ? "bg-primary-500 text-white hover:bg-primary-600" 
+                    : "hover:bg-gray-50"
                 }`}
                 selected={open === id}
               >
                 <AccordionHeader
                   placeholder={""}
                   onClick={() => handleOpen(id)}
-                  className="border-b-0 p-3"
+                  className="border-b-0 p-2.5 rounded-lg"
                 >
-                  <ListItemPrefix placeholder={icon} className="mr-4">
+                  <ListItemPrefix placeholder={icon} className="mr-3">
                     {getHeroIcon("GlobeAsiaAustraliaIcon")}
                   </ListItemPrefix>
                   <Typography
                     placeholder={""}
-                    color="blue-gray"
-                    className="mr-auto font-normal"
+                    className={`mr-auto font-medium text-sm ${
+                      isActive(baseRoute) ? "text-white" : "text-gray-700"
+                    }`}
                   >
                     {business_name}
                   </Typography>
                 </AccordionHeader>
               </ListItem>
-              <AccordionBody className="py-1 rounded-md border-b-1">
-                <List placeholder={""} className="p-0 ml-4 text-sm  ">
+              <AccordionBody className="py-1">
+                <List placeholder={""} className="p-0 ml-4 space-y-1">
                   {menus?.map((item, index) => {
                     const additionalRoute =
                       item.type === "custom_post" ? "/posts" : "";
@@ -141,11 +143,13 @@ export function SidebarWithLogo() {
                         placeholder={""}
                         key={`${index}-${item.id}`}
                         onClick={() => navigate(finalRoute)}
-                        className={`hover:text-primary-500 ${
-                          isActive(finalRoute) ? " text-blue-600" : ""
+                        className={`py-2 px-3 rounded-lg text-sm transition-all ${
+                          isActive(finalRoute) 
+                            ? "text-primary-500 bg-primary-50" 
+                            : "text-gray-600 hover:bg-gray-50"
                         }`}
                       >
-                        <ListItemPrefix placeholder={""}>
+                        <ListItemPrefix placeholder={""} className="mr-3">
                           {getHeroIcon(item?.imgURL)}
                         </ListItemPrefix>
                         {item.label}
@@ -158,18 +162,20 @@ export function SidebarWithLogo() {
           );
         })}
 
-        <hr className="my-2 border-blue-gray-50" />
+        <hr className="my-3 border-gray-100" />
 
         {(user?.role == "admin" || user?.role == "super_admin") && (
           <ListItem
             placeholder={""}
             onClick={() => navigate("/users")}
-            className={`hover:bg-primary-500 hover:text-white ${
-              isActive("/users") ? "bg-primary-500 text-white" : ""
+            className={`py-2.5 rounded-lg transition-all text-sm ${
+              isActive("/users") 
+                ? "bg-primary-500 text-white hover:bg-primary-600" 
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            <ListItemPrefix placeholder={""}>
-              <UsersIcon className="h-5 w-5" />
+            <ListItemPrefix placeholder={""} className="mr-3">
+              <UsersIcon className="h-4 w-4" />
             </ListItemPrefix>
             Users
           </ListItem>
@@ -178,12 +184,14 @@ export function SidebarWithLogo() {
         <ListItem
           placeholder={""}
           onClick={() => navigate(`/profile/${user?.id}`)}
-          className={`hover:bg-primary-500 hover:text-white ${
-            isActive(`/profile/${user?.id}`) ? "bg-primary-500 text-white" : ""
+          className={`py-2.5 rounded-lg transition-all text-sm ${
+            isActive(`/profile/${user?.id}`) 
+              ? "bg-primary-500 text-white hover:bg-primary-600" 
+              : "text-gray-600 hover:bg-gray-50"
           }`}
         >
-          <ListItemPrefix placeholder={""}>
-            <UserCircleIcon className="h-5 w-5" />
+          <ListItemPrefix placeholder={""} className="mr-3">
+            <UserCircleIcon className="h-4 w-4" />
           </ListItemPrefix>
           Profile
         </ListItem>
@@ -191,23 +199,25 @@ export function SidebarWithLogo() {
         <ListItem
           placeholder={""}
           onClick={() => navigate("/websites")}
-          className={`hover:bg-primary-500 hover:text-white ${
-            isActive("/websites") ? "bg-primary-500 text-white" : ""
+          className={`py-2.5 rounded-lg transition-all text-sm ${
+            isActive("/websites") 
+              ? "bg-primary-500 text-white hover:bg-primary-600" 
+              : "text-gray-600 hover:bg-gray-50"
           }`}
         >
-          <ListItemPrefix placeholder={""}>
-            <Cog6ToothIcon className="h-5 w-5" />
+          <ListItemPrefix placeholder={""} className="mr-3">
+            <Globe2Icon className="h-4 w-4" />
           </ListItemPrefix>
-          Settings
+          Websites
         </ListItem>
 
         <ListItem
           placeholder={""}
           onClick={() => logout()}
-          className="hover:bg-red-100 text-red-500"
+          className="py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-all mt-2"
         >
-          <ListItemPrefix placeholder={""}>
-            <PowerIcon className="h-5 w-5" />
+          <ListItemPrefix placeholder={""} className="mr-3">
+            <PowerIcon className="h-4 w-4" />
           </ListItemPrefix>
           Log Out
         </ListItem>

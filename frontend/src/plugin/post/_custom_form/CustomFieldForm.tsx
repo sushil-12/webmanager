@@ -12,32 +12,30 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import FormBuilder from './FormBuilder';
 
-interface CustomFieldFormSchema {
-    setVisible: any;
+interface CustomFieldFormProps {
+    setVisible: (visible: boolean) => void;
     selectedCustomField: any;
 }
 
-const CustomFieldForm: React.FC<CustomFieldFormSchema> = ({ setVisible, selectedCustomField }) => {
-    console.log(selectedCustomField, "Sel")
+const CustomFieldForm: React.FC<CustomFieldFormProps> = ({ setVisible, selectedCustomField }) => {
     const { mutateAsync: createOrEditCustomField, isPending: isCreating } = usecreateOrEditCustomField();
     const { mutateAsync: getAllPostsAndPages, isPending: isLoading } = useGetAllPostsAndPages();
     const { toast } = useToast();
     const [postType, setPostType] = useState([]);
     const [fields, setFields] = useState(selectedCustomField.fields || []);
 
-
-    async function getPostTypesAndPages(type: any) {
-        const fetchTypeData = await getAllPostsAndPages(type);
-        // @ts-ignore
-        type !== 'page' ? setPostType([{ value: 'default', label: 'Default Post type' }, ...fetchTypeData.data.posts]) : setPostType([...fetchTypeData.data.posts]);
-
-    }
-
-    const item_type = [
+    const fetchPostTypes = async (type: string) => {
+        const response = await getAllPostsAndPages(type);
+        setPostType(type !== 'page' 
+            ? [{ value: 'default', label: 'Default Post Type' }, ...response.data.posts] 
+            : response.data.posts
+        );
+    };
+    console.log(isLoading, "isLoading");
+    const itemTypes = [
         { label: 'Custom Posts', value: 'custom_post' },
         { label: 'Page', value: 'page' },
     ];
-
 
     const form = useForm<z.infer<typeof CustomFormFieldSchema>>({
         resolver: zodResolver(CustomFormFieldSchema),
@@ -49,124 +47,119 @@ const CustomFieldForm: React.FC<CustomFieldFormSchema> = ({ setVisible, selected
         },
     });
 
-    async function handleChange(type: string) {
-        await getPostTypesAndPages(type);
+    const handleChange = async (type: string) => {
+        await fetchPostTypes(type);
         form.setValue('item_type', type);
-    }
+    };
 
-    async function onSubmit(values: z.infer<typeof CustomFormFieldSchema>) {
-        const repeaterValues = fields;
-        //@ts-ignore
-        values.customFields = repeaterValues;
+    const onSubmit = async (values: z.infer<typeof CustomFormFieldSchema>) => {
+        //@ts-ignore 
+        values.customFields = fields;
 
-        const createOrEditCustomFieldResponse = await createOrEditCustomField(values);
-        if (createOrEditCustomFieldResponse.status === 'error') {
+        const response = await createOrEditCustomField(values);
+        if (response.status === 'error') {
             setVisible(false);
             return toast({
                 variant: 'destructive',
-                description: createOrEditCustomFieldResponse.message,
+                description: response.message,
                 duration: import.meta.env.VITE_TOAST_DURATION,
-                icon: <SvgComponent className="" svgName="close_toaster" />,
+                icon: <SvgComponent svgName="close_toaster" />,
             });
         }
 
-        // @ts-ignore
-        const message = createOrEditCustomFieldResponse?.code === status?.created
+        const message = response?.code === 'created'
             ? 'Successfully Updated CustomField'
             : 'Successfully Created CustomField';
 
         setVisible(false);
-        selectedCustomField = {};
-        if (createOrEditCustomFieldResponse) {
-            return toast({
-                variant: 'default',
-                description: message,
-                duration: import.meta.env.VITE_TOAST_DURATION,
-                icon: <SvgComponent className="" svgName="check_toaster" />,
-            });
-        }
-    }
+        toast({
+            variant: 'default',
+            description: message,
+            duration: import.meta.env.VITE_TOAST_DURATION,
+            icon: <SvgComponent svgName="check_toaster" />,
+        });
+    };
 
     useEffect(() => {
         if (selectedCustomField.item_type) {
-            getPostTypesAndPages(selectedCustomField.item_type);
+            fetchPostTypes(selectedCustomField.item_type);
         }
     }, [selectedCustomField]);
 
     return (
         <Form {...form}>
-            <div className={`et-${isLoading}`}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1 flex flex-col gap-8 w-full mt-4">
-                    <div className="form_data flex gap-8  align-middle items-center justify-evenly">
-                        <div className="form_elements w-full flex flex-col gap-8">
-                            {/* Title Input */}
-                            <FormField
-                                control={form.control}
-                                name="title"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Template title</FormLabel>
-                                        <FormControl>
-                                            <Input className="shad-input" placeholder="Enter Template label" {...field} />
-                                        </FormControl>
-                                        <FormMessage className="shad-form_message" />
-                                    </FormItem>
-                                )}
-                            />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full mt-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Title Input */}
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Template Title</FormLabel>
+                                <FormControl>
+                                    <Input className="shad-input p-1.5 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-white" placeholder="Enter Template Label" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                            {/* Item Type Dropdown */}
-                            <FormField
-                                control={form.control}
-                                name="post_type"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Item Type </FormLabel>
-                                        <FormControl>
-                                            <Dropdown
-                                                value={form.getValues('item_type')}
-                                                onChange={(e) => handleChange(e.value)}
-                                                options={item_type}
-                                                optionLabel="label"
-                                                placeholder="Select Post Type"
-                                                className="w-full md:w-14rem"
-                                            />
-                                        </FormControl>
-                                        <FormMessage className="shad-form_message" />
-                                    </FormItem>
-                                )}
-                            />
+                    {/* Item Type Dropdown */}
+                    <FormField
+                        control={form.control}
+                        name="item_type"
+                        render={() => (
+                            <FormItem>
+                                <FormLabel>Item Type</FormLabel>
+                                <FormControl>
+                                    <Dropdown
+                                        value={form.getValues('item_type')}
+                                        onChange={(e) => handleChange(e.value)}
+                                        options={itemTypes}
+                                        optionLabel="label"
+                                        placeholder="Select Type"
+                                        className="w-full "
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                            {/* Post Type Dropdown */}
-                            <FormField
-                                control={form.control}
-                                name="post_type"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Post Type </FormLabel>
-                                        <FormControl>
-                                            <Dropdown
-                                                value={form.getValues('post_type')}
-                                                onChange={(e) => form.setValue('post_type', e.value)}
-                                                options={postType}
-                                                optionLabel="label"
-                                                placeholder="Select Post Type"
-                                                className="w-full md:w-14rem"
-                                            />
-                                        </FormControl>
-                                        <FormMessage className="shad-form_message" />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormBuilder setFieldData={setFields} fieldData={fields} />
-                        </div>
-                    </div>
+                    {/* Post Type Dropdown */}
+                    <FormField
+                        control={form.control}
+                        name="post_type"
+                        render={() => (
+                            <FormItem>
+                                <FormLabel>Post Type</FormLabel>
+                                <FormControl>
+                                    <Dropdown
+                                        value={form.getValues('post_type')}
+                                        onChange={(e) => form.setValue('post_type', e.value)}
+                                        options={postType}
+                                        optionLabel="label"
+                                        placeholder="Select Post Type"
+                                        className="w-full"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
-                    {/* Submit Button */}
-                    <Button type="submit" className="shad-button_primary max-w-fit self-end" disabled={isCreating}>
+                {/* Form Builder */}
+                <FormBuilder setFieldData={setFields} fieldData={fields} />
+
+                {/* Submit Button */}
+                <div className="flex justify-end">
+                    <Button type="submit" className="shad-button_primary" disabled={isCreating}>
                         Save
                     </Button>
-                </form>
-            </div>
+                </div>
+            </form>
         </Form>
     );
 };

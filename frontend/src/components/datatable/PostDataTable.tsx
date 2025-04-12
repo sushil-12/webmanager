@@ -8,6 +8,8 @@ import SkeletonTable from "../skeletons/SkeletonTable";
 import { useToast } from "../ui/use-toast";
 import { confirmDialog } from "primereact/confirmdialog";
 import { useUserContext } from "@/context/AuthProvider";
+import { PreviewMode } from "@/components/shared/PreviewMode";
+import { Eye } from "lucide-react";
 
 import QuickEditForm from "@/plugin/post/_custom_form/QuickEditForm";
 import SvgComponent from "@/utils/SvgComponent";
@@ -53,6 +55,8 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
   const [visible, setVisible] = useState(false);
   const [apiLogs, setApiLogs] = useState("all");
   const [selectedPost, setSelectedPost] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewContent, setPreviewContent] = useState<PostModel | null>(null);
 
   const [dataTablePosts, setDatatablePosts] = useState(posts);
   useEffect(() => {
@@ -153,6 +157,16 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
         >
           View
         </button>
+        <button
+          className="border-none text-primary-500 flex items-center gap-1"
+          onClick={() => {
+            setPreviewContent(rowData);
+            setShowPreview(true);
+          }}
+        >
+          <Eye className="h-4 w-4" />
+          Preview
+        </button>
       </div>
     ) : (
       <QuickEditForm
@@ -240,7 +254,7 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
       ) : (
         <>
           <button
-            className="rounded-md border mb-2 flex text-sm place-self-end border-primary-500 text-primary-500 py-2 px-4 absolute top-3 right-8"
+            className="rounded-md border mb-2 flex text-sm place-self-end border-primary-500 text-primary-500 py-2 px-4 absolute top-14 mt-2 right-8"
             onClick={() => {
               setVisible(true);
               setApiLogs("all");
@@ -324,6 +338,22 @@ const PostDataTable: React.FC<PostDataTableProps> = ({
               />
             )}
           </Dialog>
+          {showPreview && previewContent && (
+            <PreviewMode
+              content={
+                <div className="p-4">
+                  <h2 className="text-2xl font-bold mb-4">{previewContent.title}</h2>
+                  <div className="prose dark:prose-invert max-w-none">
+                    <div dangerouslySetInnerHTML={{ __html: previewContent.content }} />
+                  </div>
+                </div>
+              }
+              onClose={() => {
+                setShowPreview(false);
+                setPreviewContent(null);
+              }}
+            />
+          )}
         </>
       )}
     </div>

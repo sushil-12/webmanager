@@ -11,6 +11,10 @@ interface Field {
   repeatable: boolean;
   required: boolean;
   nestedFields?: Field[]; // For nested fields
+  placeholder?: string;
+  min?: string;
+  max?: string;
+  accept?: string;
 }
 
 interface FormBuilderSchema {
@@ -19,6 +23,7 @@ interface FormBuilderSchema {
 }
 
 const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) => {
+  console.log(fieldData, "FIELD DATA");
   const [fields, setFields] = useState<Field[]>(fieldData);
 
   const addField = (field_type: string, parentIndex?: number) => {
@@ -50,13 +55,22 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
     parentIndex?: number
   ) => {
     const updatedFields = [...fields];
+    console.log(updatedFields, "UPDATED FIELDS SUSH");
     if (parentIndex === undefined) {
       // @ts-ignore
       updatedFields[index][key] = value as any;
+      // If label is being changed, update the name field automatically
+      if (key === 'label') {
+        updatedFields[index].name = createSlug(value as string, '_');
+      }
       setFields(updatedFields);
     } else {
       // @ts-ignore
       updatedFields[parentIndex].nestedFields![index][key] = value as any;
+      // If label is being changed in nested field, update the name field automatically
+      if (key === 'label') {
+        updatedFields[parentIndex].nestedFields![index].name = createSlug(value as string, '_');
+      }
       setFields(updatedFields);
     }
   };
@@ -118,38 +132,80 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
   };
 
   return (
-    <div className="border rounded-lg p-4 shadow-md bg-gray-50">
-      <div className="flex gap-2 flex-wrap justify-between mb-6">
-        <h1 className="font-bold text-lg text-gray-800 mb-4">Custom Fields</h1>
-        <div className="buttons flex gap-4">
+    <div className="border rounded-lg p-3 shadow-sm from-white to-gray-50 ">
+      <div className="flex flex-col gap-2 justify-between mb-4 bg-gray-50 p-4 rounded-md">
+        <h1 className="font-semibold text-sm ">Custom Fields<small className='text-xs text-gray-500 ml-2 underline'>Note: We are using keys for the fields mapping, so you can't change the keys</small></h1>
+        <div className="w-full buttons grid grid-cols-2 sm:grid-cols-6 md:grid-cols-8 gap-1.5">
           <button
             onClick={() => addField('text')}
-            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
           >
-            {getHeroIcon('PlusCircleIcon')} Text Field
+            {getHeroIcon('DocumentTextIcon')} Text
+          </button>
+          <button
+            onClick={() => addField('textarea')}
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
+          >
+            {getHeroIcon('DocumentDuplicateIcon')} Textarea
           </button>
           <button
             onClick={() => addField('select')}
-            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
           >
-            {getHeroIcon('PlusCircleIcon')} Select Field
+            {getHeroIcon('ListBulletIcon')} Select
           </button>
           <button
             onClick={() => addField('checkbox')}
-            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
           >
-            {getHeroIcon('PlusCircleIcon')} Checkbox Field
+            {getHeroIcon('CheckIcon')} Checkbox
+          </button>
+          <button
+            onClick={() => addField('number')}
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
+          >
+            {getHeroIcon('HashtagIcon')} Number
+          </button>
+          <button
+            onClick={() => addField('date')}
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
+          >
+            {getHeroIcon('CalendarIcon')} Date
+          </button>
+          <button
+            onClick={() => addField('email')}
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
+          >
+            {getHeroIcon('EnvelopeIcon')} Email
+          </button>
+          <button
+            onClick={() => addField('phone')}
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
+          >
+            {getHeroIcon('PhoneIcon')} Phone
+          </button>
+          <button
+            onClick={() => addField('url')}
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
+          >
+            {getHeroIcon('LinkIcon')} URL
+          </button>
+          <button
+            onClick={() => addField('file')}
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
+          >
+            {getHeroIcon('DocumentIcon')} File
           </button>
           <button
             onClick={() => addField('group')}
-            className="py-1 pt-3 px-4 border flex gap-1 border-primary-500 text-primary-500 rounded-md hover:bg-primary-500 hover:text-white transition-all text-sm"
+            className="py-1.5 px-2 border flex items-center gap-1.5 border-gray-200 bg-white text-gray-700 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all text-xs shadow-sm"
           >
-            {getHeroIcon('PlusCircleIcon')} Field Group (Nested)
+            {getHeroIcon('FolderIcon')} Field Group
           </button>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-2">
         {fields.map((field, index) => (
           <FieldComponent
             isNestedField={false}
@@ -167,13 +223,13 @@ const FormBuilder: React.FC<FormBuilderSchema> = ({ setFieldData, fieldData }) =
       </div>
 
       {fields.length > 0 && (
-        <div className="mt-6">
+        <div className="mt-4">
           <button
             onClick={() => {
               event?.preventDefault();
               setFieldData(fields);
             }}
-            className="px-6 py-2 border border-primary-500 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-all"
+            className="px-4 py-1.5 border border-primary-500 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-all text-xs shadow-sm"
           >
             Confirm Form Fields
           </button>
@@ -212,88 +268,99 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
     <div className={`${field.field_type == 'group' ? 'group-custom-field' : 'group-normal-field'}`}>
 
       {field.field_type === 'group' && (
-        <div>
-
+        <div className="border border-gray-200 rounded-lg shadow-sm">
           <Accordion placeholder={''} open={true}>
-            <AccordionHeader placeholder={''}
-              // onClick={() => toggleAccordion("customFields")}
-              className="text-xl font-bold bg-primary-500 text-white px-4 rounded-md flex flex-col items-left group-header"
+            <AccordionHeader
+              placeholder={''}
+              className="bg-white border-b border-gray-200 p-3 flex justify-between items-center cursor-pointer transition bg-info from-blue-50 to-blue-100 text-white"
             >
-              <div className="flex w-full justify-between">
-              <h3 className="text-lg font-semibold text-white capitalize ">{field.field_type} Field</h3>
+              <h3 className="text-sm font-medium capitalize flex items-center gap-1.5">
+                {getHeroIcon('FolderIcon')} {field.field_type} Field
+              </h3>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => onRemoveField(index, parentIndex)}
-                  className="text-white transition-colors text-sm flex gap-4 "
+                  className="hover:text-red-500 absolute right-5 transition-colors text-xs flex items-center gap-1"
                 >
-                  {getHeroIcon('MinusCircleIcon')} Delete Field
+                  {getHeroIcon('MinusCircleIcon')} Delete
                 </button>
+                {/* @ts-ignore */}
+                
               </div>
-              <div className="flex justify-start items-center gap-4 align-middle">
-                <label className=" items-center gap-4 w-max">
-                  <span className="text-sm font-medium text-white w-max">Edit Group Label</span>
+            </AccordionHeader>
+
+            <AccordionBody className="p-3 space-y-3 bg-gray-50 rounded-b-lg">
+              {/* Input Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className='flex gap-1'>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Group Label</label>
                   <input
                     type="text"
                     value={field.label}
                     onChange={(e) => onFieldChange(index, 'label', e.target.value, parentIndex)}
-                    className="mt-2 p-3 block text-sm text-black w-max border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                    className="p-1.5 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-white"
                   />
-                </label>
-                <label className="hidden">
-                  <span className="hidden text-sm font-medium text-white">Name:</span>
+                </div>
+                <div className="hidden">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
                   <input
                     type="text"
-                    value={createSlug(field.label, '_')}
+                    value={field.name}
                     onChange={(e) => onFieldChange(index, 'name', e.target.value, parentIndex)}
-                    className="mt-2  p-3 hidden text-sm w-full border text-black  border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                    className="p-1.5 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-white"
                   />
-                </label>
-                <div className="flex items-center gap-6 mt-6">
+                </div>
+                {/* Checkboxes */}
+                <div className="flex items-center gap-4">
                   {!isNestedField && (
-                    <label className="flex items-center space-x-2 w-max">
+                    <label className="flex items-center gap-1">
                       <input
                         type="checkbox"
                         checked={field.repeatable}
                         onChange={(e) => onFieldChange(index, 'repeatable', e.target.checked, parentIndex)}
-                        className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                        className="h-3.5 w-3.5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
                       />
-                      <span className="text-sm text-white">Mark as Repeatable</span>
+                      <span className="text-xs text-gray-700">Repeatable</span>
                     </label>
                   )}
-
-                  <label className="flex items-center space-x-2 w-max mr-2">
+                  <label className="flex items-center gap-1">
                     <input
                       type="checkbox"
                       checked={field.required}
                       onChange={(e) => onFieldChange(index, 'required', e.target.checked, parentIndex)}
-                      className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-3.5 w-3.5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
                     />
-                    <span className="text-sm text-white">Mark as Required</span>
+                    <span className="text-xs text-gray-700">Required</span>
                   </label>
                 </div>
-                <div className="flex gap-4 mt-6">
-                  <button
-                    onClick={() => onAddField('text', index)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md flex gap-2 hover:bg-green-700 transition duration-200 text-sm"
-                  >
-                    {getHeroIcon('PlusCircleIcon')}Text Field
-                  </button>
-                  <button
-                    onClick={() => onAddField('select', index)}
-                    className="px-4 py-2 bg-red-900 text-white rounded-md flex gap-2 hover:bg-red-700 transition duration-200 text-sm"
-                  >
-                    {getHeroIcon('PlusCircleIcon')} Select Field
-                  </button>
-                  <button
-                    onClick={() => onAddField('checkbox', index)}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-md flex gap-2 hover:bg-yellow-700 transition duration-200 text-sm"
-                  >
-                    {getHeroIcon('PlusCircleIcon')} Checkbox Field
-                  </button>
-                </div>
               </div>
-            </AccordionHeader>
-            <AccordionBody>
-              <div className="mt-6 space-y-6 ">
+              <h6 className='text-xs font-medium text-gray-700'>Add Field</h6>
+              {/* Field Type Buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-10 gap-2">
+                {[
+                  { type: 'text', icon: 'DocumentTextIcon', label: 'Text' },
+                  { type: 'textarea', icon: 'DocumentDuplicateIcon', label: 'Textarea' },
+                  { type: 'select', icon: 'ListBulletIcon', label: 'Select' },
+                  { type: 'checkbox', icon: 'CheckIcon', label: 'Checkbox' },
+                  { type: 'number', icon: 'HashtagIcon', label: 'Number' },
+                  { type: 'date', icon: 'CalendarIcon', label: 'Date' },
+                  { type: 'email', icon: 'EnvelopeIcon', label: 'Email' },
+                  { type: 'phone', icon: 'PhoneIcon', label: 'Phone' },
+                  { type: 'url', icon: 'LinkIcon', label: 'URL' },
+                  { type: 'file', icon: 'DocumentIcon', label: 'File' },
+                ].map(({ type, icon, label }) => (
+                  <button
+                    key={type}
+                    onClick={() => onAddField(type, index)}
+                    className="px-2 py-1 bg-white text-gray-700 rounded-md flex items-center gap-1 hover:bg-gray-100 transition-colors text-xs border border-gray-200 shadow-sm"
+                  >
+                    {getHeroIcon(icon)} {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Nested Fields */}
+              <div className="space-y-2 bg-gray-50 rounded-b-lg p-3">
                 {field.nestedFields?.map((nestedField, nestedIndex) => (
                   <FieldComponent
                     isNestedField={true}
@@ -312,113 +379,202 @@ const FieldComponent: React.FC<FieldComponentProps> = ({
               </div>
             </AccordionBody>
           </Accordion>
-
-
         </div>
       )}
 
+
       {field.field_type !== 'group' && (
-        <div className='group-normal'>
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-primary-500 capitalize ">{field.field_type} Field</h3>
-            <button
-              onClick={() => onRemoveField(index, parentIndex)}
-              className="text-red-600 hover:text-red-700 transition-colors text-sm"
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          <Accordion placeholder={''} open={true}>
+            <AccordionHeader placeholder={''}
+              className="bg-info from-blue-50 to-blue-100 border-b border-gray-200 px-3 py-2 text-white"
             >
-              {getHeroIcon('MinusCircleIcon')}
-            </button>
-          </div>
-          <div className="flex gap-6 flex-col sm:flex-row">
-            <div className="flex flex-col gap-4 sm:flex-row sm:gap-8">
-              <label className="block flex-1">
-                <span className="text-sm font-medium text-black">Label:</span>
-                <input
-                  type="text"
-                  value={field.label}
-                  onChange={(e) => onFieldChange(index, 'label', e.target.value, parentIndex)}
-                  className="mt-2 p-3 block text-sm w-full border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
-                />
-              </label>
-
-              <label className=" flex-1 hidden">
-                <span className="text-sm font-medium text-black">Name:</span>
-                <input
-                  type="text"
-                  value={createSlug(field.label, '_')}
-                  onChange={(e) => onFieldChange(index, 'name', e.target.value, parentIndex)}
-                  className="mt-2 p-3 block text-sm w-full border border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500"
-                />
-              </label>
-            </div>
-
-            {field.field_type === 'select' && (
-              <div className="rounded-md mt-6">
-                <div className="flex items-center justify-between gap-4">
-                  <h4 className="text-gray-700 text-sm font-semibold">Options</h4>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-medium capitalize flex items-center gap-1.5">
+                    {getHeroIcon(getFieldIcon(field.field_type))} {field.field_type} Field
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onAddOption(index, parentIndex);
-                    }}
-                    className="text-primary-500 hover:text-primary-600 transition-all p-2 text-sm rounded-md"
+                    onClick={() => onRemoveField(index, parentIndex)}
+                    className="hover:text-red-500 transition-colors"
                   >
-                    {getHeroIcon('PlusIcon')}
+                    {getHeroIcon('MinusCircleIcon')}
                   </button>
                 </div>
-
-                <div className="space-y-3 mt-4">
-                  {field.options.map((option, optIndex) => (
-                    <div className="flex items-center gap-4" key={optIndex}>
+              </div>
+            </AccordionHeader>
+            <AccordionBody>
+              <div className="p-3 bg-gray-50 flex flex-row gap-2">
+                {/* Main Fields Row */}
+                <div className={`grid grid-cols-3 sm:grid-cols-${field.field_type === 'text' || field.field_type === 'textarea' ? '3' : '4'} gap-2 mb-2  mr-2`}>
+                  <div className="bg-white p-1.5 rounded-md border border-gray-100 shadow-sm">
+                    <label className="block text-[10px] font-medium text-gray-700 mb-0.5">Label</label>
+                    <input
+                      type="text"
+                      value={field.label}
+                      onChange={(e) => onFieldChange(index, 'label', e.target.value, parentIndex)}
+                      className="p-1 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-gray-50"
+                    />
+                  </div>
+                  <div className="bg-white p-1.5 rounded-md border border-gray-100 shadow-sm">
+                    <label className="block text-[10px] font-medium text-gray-700 mb-0.5">Slug</label>
+                    <input
+                      type="text"
+                      value={field.name}
+                      onChange={(e) => onFieldChange(index, 'name', e.target.value, parentIndex)}
+                      className="p-1 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-gray-50"
+                    />
+                  </div>
+                  {(field.field_type === 'text' || field.field_type === 'textarea') && (
+                    <div className="bg-white p-1.5 rounded-md border border-gray-100 shadow-sm">
+                      <label className="block text-[10px] font-medium text-gray-700 mb-0.5">Placeholder</label>
                       <input
                         type="text"
-                        value={option}
-                        onChange={(e) => onOptionChange(index, optIndex, e.target.value, parentIndex)}
-                        className="mt-2 p-3 block text-sm w-full border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        value={field.placeholder || ''}
+                        onChange={(e) => onFieldChange(index, 'placeholder', e.target.value, parentIndex)}
+                        className="p-1 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-gray-50"
                       />
+                    </div>
+                  )}
+                  {field.field_type === 'number' && (
+                    <>
+                      <div className="bg-white p-1.5 rounded-md border border-gray-100 shadow-sm">
+                        <label className="block text-[10px] font-medium text-gray-700 mb-0.5">Min</label>
+                        <input
+                          type="number"
+                          value={field.min || ''}
+                          onChange={(e) => onFieldChange(index, 'min', e.target.value, parentIndex)}
+                          className="p-1 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-gray-50"
+                        />
+                      </div>
+                      <div className="bg-white p-1.5 rounded-md border border-gray-100 shadow-sm">
+                        <label className="block text-[10px] font-medium text-gray-700 mb-0.5">Max</label>
+                        <input
+                          type="number"
+                          value={field.max || ''}
+                          onChange={(e) => onFieldChange(index, 'max', e.target.value, parentIndex)}
+                          className="p-1 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-gray-50"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {field.field_type === 'file' && (
+                    <div className="bg-white p-1.5 rounded-md border border-gray-100 shadow-sm">
+                      <label className="block text-[10px] font-medium text-gray-700 mb-0.5">Formats</label>
+                      <input
+                        type="text"
+                        value={field.placeholder || '.pdf,.ppt,.pptx,.doc,.docx'}
+                        onChange={(e) => onFieldChange(index, 'placeholder', e.target.value, parentIndex)}
+                        className="p-1 text-xs w-full border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-gray-50"
+                        placeholder=".pdf,.ppt,.pptx,.doc,.docx"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Select Options */}
+                {field.field_type === 'select' && (
+                  <div className="bg-white p-1.5 rounded-md border border-gray-100 shadow-sm mb-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-[10px] font-medium text-gray-700">Options</h4>
                       <button
                         onClick={(e) => {
                           e.preventDefault();
-                          onRemoveOption(index, optIndex, parentIndex);
+                          onAddOption(index, parentIndex);
                         }}
-                        className="text-red-500 hover:text-red-600 transition-all p-2"
-                        title="Remove this option"
+                        className="text-primary-500 hover:text-primary-600 transition-colors p-0.5"
                       >
-                        {getHeroIcon('MinusIcon')}
+                        {getHeroIcon('PlusIcon')}
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="flex items-center gap-6 mt-6">
-              {!isNestedField && (
-                <label className="flex items-center space-x-2 w-max">
-                  <input
-                    type="checkbox"
-                    checked={field.repeatable}
-                    onChange={(e) => onFieldChange(index, 'repeatable', e.target.checked, parentIndex)}
-                    className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">Mark as Repeatable</span>
-                </label>
-              )}
+                    <div className="space-y-1">
+                      {field.options.map((option, optIndex) => (
+                        <div className="flex items-center gap-1" key={optIndex}>
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => onOptionChange(index, optIndex, e.target.value, parentIndex)}
+                            className="p-1 text-xs flex-1 border border-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-gray-50"
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              onRemoveOption(index, optIndex, parentIndex);
+                            }}
+                            className="text-gray-500 hover:text-red-500 transition-colors p-0.5"
+                            title="Remove option"
+                          >
+                            {getHeroIcon('MinusIcon')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
 
-              <label className="flex items-center space-x-2 w-max mr-2">
-                <input
-                  type="checkbox"
-                  checked={field.required}
-                  onChange={(e) => onFieldChange(index, 'required', e.target.checked, parentIndex)}
-                  className="h-5 w-5 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <span className="text-sm text-gray-700">Mark as Required</span>
-              </label>
-            </div>
-          </div>
+                  </div>
+                )}
+                {/* Checkboxes */}
+                <div className="flex items-center gap-2">
+                  {!isNestedField && (
+                    <label className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={field.repeatable}
+                        onChange={(e) => onFieldChange(index, 'repeatable', e.target.checked, parentIndex)}
+                        className="h-3 w-3 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                      />
+                      <span className="text-[10px] text-gray-700">Repeatable</span>
+                    </label>
+                  )}
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={field.required}
+                      onChange={(e) => onFieldChange(index, 'required', e.target.checked, parentIndex)}
+                      className="h-3 w-3 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <span className="text-[10px] text-gray-700">Required</span>
+                  </label>
+                </div>
+
+              </div>
+            </AccordionBody>
+          </Accordion>
         </div>
       )}
     </div>
 
   );
+};
+
+const getFieldIcon = (fieldType: string): string => {
+  switch (fieldType) {
+    case 'text':
+      return 'DocumentTextIcon';
+    case 'textarea':
+      return 'DocumentDuplicateIcon';
+    case 'select':
+      return 'ListBulletIcon';
+    case 'checkbox':
+      return 'CheckIcon';
+    case 'number':
+      return 'HashtagIcon';
+    case 'date':
+      return 'CalendarIcon';
+    case 'email':
+      return 'EnvelopeIcon';
+    case 'phone':
+      return 'PhoneIcon';
+    case 'url':
+      return 'LinkIcon';
+    case 'group':
+      return 'FolderIcon';
+    case 'file':
+      return 'DocumentIcon';
+    default:
+      return 'DocumentTextIcon';
+  }
 };
 
 export default FormBuilder;

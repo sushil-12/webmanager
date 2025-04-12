@@ -1,7 +1,8 @@
+require('dotenv').config();
 const { HTTP_STATUS_CODES } = require('../../constants/error_message_codes');
 const { ResponseHandler, ErrorHandler } = require('../../utils/responseHandler');
 
-const stripe = require('stripe')('sk_test_51QNEM0EXM6E6dbLjCD0WIp2zrGohhNUVamDFJzarS2pp8tau3kPs7pe0JZSx06vClK8Z5TgEEANWx5r8ycMeElfx00tteOA91u'); // Replace with your actual secret key
+const stripe = require('stripe')('sk_test_51RAmPNREgYeUYuR3jvptrKa7fciBBIFwcfPbzIuwjSD0ha5MGxTp0AT3H2y1EKPdZNrY7nKD4G4o1x74peCwkogT00pfR68MHt'); // Replace with your actual secret key
 
 const listProducts = async (req, res) => {
     try {

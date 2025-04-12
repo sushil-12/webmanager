@@ -222,6 +222,7 @@ export const menuSchemaJson = [
   }
 ];
 
+
 export const trimString = (str: string, maxLength: number) => {
   if (!str) return '';
   if (str.length <= maxLength) return str;

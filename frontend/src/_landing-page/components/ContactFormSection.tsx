@@ -1,151 +1,144 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { EnvelopeIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
 const ContactFormSection: React.FC = () => {
-  const [fname, setFname] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [subject, setSubject] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formStatus, setFormStatus] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    company: '',
+    message: '',
+  });
 
-  // Handle form submit
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Handle form submission here
+    console.log('Form submitted:', formData);
+  };
 
-    // Simple validation
-    if (!fname || !email || !message || !subject) {
-      setFormStatus("Please fill all the fields.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setFormStatus(null); // Clear any previous status
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/common/contact`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fname,
-          email,
-          message,
-          subject,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Something went wrong. Please try again.");
-      }
-
-      const data = await response.json();
-
-      // Handle response based on the success
-      if (data.status == "success") {
-        setFormStatus("Your message has been sent successfully!");
-        setFname("");
-        setEmail("");
-        setMessage("");
-        setSubject("");
-      } else {
-        setFormStatus("Failed to send the message. Please try again.");
-      }
-    } catch (error) {
-      setFormStatus("An error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
-    <section
-      className="py-20 bg-top bg-no-repeat"
-      style={{
-        backgroundImage:
-          'url("/blob.svg")',
-      }}
-    >
-      <div className="container px-4 mx-auto">
-        <div className="relative px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="mb-4 text-3xl lg:text-4xl font-bold font-heading wow animate__animated animate__fadeInUp">
-              <span>Connect With Me</span>
-              <span className="text-blue-500"> For any Query </span>
-              <span>or any suggestion/service</span>
-            </h2>
-            <p className="mb-8 text-blueGray-400 wow animate__animated animate__fadeInUp" data-wow-delay=".3s">
-              Your information is completely confidential.
-            </p>
+    <section className="py-16 bg-white" id="contact">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+            Get in Touch
+          </h2>
+          <p className="mt-3 text-md text-gray-500">
+            Have questions? We're happy to help.
+          </p>
+        </div>
 
-            <div
-              className="p-8 rounded-lg shadow-lg flex flex-wrap max-w-2xl mx-auto wow animate__animated animate__fadeInUp"
-              data-wow-delay=".5s"
-            >
-              {/* Name and Email Inputs */}
-              <div className="flex gap-4 w-full mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* Contact Info */}
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              Contact Information
+            </h3>
+            <ul className="space-y-5">
+              <li className="flex items-start">
+                <EnvelopeIcon className="w-5 h-5 text-blue-500 mt-1" />
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-800">Email</p>
+                  <p className="text-sm text-gray-600">support@contentlocker.com</p>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <PhoneIcon className="w-5 h-5 text-blue-500 mt-1" />
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-800">Phone</p>
+                  <p className="text-sm text-gray-600">+1 (555) 123-4567</p>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <MapPinIcon className="w-5 h-5 text-blue-500 mt-1" />
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-800">Office</p>
+                  <p className="text-sm text-gray-600">123 Business Ave, Suite 100</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Form */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Name
+                </label>
                 <input
-                  className="w-full p-4 text-sm text-gray-700 font-semibold rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="name"
+                  name="name"
                   type="text"
-                  placeholder="Your Name"
-                  value={fname}
-                  onChange={(e) => setFname(e.target.value)}
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
                 <input
-                  className="w-full p-4 text-sm text-gray-700 font-semibold rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="email"
+                  name="email"
                   type="email"
-                  placeholder="Your Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
                 />
               </div>
 
-              {/* Subject Input */}
-              <div className="w-full mb-6">
+              <div>
+                <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+                  Company
+                </label>
                 <input
-                  className="w-full p-4 text-sm text-gray-700 font-semibold rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="company"
+                  name="company"
                   type="text"
-                  placeholder="Subject"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  value={formData.company}
+                  onChange={handleChange}
+                  className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
                 />
               </div>
 
-              {/* Message Textarea */}
-              <div className="w-full mb-6">
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                  Message
+                </label>
                 <textarea
-                  className="w-full p-4 text-sm text-gray-700 font-semibold rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Your Message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  id="message"
+                  name="message"
+                  rows={4}
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
                 />
               </div>
 
-              {/* Submit Button */}
-              <button
-                className="w-full py-4 px-8 text-sm text-white font-semibold bg-blue-500 hover:bg-blue-600 rounded-lg transition duration-300"
-                type="submit"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Sending..." : "Send Message"}
-              </button>
-            </div>
-
-            {/* Form Status */}
-            {formStatus && (
-              <div
-                className={`mt-6 text-center text-sm ${
-                  formStatus.includes("success") ? "text-green-500" : "text-red-500"
-                }`}
-              >
-                {formStatus}
+              <div>
+                <button
+                  type="submit"
+                  className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Send Message
+                </button>
               </div>
-            )}
+            </form>
           </div>
         </div>
       </div>
     </section>
+
   );
 };
 

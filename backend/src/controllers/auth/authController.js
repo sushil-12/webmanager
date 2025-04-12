@@ -16,7 +16,9 @@ const { Readable } = require('stream');
 const useragent = require('express-useragent'); // Import express-useragent
 const { default: mongoose } = require('mongoose');
 const Subscription = require('../../models/Subscription');
-const stripe = require('stripe')('sk_test_51QNEM0EXM6E6dbLjCD0WIp2zrGohhNUVamDFJzarS2pp8tau3kPs7pe0JZSx06vClK8Z5TgEEANWx5r8ycMeElfx00tteOA91u');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const SubscriptionService = require('../../services/subscriptionService');
+const Plan = require('../../models/Plan');
 
 const app = express();
 app.use(useragent.express());
@@ -32,6 +34,9 @@ const generateRandomString = (length) => {
 };
 
 const register = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     // Validate the registration request
     AuthValidator.validateRegistration(req.body);
@@ -39,6 +44,7 @@ const register = async (req, res) => {
     const { username, password, email, firstName, lastName, priceId, productId, paymentMethodId } = req.body;
 
     if (!priceId || !productId || !paymentMethodId) {
+      await session.abortTransaction();
       return ResponseHandler.error(res, HTTP_STATUS_CODES.BAD_REQUEST, {
         message: 'Missing required subscription details: priceId, productId, or paymentMethodId.',
       });
@@ -46,7 +52,7 @@ const register = async (req, res) => {
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const AdminRole = '66eedb1581e70fb4485cf17e';
+    const AdminRole = await Role.findOne({ name: 'admin' });
 
     // Create the user in the database
     const newUser = new User({
@@ -55,65 +61,94 @@ const register = async (req, res) => {
       email,
       firstName,
       lastName,
-      role: AdminRole,
+      role: AdminRole?._id,
     });
-    await newUser.save();
 
-    // Create or retrieve the Stripe customer
-    const customers = await stripe.customers.list({ email });
-    let customer = customers.data.length > 0 ? customers.data[0] : null;
+    await newUser.save({ session });
 
-    if (!customer) {
-      customer = await stripe.customers.create({
-        email,
-        name: `${firstName} ${lastName}`,
-        payment_method: paymentMethodId,
-        invoice_settings: {
-          default_payment_method: paymentMethodId,
-        },
+    // Find the plan using the Stripe price ID
+    const plan = await Plan.findOne({
+      $or: [
+        { 'stripePriceIds.monthly': priceId },
+        { 'stripePriceIds.annually': priceId }
+      ]
+    });
+
+    if (!plan) {
+      await session.abortTransaction();
+      return ResponseHandler.error(res, HTTP_STATUS_CODES.BAD_REQUEST, {
+        message: 'Invalid plan price ID.',
       });
     }
 
-    // Create the subscription
-    const subscription = await stripe.subscriptions.create({
-      customer: customer.id,
-      items: [{ price: priceId }],
-      expand: ['latest_invoice.payment_intent'],
-    });
+    // Determine billing cycle based on which price ID matched
+    const billingCycle = plan.stripePriceIds.monthly === priceId ? 'monthly' : 'annually';
 
-    const paymentIntent = subscription.latest_invoice.payment_intent;
+    // Create the subscription using the service
+    const subscriptionResult = await SubscriptionService.createSubscription(
+      newUser._id,
+      plan._id,
+      billingCycle,
+      paymentMethodId
+    );
 
-    if (paymentIntent.status !== 'succeeded' && paymentIntent.status !== 'requires_action') {
-      return ResponseHandler.error(res, HTTP_STATUS_CODES.PAYMENT_REQUIRED, {
-        message: 'Payment failed. Please try again.',
+    if (!subscriptionResult || !subscriptionResult.subscriptionId) {
+      await session.abortTransaction();
+      return ResponseHandler.error(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, {
+        message: 'Failed to create subscription. Please try again.',
       });
     }
 
-    // Save subscription details in the database
-    const savedSubscription = await Subscription.create({
-      userId: newUser.id,
-      customerId: customer.id,
-      subscriptionId: subscription.id,
-      productId,
-      priceId,
-      status: subscription.status,
-      startDate: subscription.start_date,
-      endDate: subscription.current_period_end,
-      paymentIntentId: paymentIntent.id,
-      paymentStatus: paymentIntent.status,
+    // Generate JWT token
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { 
+      expiresIn: process.env.STAY_SIGNEDIN_TOKEN_DURATION 
     });
 
-    // Generate an API key for the user
-    const apiKey = crypto.randomBytes(32).toString('hex');
+    // If everything is successful, commit the transaction
+    await session.commitTransaction();
 
-    newUser.apiKey = apiKey; // Assuming `apiKey` is a field in your `User` model
-    await newUser.save();
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: process.env.STAY_SIGNEDIN_TOKEN_DURATION });
-
-    ResponseHandler.success(res, { token,  message: 'User registered successfully with subscription.', login_success: true }, HTTP_STATUS_CODES.OK);
+    ResponseHandler.success(res, {
+      token,
+      message: 'User registered successfully with subscription.',
+      login_success: true,
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName
+      },
+      subscription: {
+        id: subscriptionResult.subscriptionId,
+        clientSecret: subscriptionResult.clientSecret
+      }
+    }, HTTP_STATUS_CODES.OK);
   } catch (error) {
+    // If any error occurs, abort the transaction
+    await session.abortTransaction();
     console.error('Error registering user:', error.message);
+
+    // Handle specific error cases
+    if (error.code === '11000') {
+      if (error.keyPattern && error.keyPattern.subscriptionId) {
+        return ResponseHandler.error(res, HTTP_STATUS_CODES.CONFLICT, {
+          message: 'Subscription already exists for this user.',
+        });
+      }
+      return ResponseHandler.error(res, HTTP_STATUS_CODES.CONFLICT, {
+        message: 'Username or email already exists.',
+      });
+    }
+
+    if (error.type === 'StripeInvalidRequestError') {
+      return ResponseHandler.error(res, HTTP_STATUS_CODES.BAD_REQUEST, {
+        message: 'Invalid payment details. Please check your payment information.',
+      });
+    }
+
+    // Generic error handling
     ErrorHandler.handleError(error, res);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -121,7 +156,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     let otp;
-    AuthValidator.validateLogin(req.body);
+   
     const { username, password, email, staySignedIn, form_type, verification_code, recaptcha_key } = req.body;
 
     const user = username
@@ -173,7 +208,7 @@ const login = async (req, res) => {
       }
       return;
     }
-
+    AuthValidator.validateLogin(req.body);
     const passwordMatch = await bcrypt.compare(password, user.password);
     let incorrectAttempts = user.incorrectAttempts || 0;
     if (!passwordMatch) {

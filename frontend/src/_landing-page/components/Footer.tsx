@@ -1,97 +1,108 @@
 import React from "react";
 
 interface FooterProps {
-    logo: {
-        src: string;
-        href: string;
-        alt: string;
-    };
-    description: string;
-    profession: string;
-    contacts: {
-        phone: string;
-        email: string;
-        emailHref: string;
-    };
-    socialLinks: {
-        iconSrc: string;
-        href: string;
-        alt: string;
-    }[];
-    copyright: {
-        year: number;
-        text: string;
-        authorName: string;
-        authorLink: string;
-    };
+  logo: {
+    src: string;
+    href: string;
+    alt: string;
+  };
+  description: string;
+  profession: string;
+  contacts: {
+    phone: string;
+    email: string;
+    emailHref: string;
+  };
+  socialLinks: {
+    iconSrc: string;
+    href: string;
+    alt: string;
+  }[];
+  copyright: {
+    year: number;
+    text: string;
+    authorName: string;
+    authorLink: string;
+  };
 }
 
 const Footer: React.FC<FooterProps> = ({
-    logo,
-    description,
-    profession,
-    contacts,
-    socialLinks,
-    copyright,
+  logo,
+  description,
+  profession,
+  contacts,
+  socialLinks,
+  copyright,
 }) => {
-    return (
-        <section className="py-20">
-            <div className="container px-4 mx-auto">
-                <div className="flex flex-wrap mb-12 lg:mb-20 -mx-3 text-center lg:text-left">
-                    {/* Logo Section */}
-                    <div className="w-full lg:w-1/5 px-3 mb-6 lg:mb-0">
-                        <a className="text-xl text-blue-500 items-center gap-2 flex font-semibold leading-none justify-center md:justify-start lg:justify-start" href={logo.href}>
-                            <img className="h-10" src={logo.src} alt={logo.alt} />
-                            ContentLocker
-                        </a>
-                    </div>
+  return (
+    <footer className="bg-gray-50 border-t border-gray-200 py-12 text-sm text-gray-600">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Top Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
+          {/* Logo + Description */}
+          <div>
+            <a href={logo.href} className="flex items-center space-x-2 text-xl font-semibold text-gray-900">
+              <img src={logo.src} alt={logo.alt} className="h-8 w-auto" />
+              <span>ContentLocker</span>
+            </a>
+            <p className="mt-4 max-w-xs text-gray-500">{description}</p>
+          </div>
 
-                    {/* Description Section */}
-                    <div className="w-full lg:w-2/5 px-3 mb-8 lg:mb-0">
-                        <p className="max-w-md mx-auto lg:max-w-full lg:mx-0 lg:pr-32 lg:text-lg text-blueGray-400 leading-relaxed">
-                            {description}
-                        </p>
-                    </div>
+          {/* Profession */}
+          <div>
+            <h4 className="text-gray-900 font-medium mb-2">Profession</h4>
+            <p className="text-gray-500">{profession}</p>
+          </div>
 
-                    {/* Profession Section */}
-                    <div className="w-full lg:w-1/5 px-3 mb-8 lg:mb-0">
-                        <p className="mb-2 lg:mb-4 lg:text-lg font-bold font-heading text-blueGray-800">
-                            Profession
-                        </p>
-                        <p className="lg:text-lg text-blueGray-400">{profession}</p>
-                    </div>
+          {/* Contacts */}
+          <div>
+            <h4 className="text-gray-900 font-medium mb-2">Contact</h4>
+            <ul className="space-y-1 text-gray-500">
+              <li>{contacts.phone}</li>
+              <li>
+                <a href={contacts.emailHref} className="hover:text-gray-900 transition">
+                  {contacts.email}
+                </a>
+              </li>
+            </ul>
+          </div>
 
-                    {/* Contacts Section */}
-                    <div className="w-full lg:w-1/5 px-3">
-                        <p className="mb-2 lg:mb-4 lg:text-lg font-bold font-heading text-blueGray-800">
-                            Contacts
-                        </p>
-                        <p className="lg:text-lg text-blueGray-400">{contacts.phone}</p>
-                        <p className="lg:text-lg text-blueGray-400">
-                            <a href={contacts.emailHref}>{contacts.email}</a>
-                        </p>
-                    </div>
-                </div>
-
-                {/* Social Links and Copyright */}
-                <div className="flex flex-col lg:flex-row items-center lg:justify-between">
-                    <p className="text-sm text-blueGray-400">
-                        © {copyright.year}. {copyright.text} Designed by{" "}
-                        <a className="text-blue-400" href={copyright.authorLink} target="_blank" rel="noopener noreferrer">
-                            {copyright.authorName}
-                        </a>
-                    </p>
-                    <div className="order-first lg:order-last -mx-2 mb-4 lg:mb-0">
-                        {socialLinks.map((link, index) => (
-                            <a className="inline-block px-2" href={link.href} key={index}>
-                                <img src={link.iconSrc} alt={link.alt} />
-                            </a>
-                        ))}
-                    </div>
-                </div>
+          {/* Social Links */}
+          <div>
+            <h4 className="text-gray-900 font-medium mb-2">Follow Us</h4>
+            <div className="flex space-x-4">
+              {socialLinks.map((link, index) => (
+                <a
+                  key={index}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-80 transition"
+                >
+                  <img src={link.iconSrc} alt={link.alt} className="h-6 w-6" />
+                </a>
+              ))}
             </div>
-        </section>
-    );
+          </div>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-center border-t pt-6 border-gray-200">
+          <p className="text-gray-400 text-center sm:text-left mb-2 sm:mb-0">
+            © {copyright.year}. {copyright.text} Designed by{" "}
+            <a
+              href={copyright.authorLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              {copyright.authorName}
+            </a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;

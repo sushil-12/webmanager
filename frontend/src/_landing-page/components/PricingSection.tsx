@@ -1,112 +1,203 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { CheckIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { classNames } from '../../utils/classNames';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
-interface PricingPlan {
-    name: string;
-    price: string;
-    features: string[];
-    imageSrc: string;
-    backgroundColor: string; // For dynamic background color
-    buttonText: string;
-    buttonLink: string;
+interface Plan {
+  _id: string;
+  name: string;
+  description: string;
+  productId: string;
+  priceId: string;
+  price: {
+    monthly: number;
+    annually: number;
+  };
+  stripePriceIds: {
+    monthly: string;
+    annually: string;
+  };
+  features: string[];
+  apiCallsLimit: number;
+  websiteLimit: number;
+  apiKeyLimit: number;
+  isActive: boolean;
+  sortOrder: number;
+  featured?: boolean;
 }
 
-interface PricingCardProps {
-    plan: PricingPlan;
-}
+const PricingSection: React.FC = () => {
+  const navigate = useNavigate();
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'annually'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/subscription/plans`);
+        setPlans(response.data.data);
+      } catch (err) {
+        setError('Failed to load plans. Please try again later.');
+        console.error('Error fetching plans:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  const handlePlanSelection = (planId: string) => {
+    console.log(planId, "PLAN ID", plans);
+    setSelectedPlan(planId);
+    const selectedPlan = plans.find(plan => plan.productId === planId);
+
+    if (selectedPlan) {
+      const planDetails = {
+        planId: selectedPlan._id,
+        priceId: selectedPlan.stripePriceIds[billingInterval],
+        productId: selectedPlan.productId,
+        planName: selectedPlan.name,
+        price: selectedPlan.price[billingInterval],
+        billingInterval,
+        apiCallsLimit: selectedPlan.apiCallsLimit,
+        websiteLimit: selectedPlan.websiteLimit,
+        features: selectedPlan.features
+      };
+
+      navigate('/sign-up', {
+        state: {
+          plan: planDetails
+        }
+      });
+    }
+  };
+
+  if (loading) {
     return (
-        <div className="w-full md:w-1/2 lg:w-1/3 px-3 mb-6">
-            <div
-                className={`hover-up-5 pt-16 pb-8 px-4 text-center rounded shadow bg-white hover:bg-gray-50 border border-blue-400`}
-            >
-                <img className="h-20 mb-6 mx-auto" src={plan.imageSrc} alt={plan.name} />
-                <h3 className="mb-2 text-4xl font-bold font-heading ">{plan.name}</h3>
-                <span className="text-4xl font-bold font-heading">{plan.price}</span>
-                <p className="mt-2 mb-8">user per month</p>
-                <div className="flex flex-col items-center mb-8">
-                    <ul className="">
-                        {plan.features.map((feature, index) => (
-                            <li key={index} className="flex mb-3">
-                                <svg
-                                    className="w-6 h-6 mr-2 text-green-500"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                                <span className='text-left'>{feature}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <div>
-                    <a
-                        className="block sm:inline-block py-4 px-6 mb-4 sm:mb-0 sm:mr-3 text-xs text-white text-center font-semibold leading-none bg-black hover:border  rounded"
-                        href={plan.buttonLink}
-                    >
-                        {plan.buttonText}
-                    </a>
-                </div>
-            </div>
+      <div className="py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="text-center">
+            <LoadingSpinner />
+          </div>
         </div>
+      </div>
     );
-};
+  }
 
-interface PricingSectionProps {
-    sectionTitle: string;
-    sectionDescription: string;
-    pricingPlans: PricingPlan[];
-}
-
-const PricingSection: React.FC<PricingSectionProps> = ({
-    sectionTitle,
-    sectionDescription,
-    pricingPlans,
-}) => {
+  if (error) {
     return (
-        <section
-            className="py-20 xl:bg-contain bg-top bg-no-repeat" title={sectionTitle}
-            style={{
-                backgroundImage:
-                    'url("/intersect.svg")',
-            }}
-        >
-            <div className="container px-4 mx-auto">
-                {sectionTitle !== "must_no_show" && (
-                    <div className="text-center mb-16">
-                        <h2
-                            className="max-w-lg mx-auto mb-4 text-4xl font-bold font-heading wow animate__animated animate__fadeInUp"
-                            data-wow-delay=".2s"
-                        >
-                            <span>Start saving time today and</span>
-                            <span className="text-blue-500"> choose </span>
-                            <span>your best plan</span>
-                        </h2>
-                        <p
-                            className="max-w-sm mx-auto text-lg text-blueGray-400 wow animate__animated animate__fadeInDown"
-                            data-wow-delay=".5s"
-                        >
-                            {sectionDescription}
-                        </p>
-                    </div>
-                )}
-
-                <div className="flex flex-wrap -mx-3">
-                    {pricingPlans.map((plan, index) => (
-                        <PricingCard key={index} plan={plan} />
-                    ))}
-                </div>
-            </div>
-        </section>
+      <div className="py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="text-center text-red-600">
+            {error}
+          </div>
+        </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="bg-gray-50 py-8" id="pricing">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <p className="mt-1 text-3xl sm:text-4xl font-bold text-gray-900">
+            Choose the right plan for you
+          </p>
+          <p className="mt-3 text-md text-gray-600 max-w-2xl mx-auto">
+            Start with a free trial. All plans include our core features.
+          </p>
+        </div>
+
+        {/* Billing Toggle */}
+        <div className="flex justify-center mb-10">
+          <div className="inline-flex bg-white rounded-full shadow ring-1 ring-gray-200">
+            {['monthly', 'annually'].map((interval) => (
+              <button
+                key={interval}
+                onClick={() => setBillingInterval(interval as 'monthly' | 'annually')}
+                className={classNames(
+                  billingInterval === interval
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100',
+                  'px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200'
+                )}
+              >
+                {interval === 'annually' ? 'Annual billing (Save 20%)' : 'Monthly billing'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Plans Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {plans.map((plan) => (
+            <div
+              key={plan._id}
+              className={classNames(
+                'flex flex-col justify-between p-6 rounded-2xl border shadow-sm bg-white',
+                plan.featured ? 'border-indigo-600' : 'border-gray-200'
+              )}
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className={classNames(
+                    'text-lg font-semibold',
+                    plan.featured ? 'text-indigo-600' : 'text-gray-900'
+                  )}>
+                    {plan.name}
+                  </h3>
+                  {plan.featured && (
+                    <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                      Most Popular
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-sm text-gray-600">{plan.description}</p>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold text-gray-900">${plan.price[billingInterval]}</span>
+                  <span className="text-sm text-gray-500"> / {billingInterval}</span>
+                </div>
+                <ul className="mt-4 space-y-2 text-sm text-gray-600">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-x-2">
+                      <CheckIcon className="h-5 w-5 text-indigo-500" />
+                      {feature}
+                    </li>
+                  ))}
+                  <li className="flex items-start gap-x-2">
+                    <CheckIcon className="h-5 w-5 text-indigo-500" />
+                    {plan.apiCallsLimit.toLocaleString()} API calls/month
+                  </li>
+                  <li className="flex items-start gap-x-2">
+                    <CheckIcon className="h-5 w-5 text-indigo-500" />
+                    {plan.websiteLimit === -1 ? 'Unlimited' : plan.websiteLimit} Website{plan.websiteLimit !== 1 ? 's' : ''}
+                  </li>
+                </ul>
+              </div>
+              <button
+                onClick={() => handlePlanSelection(plan.productId)}
+                className={classNames(
+                  'mt-6 w-full text-sm font-semibold rounded-md py-2',
+                  plan.featured
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                    : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-gray-50'
+                )}
+              >
+                Get started
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
 };
 
 export default PricingSection;

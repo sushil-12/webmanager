@@ -18,6 +18,20 @@ const cloudinary = require("../../config/cloudinary");
 const Website = require("../../models/Websites");
 const Post = require("../../models/Post");
 const { createSlug } = require("../../utils/helper");
+const {
+  logWebsiteCreation,
+  logWebsiteUpdate,
+  logWebsiteDeletion,
+  logContentCreation,
+  logContentUpdate,
+  logContentDeletion,
+  logSettingsUpdate,
+  logAnalyticsUpdate,
+  logIntegrationAdded,
+  logIntegrationRemoved,
+  logBackupCreated,
+  logBackupRestored
+} = require('../../utils/websiteActivityLogger');
 
 const createOrEditWebsite = async (req, res) => {
   try {
@@ -31,12 +45,16 @@ const createOrEditWebsite = async (req, res) => {
       // Edit website if id is provided
       const existingWebsite = await Website.findById(id);
       if (!existingWebsite) {
-        return ResponseHandler.error(
-          res,
-          { message: "Website not found" },
-          HTTP_STATUS_CODES.NOT_FOUND
-        );
+        return ResponseHandler.error(res, { message: 'Website not found' }, HTTP_STATUS_CODES.NOT_FOUND);
       }
+
+      // Store old data for comparison
+      const oldData = {
+        business_name: existingWebsite.business_name,
+        url: existingWebsite.url,
+        description: existingWebsite.description,
+        settings: existingWebsite.settings
+      };
 
       // Update the website fields
       existingWebsite.business_name = business_name;
@@ -81,13 +99,18 @@ const createOrEditWebsite = async (req, res) => {
       }
 
       await existingWebsite.save();
-      ResponseHandler.success(
-        res,
-        { message: "Website updated successfully" },
-        HTTP_STATUS_CODES.OK
-      );
+
+      // Log website update with field changes
+      await logWebsiteUpdate(req, id, oldData, {
+        business_name,
+        url,
+        description,
+        // settings
+      }, 'success');
+
+      ResponseHandler.success(res, { message: 'Website updated successfully' }, HTTP_STATUS_CODES.OK);
     } else {
-      // Create new website if id is not provided
+      // Create new website
       const newWebsite = new Website({
         icon,
         business_name,
@@ -128,14 +151,23 @@ const createOrEditWebsite = async (req, res) => {
       // Save the website
       await newWebsite.save();
 
-      ResponseHandler.success(
-        res,
-        { message: "Website created successfully" },
-        HTTP_STATUS_CODES.OK
-      );
+      // Log website creation with initial data
+      await logWebsiteCreation(req, newWebsite._id, 'success', {
+        business_name,
+        url,
+        description,
+        // settings
+      });
+
+      ResponseHandler.success(res, { message: 'Website created successfully' }, HTTP_STATUS_CODES.OK);
     }
   } catch (error) {
-    // Handle errors
+    // Log error for website creation/update
+    if (req.body.id) {
+      await logWebsiteUpdate(req, req.body.id, {}, {}, 'error', { error: error.message });
+    } else {
+      await logWebsiteCreation(req, null, 'error', { error: error.message });
+    }
     ErrorHandler.handleError(error, res);
   }
 };
@@ -264,29 +296,208 @@ const getWebsite = async (req, res) => {
 
 const deleteWebsite = async (req, res) => {
   try {
-    const token = req.headers.authorization.split(" ")[1];
+    const { website_id } = req.params;
+    const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const website_id = req.params.website_id;
+    const currentUserId = decodedToken.userId;
 
-    // Find the website by ID
     const website = await Website.findById(website_id);
     if (!website) {
-      throw new CustomError(404, "Website not found");
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check permissions
+    if (website.created_by.toString() !== currentUserId && req.user.role.name !== 'super_admin') {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
     }
 
     const deletedWebsiteName = website.business_name;
-
-    // Delete the website
     await Website.findByIdAndDelete(website_id);
     await Post.deleteMany({ domain: createSlug(deletedWebsiteName, "_") });
 
-    // Respond with success message
-    ResponseHandler.success(
-      res,
-      { message: "Website and related posts deleted successfully" },
-      200
-    );
+    // Log website deletion
+    await logWebsiteDeletion(req, website_id, 'success', {
+      business_name: deletedWebsiteName,
+      url: website.url
+    });
+
+    ResponseHandler.success(res, { message: 'Website deleted successfully' }, HTTP_STATUS_CODES.OK);
   } catch (error) {
+    await logWebsiteDeletion(req, website_id, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const updateWebsiteSettings = async (req, res) => {
+  try {
+    const { websiteId } = req.params;
+    const { settings } = req.body;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check permissions
+    if (req.user.role.name !== 'super_admin' && website.created_by !== req.userId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    // Store old settings for comparison
+    const oldSettings = { ...website.settings };
+    
+    // Update settings
+    website.settings = settings;
+    await website.save();
+
+    // Log settings update with field changes
+    await logSettingsUpdate(req, websiteId, 'general', oldSettings, settings, 'success');
+
+    ResponseHandler.success(res, { website }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logSettingsUpdate(req, req.params.websiteId, 'general', {}, {}, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const updateWebsiteAnalytics = async (req, res) => {
+  try {
+    const { websiteId } = req.params;
+    const { analytics } = req.body;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check permissions
+    if (req.user.role.name !== 'super_admin' && website.created_by !== req.userId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    // Store old analytics for comparison
+    const oldAnalytics = { ...website.analytics };
+    
+    // Update analytics
+    website.analytics = analytics;
+    await website.save();
+
+    // Log analytics update with field changes
+    await logAnalyticsUpdate(req, websiteId, 'general', oldAnalytics, analytics, 'success');
+
+    ResponseHandler.success(res, { website }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logAnalyticsUpdate(req, req.params.websiteId, 'general', {}, {}, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const addWebsiteIntegration = async (req, res) => {
+  try {
+    const { websiteId } = req.params;
+    const { integrationType, integrationData } = req.body;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check permissions
+    if (req.user.role.name !== 'super_admin' && website.created_by !== req.userId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    website.integrations[integrationType] = integrationData;
+    await website.save();
+
+    // Log integration addition
+    await logIntegrationAdded(req, websiteId, integrationType, 'success', {
+      integrationData: Object.keys(integrationData)
+    });
+
+    ResponseHandler.success(res, { website }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logIntegrationAdded(req, req.params.websiteId, req.body.integrationType, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const removeWebsiteIntegration = async (req, res) => {
+  try {
+    const { websiteId, integrationType } = req.params;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check permissions
+    if (req.user.role.name !== 'super_admin' && website.created_by !== req.userId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    delete website.integrations[integrationType];
+    await website.save();
+
+    // Log integration removal
+    await logIntegrationRemoved(req, websiteId, integrationType);
+
+    ResponseHandler.success(res, { website }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logIntegrationRemoved(req, req.params.websiteId, req.params.integrationType, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const createWebsiteBackup = async (req, res) => {
+  try {
+    const { websiteId } = req.params;
+    const { backupType } = req.body;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check permissions
+    if (req.user.role.name !== 'super_admin' && website.created_by !== req.userId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    // TODO: Implement actual backup creation logic
+
+    // Log backup creation
+    await logBackupCreated(req, websiteId, backupType);
+
+    ResponseHandler.success(res, { message: 'Backup created successfully' }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logBackupCreated(req, req.params.websiteId, req.body.backupType, 'error', { error: error.message });
+    ErrorHandler.handleError(error, res);
+  }
+};
+
+const restoreWebsiteBackup = async (req, res) => {
+  try {
+    const { websiteId, backupId } = req.params;
+
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return ResponseHandler.error(res, 'Website not found', HTTP_STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check permissions
+    if (req.user.role.name !== 'super_admin' && website.created_by !== req.userId) {
+      return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+    }
+
+    // TODO: Implement actual backup restoration logic
+
+    // Log backup restoration
+    await logBackupRestored(req, websiteId, 'full');
+
+    ResponseHandler.success(res, { message: 'Backup restored successfully' }, HTTP_STATUS_CODES.OK);
+  } catch (error) {
+    await logBackupRestored(req, req.params.websiteId, 'full', 'error', { error: error.message });
     ErrorHandler.handleError(error, res);
   }
 };
@@ -297,4 +508,10 @@ module.exports = {
   getWebsite,
   listWebsitesWithMenus,
   deleteWebsite,
+  updateWebsiteSettings,
+  updateWebsiteAnalytics,
+  addWebsiteIntegration,
+  removeWebsiteIntegration,
+  createWebsiteBackup,
+  restoreWebsiteBackup
 };

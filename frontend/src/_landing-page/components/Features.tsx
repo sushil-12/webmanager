@@ -1,107 +1,73 @@
-import React, { useState } from "react";
+import React from 'react';
+import { 
+  DocumentTextIcon,
+  PhotoIcon,
+  CodeBracketIcon,
+  UserGroupIcon,
+  LockClosedIcon,
+  ArrowPathIcon
+} from '@heroicons/react/24/outline';
 
-// Define types for the Features Section props
-interface Feature {
-  title: string;
-  description: string;
-}
+const features = [
+  {
+    name: 'Portfolio Management',
+    description: 'Create and manage your portfolio content with an intuitive interface. Perfect for showcasing your work and projects.',
+    icon: DocumentTextIcon,
+  },
+  {
+    name: 'Media Gallery',
+    description: 'Upload and organize your project images, videos, and documents. Optimized for fast loading and easy sharing.',
+    icon: PhotoIcon,
+  },
+  {
+    name: 'API Integration',
+    description: 'Connect your portfolio to any frontend framework. Simple API endpoints for easy integration with React, Vue, or any other framework.',
+    icon: CodeBracketIcon,
+  },
+  {
+    name: 'Collaboration',
+    description: 'Invite team members to help manage your portfolio. Perfect for agencies and creative teams.',
+    icon: UserGroupIcon,
+  },
+  {
+    name: 'Security',
+    description: 'Your content is protected with enterprise-grade security. No need to worry about server security or data breaches.',
+    icon: LockClosedIcon,
+  },
+  {
+    name: 'Automatic Updates',
+    description: 'Your portfolio stays up-to-date automatically. No need to manage servers or perform maintenance.',
+    icon: ArrowPathIcon,
+  },
+];
 
-interface FeaturesProps {
-  title: string;
-  subtitle: string;
-  features: Feature[];
-  imageSrc: string;
-  leftBlobSrc: string;
-  rightBlobSrc: string;
-}
-
-const Features: React.FC<FeaturesProps> = ({
-  title,
-  subtitle,
-  features,
-  imageSrc,
-  leftBlobSrc,
-  rightBlobSrc,
-}) => {
-  const [activeIndex, setActiveIndex] = useState<number | null>(0);
-
-  const toggleAccordion = (index: number) => {
-    setActiveIndex(activeIndex === index ? null : index); // Toggle active accordion
-  };
-
+const Features: React.FC = () => {
   return (
-    <section className="py-12 md:py-16 lg:py-32 overflow-x-hidden" id="key-features">
-      <div className="container px-4 mx-auto">
-        <div className="flex flex-wrap lg:flex-nowrap content-center">
-          {/* Left Column: Text and Accordion */}
-          <div className="w-full lg:w-1/2">
-            <div className="lg:py-6 lg:pr-32">
-              <div className="mb-6">
-                <span className="text-xs py-1 px-3 text-blue-500 font-semibold bg-blue-50 rounded-xl">
-                  {subtitle}
-                </span>
-                <h2 className="text-4xl mt-5 font-bold font-heading">{title}</h2>
-              </div>
-              <div className="space-y-6">
-                {features.map((feature, index) => (
-                  <div
-                    key={index}
-                    className={`  rounded-lg overflow-hidden transition-all duration-300 ${
-                      activeIndex === index ? "shadow-lg " : ""
-                    }`}
-                  >
-                    {/* Accordion Button */}
-                    <button
-                      className={`flex items-center justify-between w-full px-4 py-3 text-left  font-semibold ${
-                        activeIndex === index ? " bg-[#1973e8] text-white" : ""
-                      }`}
-                      onClick={() => toggleAccordion(index)}
-                    >
-                      <span>{feature.title}</span>
-                      <svg
-                        className={`w-5 h-5 transition-transform duration-300 ${
-                          activeIndex === index ? "transform rotate-180" : ""
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+    <section className="py-12 bg-gray-50" id="features">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            Perfect for Your Portfolio
+          </h2>
+          <p className="mt-4 text-lg text-gray-500">
+            Everything you need to create and manage your portfolio or small-scale content site
+          </p>
+        </div>
 
-                    {/* Conditional Rendering for Description */}
-                    {activeIndex === index && (
-                      <div className="px-4 pt-3 pb-4 text-blueGray-400 text-sm leading-relaxed">
-                        {feature.description}
-                      </div>
-                    )}
-                  </div>
-                ))}
+        <div className="mt-10">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <div
+                key={feature.name}
+                className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+              >
+                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  <feature.icon className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">{feature.name}</h3>
+                <p className="mt-2 text-base text-gray-500">{feature.description}</p>
               </div>
-            </div>
-          </div>
-
-          {/* Right Column: Image Section */}
-          <div className="relative w-full lg:w-1/2 my-12">
-            <div className="wow animate__animated animate__fadeInRight">
-              <img
-                className="jump relative mx-auto rounded-xl w-full z-10"
-                src={imageSrc}
-                alt="Feature Image"
-              />
-              <img
-                className="absolute top-0 left-0 w-40 -ml-12 -mt-12"
-                src={leftBlobSrc}
-                alt="Left Blob"
-              />
-              <img
-                className="absolute bottom-0 right-0 w-40 -mr-12 -mb-12"
-                src={rightBlobSrc}
-                alt="Right Blob"
-              />
-            </div>
+            ))}
           </div>
         </div>
       </div>

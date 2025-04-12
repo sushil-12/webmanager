@@ -391,7 +391,6 @@ const getAllPosts = async (req, res) => {
         const [posts, publishedCount, draftCount, allPostsCount] = await Promise.all([postsPromise, publishedCountPromise, draftCountPromise, allPostsCountPromise]);
 
         const postIds = posts.filter(post => post.featuredImage).map(post => post.featuredImage);
-        console.log(postIds, "POST IDS ==============", posts)
         const images = await Media.find({ _id: { $in: postIds } }).select('url alt_text');
         const imagesData = images.map(media => ({
             id: media._id,

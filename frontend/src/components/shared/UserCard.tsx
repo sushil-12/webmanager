@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Avatar from './Avatar';
 import { useUserContext } from '@/context/AuthProvider';
 import { formatString, trimString } from '@/lib/utils';
+import { Edit2, Lock } from 'lucide-react';
 
 interface UserCardProps {
   item: IUser;
@@ -14,60 +15,93 @@ interface UserCardProps {
 const UserCard: React.FC<UserCardProps> = ({ item, index }) => {
   const navigate = useNavigate();
   const { user } = useUserContext();
+
   return (
-    <li key={index} className="col-span-1 divide-y divide-gray-200 rounded-lg border border-1 p-3">
-      <div className="flex w-full items-center justify-between space-x-6">
-        <div className="flex-1 truncate">
+    <li className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 px-3 py-4" key={index}>
+      <div className="flex flex-col gap-3 relative">
+        {/* Header with Edit Button */}
+        <div className="flex justify-end absolute top-2 right-2">
+          {item?.role !== 'super_admin' ? (
+            <button 
+              onClick={() => { user?.id == item.id ? navigate('/profile/' + item.id) : navigate('/add-edit-user/' + item.id) }}
+              className="p-1 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+            >
+              <Edit2 className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700" />
+            </button>
+          ) : (
+            <div className="p-1 rounded-lg bg-gray-50">
+              <Lock className="w-3.5 h-3.5 text-gray-400" />
+            </div>
+          )}
+        </div>
 
-          <div className="flex justify-end space-x-3">
-            {item?.role !== 'super_admin' ? (
-              <button onClick={() => { user?.id == item.id ? navigate('/profile/' + item.id) : navigate('/add-edit-user/' + item.id) }}><SvgComponent className="" svgName="edit_action" /></button>
-            ):(
-              <i className="pi pi-lock mr-2 mt-1"></i>
+        {/* User Info */}
+        <div className="flex gap-3">
+          {/* Avatar */}
+          <div className="flex-shrink-0">
+            {item?.profile_pic ? (
+              <img 
+                src={item.profile_pic} 
+                alt={item.username} 
+                className="w-10 h-10 rounded-full object-cover border border-gray-100"
+              />
+            ) : (
+              <Avatar char={item?.username.charAt(0).toUpperCase()} size='small' />
             )}
-
           </div>
-          <div className="flex m-0 gap-[15px] h-full">
-            <div className="img_container h-full">
-              {item?.profile_pic == '' || item?.profile_pic == undefined ? (<Avatar char={item?.username.charAt(0).toUpperCase()} size='small' />) : <img src={`${item?.profile_pic}`} alt="" className="w-[53px] h-[53px] rounded-full" />}
-            </div>
-            <div className="flex flex-col">
-              <div className="flex flex-col">
-                <div className="body-bold flex items-center">
-                  <span className="flex gap-2 items-center">
-                    <p className="font-inter font-semibold text-xl text-title-headings">{trimString(item?.username?.trim(), 14)}</p>
-                    <span className={`inline-flex flex-shrink-0 items-center p-1.5 min-w-12 h-5 rounded-full ${item.role === 'admin' || item.role === 'super_admin' ? 'bg-success-role text-white' : 'bg-light-blue text-main-bg-900'} font-inter font-semibold justify-center text-[10px]`}>
-                      {formatString(item?.role)}
-                    </span>
-                  </span>
-                </div>
-                <p className="font-inter text-xs font-medium text-secondary-label">{item.email}</p>
 
-              </div>
-              {item.role === 'user' && item.permissions !== null && Object.keys(item.permissions).length !== 0 && (
-                <div className="flex flex-col mt-2">
-                  {
-                    item.permissions && Object.entries(item.permissions).map(([key], index) => {
-                      // @ts-ignore
-                      const permissonObject = item.permissions[key];
-                      if (permissonObject !== null) {
-                        return (
-                          <div className="flex gap-1 items-center" key={index}>
-                            <span className="logo">{permissonObject?.icon == '' ? <SvgComponent className='websvg' svgName='website_icon' /> : <img src={permissonObject?.icon} className='w-[14px] h-[14px]' />}</span>
-                            <p className='gap-1'><span className='font-semibold text-sm'>{permissonObject?.name}</span> <span className='font-medium text-sm mr-1'>{permissonObject?.editor_permission && 'editor'}</span><span className='font-medium text-sm'>{permissonObject?.viewer_permission && 'viewer'}</span></p>
-                          </div>
-                        );
-                      }
-                    })
+          {/* User Details */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 ">
+              <h3 className="font-medium text-gray-900 text-sm truncate">
+                {trimString(item?.username?.trim(), 14)}
+              </h3>
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                item.role === 'admin' || item.role === 'super_admin' 
+                  ? 'bg-green-50 text-green-700' 
+                  : 'bg-blue-50 text-blue-700'
+              }`}>
+                {formatString(item?.role)}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 truncate">{item.email}</p>
+
+            {/* Permissions */}
+            {item.role === 'user' && item.permissions !== null && Object.keys(item.permissions).length !== 0 && (
+              <div className="mt-2 space-y-1.5">
+                {item.permissions && Object.entries(item.permissions).map(([key], index) => {
+                  // @ts-ignore
+                  const permissonObject = item.permissions[key];
+                  if (permissonObject !== null) {
+                    return (
+                      <div className="flex items-center gap-1.5" key={index}>
+                        <div className="w-3.5 h-3.5 flex-shrink-0">
+                          {permissonObject?.icon ? (
+                            <img 
+                              src={permissonObject.icon} 
+                              alt={permissonObject.name}
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <SvgComponent className="w-full h-full" svgName='website_icon' />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs">
+                          <span className="font-medium text-gray-700">{permissonObject?.name}</span>
+                          {permissonObject?.editor_permission && (
+                            <span className="px-1 py-0.5 rounded bg-blue-50 text-blue-600 text-[10px]">editor</span>
+                          )}
+                          {permissonObject?.viewer_permission && (
+                            <span className="px-1 py-0.5 rounded bg-gray-50 text-gray-600 text-[10px]">viewer</span>
+                          )}
+                        </div>
+                      </div>
+                    );
                   }
-                </div>
-              )}
-
-
-            </div>
-
+                })}
+              </div>
+            )}
           </div>
-
         </div>
       </div>
     </li>

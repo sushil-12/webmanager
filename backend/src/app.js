@@ -4,6 +4,7 @@ const authRoutes = require('./routes/authRoutes');
 const protectedRoutes = require('./routes/protectedUserRoutes');
 const subscribtionApis = require('./routes/subscribtionApis');
 const commonRoutes = require('./routes/commanRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const { CustomError, ErrorHandler, ResponseHandler } = require('./utils/responseHandler');
 const connectDB = require('./config/database');
 const useragent = require('express-useragent');
@@ -18,8 +19,14 @@ const sanitizeInput = require('./middleware/sanitizeRequest');
 const rateLimit = require('express-rate-limit');
 const swaggerUI = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
-const validateApiKey = require('./middleware/validateApiKeys');
-const app = express();
+const apiUsageLogger = require('./middleware/apiUsageLogger');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const authMiddleware = require('./middleware/authMiddleware');
+const validateApiKey = require('./middleware/validateApiKey');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+
+dotenv.config();
 
 // Connect to MongoDB
 connectDB();
@@ -36,16 +43,14 @@ const limiter = rateLimit({
 });
 
 // Middleware
+const app = express();
 app.use(express.json({ limit: '250kb' }));  // Set payload size to 150kb
 app.use(express.urlencoded({ limit: '250kb', extended: true }));
 app.use(bodyParser.json());
-app.use('/subscription-api', cors('*'),  subscribtionApis)
-
 app.use(cors(corsOptions));
 app.use(sanitizeInput);
 app.use(useragent.express());
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
-
 
 // Applying the rate limiter to all requests
 // app.use(limiter);
@@ -70,14 +75,25 @@ app.use('/logs', express.static(logDir), serveIndex(logDir, { icons: true }));
 app.use('/assets', express.static(path.join(__dirname, 'src', 'assets')));
 
 // Authentication routes
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
+
+// Dashboard routes with authentication and API usage logging
+app.use('/api/dashboard', dashboardRoutes);
 
 // Common routes
 app.use('/api/common', commonRoutes);
+app.use('/subscription-api', subscribtionApis);
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
 
-// Protected routes
-app.use('/api', protectedRoutes);
+// Protected routes with authentication and API usage logging
+app.use('/api', [authMiddleware.verifyToken, apiUsageLogger], protectedRoutes);
 
+// Subscription API routes with API key validation and usage logging
+
+// Configure raw body parsing for Stripe webhooks
+
+// Routes
 
 // Root route
 app.get('/', (req, res) => {
@@ -131,7 +147,16 @@ app.use((req, res, next) => {
 
 // Generic Error Handler
 app.use((err, req, res, next) => {
-    ErrorHandler.handleError(err, res);
+    console.error('Global error handler:', err);
+    res.status(err.status || 500).json({
+        status: 'error',
+        message: err.message || 'Internal Server Error'
+    });
 });
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
 module.exports = app;
