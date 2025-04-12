@@ -7,7 +7,6 @@ import {
   GlobeAltIcon,
   TrophyIcon,
   CalendarIcon,
-  SparklesIcon,
   PencilSquareIcon,
   TrashIcon,
   DocumentPlusIcon,
