@@ -36,6 +36,7 @@ const PricingSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log(import.meta.env.VITE_API_URL, "API URL")
   useEffect(() => {
     const fetchPlans = async () => {
       try {
