@@ -126,7 +126,7 @@ interface SubscriptionDetails {
 
 class DashboardService {
     private api = axios.create({
-        baseURL: `${API_BASE_URL}/api/dashboard`,
+        baseURL: `${API_BASE_URL}api/dashboard`,
         headers: {
             'Content-Type': 'application/json',
         },

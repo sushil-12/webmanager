@@ -9,7 +9,7 @@ class ApiService {
  
   constructor() {
     this.api = axios.create({ // @ts-ignore
-      baseURL: import.meta.env.VITE_API_URL+ '/api',
+      baseURL: import.meta.env.VITE_API_URL+ 'api',
     });
 
 

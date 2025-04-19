@@ -347,6 +347,13 @@ const Dashboard = () => {
   const usedApi = apiUsage?.totalRequests || 0;
   const percentageApi = totalApi > 0 ? (usedApi / totalApi) * 100 : 0;
 
+  // Calculate success rate properly
+  const totalRequests = apiUsage?.total?.requests || 0;
+  const successfulRequests = apiUsage?.total?.successfulRequests || 0;
+  const successRate = totalRequests > 0 
+    ? Math.round((successfulRequests / totalRequests) * 100) 
+    : 0;
+
   const totalWeb = subscription?.usage?.websites?.limit || 0;
   const usedWeb = subscription?.usage?.websites?.used || 0;
   const percentageWebsites = totalWeb > 0 ? (usedWeb / totalWeb) * 100 : 0;
@@ -455,9 +462,10 @@ const Dashboard = () => {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Plan Details</h3>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${subscription?.daysRemaining > 14
-                ? 'bg-green-100 text-green-800'
-                : subscription?.daysRemaining > 7
+              {subscription?.plan?.status === 'active' ? (
+                <div className={`px-3 py-1 rounded-full text-sm font-medium ${subscription?.daysRemaining > 14
+                  ? 'bg-green-100 text-green-800'
+                  : subscription?.daysRemaining > 7
                   ? 'bg-yellow-100 text-yellow-800'
                   : 'bg-red-100 text-red-800'
                 }`}>
@@ -466,7 +474,24 @@ const Dashboard = () => {
                   : subscription?.daysRemaining > 7
                     ? 'Expiring Soon'
                     : 'Expiring Very Soon'}
-              </div>
+                </div>
+              ) : subscription?.plan?.status === 'pending' ? (
+                <div className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                  Pending Activation
+                </div>
+              ) : subscription?.plan?.status === 'inactive' ? (
+                <div className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                  Inactive
+                </div>
+              ) : subscription?.plan?.status === 'cancelled' ? (
+                <div className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                  Cancelled
+                </div>
+              ) : (
+                <div className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                  {subscription?.plan?.status || 'Unknown Status'}
+                </div>
+              )}
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -476,55 +501,82 @@ const Dashboard = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-semibold text-gray-900">{subscription?.plan?.price}</p>
-                  <p className="text-sm text-gray-500">{subscription?.daysRemaining} days remaining</p>
+                  {subscription?.plan?.status === 'active' && (
+                    <p className="text-sm text-gray-500">{subscription?.daysRemaining} days remaining</p>
+                  )}
                 </div>
               </div>
 
-              {/* Usage Stats */}
-              <div className="space-y-4">
-                {/* API Usage */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">API Calls</span>
-                    <span className="font-medium">
-                      {apiUsage?.totalRequests ?? 0} / {subscription?.usage?.api?.limit ?? 0}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full ${percentageApi > 90
-                        ? 'bg-red-600'
-                        : percentageApi > 70
-                          ? 'bg-yellow-600'
-                          : 'bg-green-600'
-                        }`}
-                      style={{ width: `${Math.min(percentageApi, 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Website Usage */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Websites</span>
-                    <span className="font-medium">
-                      {usedWebsites} / {limitWeb === -1 ? '∞' : limitWeb}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full ${limitWeb === -1
-                        ? 'bg-blue-600'
-                        : percentageWebsitesData >= 100
+              {/* Usage Stats - Only show if subscription is active */}
+              {subscription?.plan?.status === 'active' ? (
+                <div className="space-y-4">
+                  {/* API Usage */}
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-600">API Calls</span>
+                      <span className="font-medium">
+                        {apiUsage?.totalRequests ?? 0} / {subscription?.usage?.api?.limit ?? 0}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${percentageApi > 90
                           ? 'bg-red-600'
-                          : 'bg-blue-600'
-                        }`}
-                      style={{ width: `${barWidth}%` }}
-                    ></div>
+                          : percentageApi > 70
+                            ? 'bg-yellow-600'
+                            : 'bg-green-600'
+                          }`}
+                        style={{ width: `${Math.min(percentageApi, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Website Usage */}
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-600">Websites</span>
+                      <span className="font-medium">
+                        {usedWebsites} / {limitWeb === -1 ? '∞' : limitWeb}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${limitWeb === -1
+                          ? 'bg-blue-600'
+                          : percentageWebsitesData >= 100
+                            ? 'bg-red-600'
+                            : 'bg-blue-600'
+                          }`}
+                        style={{ width: `${barWidth}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
+              ) : subscription?.plan?.status === 'pending' ? (
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    Your subscription is pending activation. Please complete the payment process to activate your plan.
+                  </p>
+                </div>
+              ) : subscription?.plan?.status === 'inactive' ? (
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    Your subscription is inactive. Please renew your subscription to continue using the service.
+                  </p>
+                </div>
+              ) : subscription?.plan?.status === 'cancelled' ? (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-800">
+                    Your subscription has been cancelled. Please contact support if you wish to reactivate your plan.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-800">
+                    Your subscription status is unknown. Please contact support for assistance.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -694,7 +746,7 @@ const Dashboard = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">API Usage</h3>
                   <p className="text-sm text-gray-500">
-                    Success Rate: {apiUsage?.total.successRate || '0%'}
+                    Success Rate: {successRate}%
                   </p>
                 </div>
                 <div className="flex space-x-2">
@@ -737,7 +789,7 @@ const Dashboard = () => {
                 <div className="bg-green-50 p-3 rounded-lg">
                   <p className="text-sm text-gray-600">Success Rate</p>
                   <p className="text-xl font-semibold text-gray-900">
-                    {apiUsage?.total.successRate || '0%'}
+                    {successRate}%
                   </p>
                 </div>
               </div>

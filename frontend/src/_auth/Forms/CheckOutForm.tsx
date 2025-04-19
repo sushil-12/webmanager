@@ -109,36 +109,45 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
                 });
             }
 
-            if (newUser?.code?.includes('ERR')) {
-                return toast({
-                    variant: "destructive",
-                    title: "Signup Failed",
-                    description: newUser?.response?.data?.message ?? "Unknown error.",
+            // Handle payment confirmation if required
+            if (newUser.subscription?.requiresAction) {
+                const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+                    newUser.subscription.clientSecret
+                );
+
+                if (confirmError) {
+                    setErrorMessage(confirmError.message || "Payment confirmation failed.");
+                    return;
+                }
+
+                if (paymentIntent.status === 'succeeded') {
+                    toast({
+                        title: "Payment Successful",
+                        description: "Your subscription has been activated.",
+                        duration: import.meta.env.VITE_TOAST_DURATION,
+                        icon: <SvgComponent className="" svgName="checked" />
+                    });
+                }
+            }
+
+            // Check subscription status
+            if (newUser.subscription?.subscriptionStatus === 'active') {
+                toast({
+                    title: "Subscription Active",
+                    description: "Your subscription is now active.",
                     duration: import.meta.env.VITE_TOAST_DURATION,
-                    icon: <SvgComponent className="" svgName="close_toaster" />
+                    icon: <SvgComponent className="" svgName="checked" />
                 });
             }
 
-            const sessionValid = await checkAuthUser();
-            if (!sessionValid) {
-                return toast({
-                    variant: "destructive",
-                    title: "Sign In Failed",
-                    description: "Unable to authenticate user."
-                });
+            // Check if user is authenticated
+            const isLoggedIn = await checkAuthUser();
+            if (isLoggedIn) {
+                navigate("/");
             }
-
-            toast({ title: "Logged In Successfully" });
-            navigate('/dashboard');
         } catch (error) {
-            console.error("Error during signup or authentication", error);
-            toast({
-                variant: "destructive",
-                title: "Signup Failed",
-                description: "An unexpected error occurred. Please try again.",
-                duration: import.meta.env.VITE_TOAST_DURATION,
-                icon: <SvgComponent className="" svgName="close_toaster" />
-            });
+            console.error('Checkout error:', error);
+            setErrorMessage("An error occurred during checkout. Please try again.");
         }
     };
 

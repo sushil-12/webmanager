@@ -235,7 +235,7 @@ const LandingPage = () => {
         <Benefits {...benefitsData} />
         <HowWeWork {...howWeWorkData} />
         <Testimonials />
-        <Integration integrations={integrations} />
+        {/* <Integration integrations={integrations} /> */}
         <Security />
         <PricingSection />
         <ContactFormSection />
