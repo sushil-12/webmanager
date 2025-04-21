@@ -25,6 +25,7 @@ const dotenv = require('dotenv');
 const authMiddleware = require('./middleware/authMiddleware');
 const validateApiKey = require('./middleware/validateApiKey');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const validateStripeWebhook = require('./middleware/validateStripeWebhook');
 
 dotenv.config();
 
@@ -44,6 +45,12 @@ const limiter = rateLimit({
 
 // Middleware
 const app = express();
+
+// Configure raw body parsing for Stripe webhook - must be before other middleware
+
+// Regular body parser for all other routes
+app.use('/api/subscription', subscriptionRoutes);
+
 app.use(express.json({ limit: '250kb' }));  // Set payload size to 150kb
 app.use(express.urlencoded({ limit: '250kb', extended: true }));
 app.use(bodyParser.json());
@@ -82,16 +89,12 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Common routes
 app.use('/api/common', commonRoutes);
+
+// Subscription routes
 app.use('/subscription-api', subscribtionApis);
-app.use('/api/subscription', subscriptionRoutes);
-app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
 
 // Protected routes with authentication and API usage logging
 app.use('/api', [authMiddleware.verifyToken, apiUsageLogger], protectedRoutes);
-
-// Subscription API routes with API key validation and usage logging
-
-// Configure raw body parsing for Stripe webhooks
 
 // Routes
 

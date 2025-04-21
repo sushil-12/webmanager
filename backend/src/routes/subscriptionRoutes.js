@@ -4,10 +4,20 @@ const SubscriptionController = require('../controllers/protected/SubscriptionCon
 const authMiddleware = require('../middleware/authMiddleware');
 const validateStripeWebhook = require('../middleware/validateStripeWebhook');
 
+
 console.log("subscriptionRoutes");
 // Public routes
 router.get('/plans', SubscriptionController.getPlans);
-router.post('/webhook', validateStripeWebhook, SubscriptionController.handleWebhook);
+router.post(
+    '/webhook',
+    express.raw({ type: 'application/json' }),
+    (req, res, next) => {
+      req.rawBody = req.body; // <-- This line makes rawBody available for validation
+      next();
+    },
+    validateStripeWebhook,
+    SubscriptionController.handleWebhook
+  );
 
 // Protected routes
 router.use(authMiddleware.verifyToken);

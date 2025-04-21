@@ -6,9 +6,10 @@ const plans = [
     {
         name: 'Starter',
         description: 'Perfect for small websites',
+        productId: 'prod_RGF3cEXM6E6dbLj',
         stripePriceIds: {
-            monthly: 'price_monthly_starter_id',
-            annually: 'price_annually_starter_id'
+            monthly: 'price_1RGF3cEXM6E6dbLjlEY6uLxk',
+            annually: 'price_1RGF3cEXM6E6dbLjDsiUSaOI'
         },
         price: {
             monthly: 29,
@@ -29,9 +30,10 @@ const plans = [
     {
         name: 'Professional',
         description: 'For growing businesses',
+        productId: 'prod_RGF3dEXM6E6dbLj',
         stripePriceIds: {
-            monthly: 'price_monthly_pro_id',
-            annually: 'price_annually_pro_id'
+            monthly: 'price_1RGF3dEXM6E6dbLjF29KfEZ7',
+            annually: 'price_1RGF3dEXM6E6dbLjiZnGuwcV'
         },
         price: {
             monthly: 79,
@@ -53,9 +55,10 @@ const plans = [
     {
         name: 'Business',
         description: 'For large enterprises',
+        productId: 'prod_RGF3eEXM6E6dbLj',
         stripePriceIds: {
-            monthly: 'price_monthly_business_id',
-            annually: 'price_annually_business_id'
+            monthly: 'price_1RGF3eEXM6E6dbLjJPY3TzC5',
+            annually: 'price_1RGF3fEXM6E6dbLjfjal5lzB'
         },
         price: {
             monthly: 199,

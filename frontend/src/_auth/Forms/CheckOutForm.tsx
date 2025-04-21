@@ -48,108 +48,144 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-
+    
+        setErrorMessage(null);
+    
         if (!stripe || !elements) {
             setErrorMessage("Stripe.js is not loaded.");
             return;
         }
-
+    
         const cardNumber = elements.getElement(CardNumberElement);
         const cardExpiry = elements.getElement(CardExpiryElement);
         const cardCvc = elements.getElement(CardCvcElement);
-
+    
         if (!cardNumber || !cardExpiry || !cardCvc) {
-            setErrorMessage("Card details are missing. Please enter all card details.");
+            setErrorMessage("Card details are missing. Please enter all fields.");
             return;
         }
-
+    
         try {
-            // Create payment method
+            // 1. Create Stripe Payment Method
             const { error: paymentError, paymentMethod } = await stripe.createPaymentMethod({
                 type: 'card',
                 card: cardNumber,
                 billing_details: {
                     name: `${formValues.firstName} ${formValues.lastName}`,
-                    email: formValues.email,
+                    email: formValues.email || '',
                 },
             });
-
-            if (paymentError) {
-                setErrorMessage(paymentError.message || "An error occurred while processing the payment method.");
+    
+            if (paymentError || !paymentMethod) {
+                console.error('Payment method creation error:', paymentError);
+                setErrorMessage(paymentError?.message || "Failed to create payment method.");
                 return;
             }
-
-            if (!paymentMethod) {
-                setErrorMessage("Failed to create payment method. Please try again.");
-                return;
-            }
-
+    
+            // 2. Prepare user registration data
             const subscriptionData: SubscriptionData = {
-                priceId: priceId,
-                productId: productId,
+                priceId,
+                productId,
                 paymentMethodId: paymentMethod.id,
             };
-
+    
             setSubsbcriptionData(subscriptionData);
-
+    
             const updatedFormValues = {
                 ...formValues,
                 ...subscriptionData,
                 email: formValues.email || '',
             };
+    
+            // 3. Call your backend to register user & initiate subscription
             const newUser = await createUserAccount(updatedFormValues);
-
-            if (!newUser) {
-                return toast({
+    
+            if (!newUser?.data?.data) {
+                toast({
                     variant: "destructive",
                     title: "Signup Failed",
-                    description: "Something went wrong during signup.",
-                    duration: import.meta.env.VITE_TOAST_DURATION,
-                    icon: <SvgComponent className="" svgName="close_toaster" />
+                    description: "An error occurred while registering the user.",
+                    icon: <SvgComponent svgName="close_toaster" />,
+                });
+                return;
+            }
+    
+            const data = newUser.data.data;
+            const clientSecret = data?.subscription?.clientSecret;
+    
+            if (!clientSecret) {
+                toast({
+                    variant: "destructive",
+                    title: "Missing Client Secret",
+                    description: "Failed to retrieve payment information. Please try again.",
+                    icon: <SvgComponent svgName="close_toaster" />,
+                });
+                return;
+            }
+    
+            // 4. Confirm the payment
+            const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: paymentMethod.id,
+                return_url: window.location.origin + '/thank-you', // for SCA/3DS if needed
+            });
+    
+            if (confirmError) {
+                console.error("Payment confirmation error:", confirmError);
+                toast({
+                    variant: "destructive",
+                    title: "Payment Failed",
+                    description: confirmError.message || "Failed to confirm payment.",
+                    icon: <SvgComponent svgName="close_toaster" />,
+                });
+                return;
+            }
+    
+            if (paymentIntent?.status === 'succeeded') {
+                toast({
+                    title: "Payment Successful",
+                    description: "Your subscription has been activated.",
+                    icon: <SvgComponent svgName="checked" />,
+                });
+            } else if (paymentIntent?.status === 'requires_action') {
+                toast({
+                    title: "Additional Authentication Required",
+                    description: "Please complete 3D Secure verification.",  // @ts-ignore
+                    icon: <SvgComponent svgName="info" />,
+                });
+            } else {
+                toast({
+                    title: "Payment Pending",
+                    description: `Payment status: ${paymentIntent?.status}`, // @ts-ignore
+                    icon: <SvgComponent svgName="clock" />,
                 });
             }
-
-            // Handle payment confirmation if required
-            if (newUser.subscription?.requiresAction) {
-                const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
-                    newUser.subscription.clientSecret
-                );
-
-                if (confirmError) {
-                    setErrorMessage(confirmError.message || "Payment confirmation failed.");
-                    return;
-                }
-
-                if (paymentIntent.status === 'succeeded') {
-                    toast({
-                        title: "Payment Successful",
-                        description: "Your subscription has been activated.",
-                        duration: import.meta.env.VITE_TOAST_DURATION,
-                        icon: <SvgComponent className="" svgName="checked" />
-                    });
-                }
-            }
-
-            // Check subscription status
-            if (newUser.subscription?.subscriptionStatus === 'active') {
+    
+            // 5. Confirm user is logged in & redirect
+            if (data.subscription?.subscriptionStatus === 'active') {
                 toast({
                     title: "Subscription Active",
-                    description: "Your subscription is now active.",
-                    duration: import.meta.env.VITE_TOAST_DURATION,
-                    icon: <SvgComponent className="" svgName="checked" />
+                    description: "You're good to go!",
+                    icon: <SvgComponent svgName="checked" />,
                 });
             }
-
-            // Check if user is authenticated
+    
             const isLoggedIn = await checkAuthUser();
             if (isLoggedIn) {
                 navigate("/");
             }
-        } catch (error) {
-            console.error('Checkout error:', error);
-            setErrorMessage("An error occurred during checkout. Please try again.");
+    
+        } catch (error: any) {
+            console.error("Checkout error:", error);
+            setErrorMessage("An unexpected error occurred. Please try again.");
+            toast({
+                variant: "destructive",
+                title: "Unexpected Error",
+                description: error?.message || "Something went wrong.",
+                icon: <SvgComponent svgName="close_toaster" />,
+            });
         }
     };
+    
 
     return (
         <div className="p-6 w-[550px]">

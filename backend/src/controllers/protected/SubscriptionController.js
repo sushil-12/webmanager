@@ -2,6 +2,8 @@ const { CustomError, ErrorHandler, ResponseHandler } = require('../../utils/resp
 const { HTTP_STATUS_CODES } = require('../../constants/error_message_codes');
 const SubscriptionService = require('../../services/subscriptionService');
 const Plan = require('../../models/Plan');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 
 // Get available plans
 const getPlans = async (req, res) => {
@@ -71,7 +73,7 @@ const handleWebhook = async (req, res) => {
     try {
         const sig = req.headers['stripe-signature'];
         const event = stripe.webhooks.constructEvent(
-            req.body,
+            req.rawBody,
             sig,
             process.env.STRIPE_WEBHOOK_SECRET
         );
@@ -79,6 +81,7 @@ const handleWebhook = async (req, res) => {
         await SubscriptionService.handleStripeWebhook(event);
         ResponseHandler.success(res, { received: true }, HTTP_STATUS_CODES.OK);
     } catch (error) {
+        console.error('Webhook error:', error);
         ErrorHandler.handleError(error, res);
     }
 };

@@ -27,9 +27,9 @@ import CheckoutForm from "./CheckOutForm";
 import { checkEmail, checkUsername } from "@/lib/appwrite/api";
 import PricingSection from "@/_landing-page/components/PricingSection";
 
-const SignUpForm = () => {
+  const SignUpForm = () => {
   const stripePromise = loadStripe(
-    'pk_test_51RAmPNREgYeUYuR3s2IzSgKFnB4k1cWf7bjFAHgT3OW4QOQEICZFpXqzm6eGINLiXfbp5EJFznMUMqjnSDWRCWRM00PCrygtGf'
+    'pk_test_51QNEM0EXM6E6dbLjiYTG1JCRfT2TAdosgJzd1SdfeiJAcnNoZy16BEUaJPauej6T98bfThimHTOVW3hBxqBUO0D400u9wZfbXQ'
   );
   const { mutateAsync: createUserAccount, isPending: isCreatingUser } =
     useCreateUserAccount();
@@ -114,7 +114,6 @@ const SignUpForm = () => {
         setFormState("payment_form");
       }
   };
-  console.log(selectedPlan, "SELECTED PLAN");
   return (
     <Form {...form}>
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -326,7 +325,7 @@ const SignUpForm = () => {
                   productId={selectedPlan?.planId || ""}
                   priceId={selectedPlan?.priceId || ""}
                   planName={selectedPlan?.planName || ""}
-                  planPrice={selectedPlan?.price || 0}
+                  planPrice={selectedPlan?.price || 0}// @ts-ignore
                   setSubsbcriptionData={setSubsbcriptionData} // @ts-ignore
                   formValues={form.getValues()} // @ts-ignore
                 />

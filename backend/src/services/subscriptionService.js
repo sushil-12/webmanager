@@ -28,26 +28,42 @@ class SubscriptionService {
 
             // Verify and attach payment method
             try {
+                console.log('Attempting to verify payment method:', paymentMethodId);
                 // First verify the payment method exists
                 const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
                 if (!paymentMethod) {
+                    console.error('Payment method not found:', paymentMethodId);
                     throw new CustomError(HTTP_STATUS_CODES.BAD_REQUEST, 'Invalid payment method');
                 }
+                console.log('Payment method found:', paymentMethod.id);
 
                 // Attach payment method to customer
+                console.log('Attaching payment method to customer:', customer.id);
                 await stripe.paymentMethods.attach(paymentMethodId, {
                     customer: customer.id,
                 });
+                console.log('Payment method attached successfully');
 
                 // Set as default payment method
+                console.log('Setting as default payment method');
                 await stripe.customers.update(customer.id, {
                     invoice_settings: {
                         default_payment_method: paymentMethodId,
                     },
                 });
+                console.log('Default payment method set successfully');
             } catch (error) {
                 console.error('Error handling payment method:', error);
-                throw new CustomError(HTTP_STATUS_CODES.BAD_REQUEST, 'Failed to process payment method. Please try again.');
+                if (error.type === 'StripeInvalidRequestError') {
+                    throw new CustomError(
+                        HTTP_STATUS_CODES.BAD_REQUEST,
+                        'Invalid payment method. Please try adding your payment method again.'
+                    );
+                }
+                throw new CustomError(
+                    HTTP_STATUS_CODES.BAD_REQUEST,
+                    'Failed to process payment method. Please try again.'
+                );
             }
 
             // Create Stripe subscription
