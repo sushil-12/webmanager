@@ -1,11 +1,11 @@
 export interface DashboardStats {
   activeWebsites: {
     count: number;
-    change: string;
+    change: number;
   };
   totalContent: {
     count: number;
-    change: string;
+    change: number;
   };
   teamMembers: {
     count: number;
@@ -16,8 +16,11 @@ export interface DashboardStats {
     type: string;
     description: string;
     timestamp: string;
-    status: string;
   }>;
+  // Super Admin specific stats
+  totalUsers?: number;
+  activeSubscriptions?: number;
+  totalRevenue?: number;
 }
 
 export interface SubscriptionDetails {

@@ -36,6 +36,7 @@ import {
   Filler
 } from 'chart.js';
 import DateTimeDisplay from '@/components/shared/DateTimeDisplay';
+import SuperAdminDashboard from './SuperAdminDashboard';
 
 ChartJS.register(
   CategoryScale,
@@ -184,6 +185,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'7D' | '30D' | '90D'>('7D');
   const [subscription, setSubscription] = useState<any>(null);
+
   useEffect(() => {
     const getGreeting = () => {
       const hour = new Date().getHours();
@@ -192,11 +194,8 @@ const Dashboard = () => {
       return 'Good Evening';
     };
 
-    // if (user?.role === 'super_admin') {
     setGreeting(getGreeting());
-    // }
-  }, [user?.role]);
-
+  }, []);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -231,7 +230,6 @@ const Dashboard = () => {
         console.log("Progress:", progressData);
         console.log("Websites:", websitesData);
         console.log("Tasks:", tasksData);
-        // console.log("API Usage:", apiUsageData);
 
         setStats(statsData);
         setActivities(activitiesData);
@@ -250,7 +248,6 @@ const Dashboard = () => {
 
     fetchDashboardData();
   }, [selectedPeriod]);
-
 
   const apiChartData = {
     labels: apiUsage?.dailyData.map((day: any) => day._id) || [],
@@ -343,6 +340,13 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  // Render SuperAdminDashboard if user is super_admin
+  if (user?.role === 'super_admin') {
+    return <SuperAdminDashboard />;
+  }
+
+  // Render regular dashboard for other users
   const totalApi = subscription?.usage?.api?.limit || 0;
   const usedApi = apiUsage?.totalRequests || 0;
   const percentageApi = totalApi > 0 ? (usedApi / totalApi) * 100 : 0;
@@ -368,8 +372,6 @@ const Dashboard = () => {
 
   // Width logic for the bar
   const barWidth = limitWeb === -1 ? 100 : Math.min(percentageWebsitesData, 100);
-
-
 
   return (
     <div className="main-container w-full overflow-hidden">

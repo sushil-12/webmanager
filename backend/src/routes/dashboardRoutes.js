@@ -9,7 +9,11 @@ const {
     getWebsiteStatus,
     getContentCalendar,
     getApiUsage,
-    getSubscriptionDetails
+    getSubscriptionDetails,
+    getSystemStats,
+    getUserActivities,
+    getSecurityAlerts,
+    getSubscribedUsers
 } = require('../controllers/protected/dashboardController');
 
 // Apply token verification middleware to all routes
@@ -25,4 +29,11 @@ router.get('/content-calendar', getContentCalendar);
 router.get('/api-usage', getApiUsage);
 router.get('/subscription', getSubscriptionDetails);
 
+// Super Admin Dashboard routes
+router.get('/system-stats', getSystemStats);
+router.get('/user-activities', getUserActivities);
+router.get('/security-alerts', getSecurityAlerts);
+
+// Get subscribed users list (Super Admin)
+router.get('/subscribed-users', getSubscribedUsers); 
 module.exports = router; 

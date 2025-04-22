@@ -5,6 +5,7 @@ const User = require('../models/User');
 require('dotenv').config();
 const bcrypt = require('bcrypt');
 const Domain = require('../models/Domain');
+const createSuperAdmin = require('./superAdminSeeder');
 
 // Function to connect to MongoDB
 const connectDB = async () => {
@@ -149,6 +150,7 @@ const runSeeders = async () => {
         const permissions = await seedPermissions(domains);
         const roles = await seedRoles();
         await seedUsers(roles, permissions);
+        await createSuperAdmin();
         console.log('All seeding completed successfully');
     } catch (error) {
         console.error('Seeding failed:', error.message);

@@ -124,6 +124,92 @@ interface SubscriptionDetails {
   features: string[];
 }
 
+interface SystemStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalWebsites: number;
+  activeWebsites: number;
+  totalApiCalls: number;
+  failedApiCalls: number;
+  systemHealth: {
+    status: 'healthy' | 'warning' | 'critical';
+    issues: string[];
+  };
+}
+
+interface UserActivity {
+  id: string;
+  action: string;
+  user: {
+    id: string;
+    username: string;
+    role: string;
+  };
+  timestamp: string;
+  details: string;
+}
+
+interface SecurityAlert {
+  id: string;
+  type: 'warning' | 'critical';
+  message: string;
+  timestamp: string;
+  resolved: boolean;
+}
+
+interface Subscription {
+    id: string;
+    user: {
+        id: string;
+        username: string;
+        email: string;
+        name: string;
+    };
+    plan: {
+        id: string;
+        name: string;
+        price: string;
+        features: string[];
+        limits: {
+            apiCalls: number;
+            websites: number;
+        };
+    };
+    status: 'active' | 'cancelled' | 'expired';
+    startDate: string;
+    endDate: string;
+    billingCycle: string;
+    paymentMethod: string;
+    lastPaymentDate: string;
+    nextBillingDate: string;
+}
+
+interface Pagination {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+}
+
+interface PlanStats {
+    planName: string;
+    count: number;
+}
+
+interface SubscriptionStats {
+    total: number;
+    active: number;
+    cancelled: number;
+    expired: number;
+    byPlan: PlanStats[];
+}
+
+interface SubscribedUsersResponse {
+    subscriptions: Subscription[];
+    pagination: Pagination;
+    stats: SubscriptionStats;
+}
+
 class DashboardService {
     private api = axios.create({
         baseURL: `${API_BASE_URL}api/dashboard`,
@@ -196,6 +282,57 @@ class DashboardService {
             return response.data.data;
         } catch (error) {
             console.error('Error fetching stats:', error);
+            throw error;
+        }
+    }
+
+    // Get System Stats (Super Admin)
+    async getSystemStats(): Promise<SystemStats> {
+        try {
+            const response = await this.api.get('/system-stats');
+            return response.data.data;
+        } catch (error) {
+            console.error('Error fetching system stats:', error);
+            throw error;
+        }
+    }
+
+    // Get User Activities (Super Admin)
+    async getUserActivities(): Promise<UserActivity[]> {
+        try {
+            const response = await this.api.get('/user-activities');
+            return response.data.data;
+        } catch (error) {
+            console.error('Error fetching user activities:', error);
+            throw error;
+        }
+    }
+
+    // Get Security Alerts (Super Admin)
+    async getSecurityAlerts(): Promise<SecurityAlert[]> {
+        try {
+            const response = await this.api.get('/security-alerts');
+            return response.data.data;
+        } catch (error) {
+            console.error('Error fetching security alerts:', error);
+            throw error;
+        }
+    }
+
+    // GEt subscribed user
+    async getSubscribedUsers(page: number = 1, limit: number = 10, search: string = '', status: string = 'active'): Promise<SubscribedUsersResponse> {
+        try {
+            const response = await this.api.get('/subscribed-users', {
+                params: { page, limit, search, status }
+            });
+            console.log("Subscribed user response:", response.data);
+            return response.data.data; // <--- this is probably what you need!
+        } catch (error: any) {
+            if (axios.isAxiosError(error)) {
+                console.error('Axios error:', error.response?.data || error.message);
+            } else {
+                console.error('Unknown error:', error);
+            }
             throw error;
         }
     }

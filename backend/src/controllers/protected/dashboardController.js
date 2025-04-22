@@ -697,6 +697,252 @@ const getSubscriptionDetails = async (req, res) => {
     }
 };
 
+// Get System Stats (Super Admin)
+const getSystemStats = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const user = await User.findById(userId).populate('role');
+
+        // Check if user is super admin
+        if (user.role.name !== 'super_admin') {
+            return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+        }
+
+        // Get total users and active users
+        const [totalUsers, activeUsers] = await Promise.all([
+            User.countDocuments(),
+            User.countDocuments({ lastActive: { $gte: moment().subtract(30, 'days').toDate() } })
+        ]);
+
+        // Get total websites and active websites
+        const [totalWebsites, activeWebsites] = await Promise.all([
+            Website.countDocuments(),
+            Website.countDocuments({ status: 'active' })
+        ]);
+
+        // Get API usage stats
+        const [totalApiCalls, failedApiCalls] = await Promise.all([
+            ActivityLog.countDocuments({ type: 'api_usage' }),
+            ActivityLog.countDocuments({ type: 'api_usage', status: 'error' })
+        ]);
+
+        // Get system health status
+        const systemHealth = {
+            status: 'healthy',
+            issues: []
+        };
+
+        // Check for critical issues
+        const criticalIssues = await ActivityLog.find({
+            type: 'system',
+            status: 'error',
+            createdAt: { $gte: moment().subtract(24, 'hours').toDate() }
+        });
+
+        if (criticalIssues.length > 0) {
+            systemHealth.status = 'critical';
+            systemHealth.issues = criticalIssues.map(issue => issue.description);
+        } else {
+            // Check for warnings
+            const warnings = await ActivityLog.find({
+                type: 'system',
+                status: 'warning',
+                createdAt: { $gte: moment().subtract(24, 'hours').toDate() }
+            });
+
+            if (warnings.length > 0) {
+                systemHealth.status = 'warning';
+                systemHealth.issues = warnings.map(warning => warning.description);
+            }
+        }
+
+        const stats = {
+            totalUsers,
+            activeUsers,
+            totalWebsites,
+            activeWebsites,
+            totalApiCalls,
+            failedApiCalls,
+            systemHealth
+        };
+
+        ResponseHandler.success(res, stats, HTTP_STATUS_CODES.OK);
+    } catch (error) {
+        ErrorHandler.handleError(error, res);
+    }
+};
+
+// Get User Activities (Super Admin)
+const getUserActivities = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const user = await User.findById(userId).populate('role');
+
+        // Check if user is super admin
+        if (user.role.name !== 'super_admin') {
+            return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+        }
+
+        const activities = await ActivityLog.find()
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .populate('userId', 'username role')
+            .lean();
+
+        const formattedActivities = activities.map(activity => ({
+            id: activity._id,
+            action: activity.type,
+            user: {
+                id: activity.userId._id,
+                username: activity.userId.username,
+                role: activity.userId.role.name
+            },
+            timestamp: activity.createdAt,
+            details: activity.description
+        }));
+
+        ResponseHandler.success(res, formattedActivities, HTTP_STATUS_CODES.OK);
+    } catch (error) {
+        ErrorHandler.handleError(error, res);
+    }
+};
+
+// Get Security Alerts (Super Admin)
+const getSecurityAlerts = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const user = await User.findById(userId).populate('role');
+
+        // Check if user is super admin
+        if (user.role.name !== 'super_admin') {
+            return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+        }
+
+        const alerts = await ActivityLog.find({
+            type: { $in: ['security', 'system'] },
+            status: { $in: ['warning', 'error'] },
+            createdAt: { $gte: moment().subtract(7, 'days').toDate() }
+        })
+        .sort({ createdAt: -1 })
+        .lean();
+
+        const formattedAlerts = alerts.map(alert => ({
+            id: alert._id,
+            type: alert.status === 'error' ? 'critical' : 'warning',
+            message: alert.description,
+            timestamp: alert.createdAt,
+            resolved: alert.resolved || false
+        }));
+
+        ResponseHandler.success(res, formattedAlerts, HTTP_STATUS_CODES.OK);
+    } catch (error) {
+        ErrorHandler.handleError(error, res);
+    }
+};
+
+// Get Subscribed Users List (Super Admin)
+const getSubscribedUsers = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const user = await User.findById(userId).populate('role');
+
+        // Check if user is super admin
+        if (user.role.name !== 'super_admin') {
+            return ResponseHandler.error(res, 'Unauthorized', HTTP_STATUS_CODES.FORBIDDEN);
+        }
+
+        const { page = 1, limit = 10, search = '', status = 'active' } = req.query;
+        const skip = (page - 1) * limit;
+
+        // Build query
+        const query = {
+            status: status
+        };
+
+        // Add search filter if provided
+        if (search) {
+            const users = await User.find({
+                $or: [
+                    { username: { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } }
+                ]
+            }).select('_id');
+            
+            console.log(users)
+            const userIds = users.map(user => user._id);
+            query.userId = { $in: userIds };
+        }
+
+        // Get subscriptions with populated user and plan details
+        const subscriptions = await Subscription.find(query)
+            .populate('userId', 'username email firstName lastName')
+            .populate('planId', 'name price features apiCallsLimit websiteLimit')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .lean();
+
+        // Get total count for pagination
+        const total = await Subscription.countDocuments(query);
+
+        console.log(subscriptions)
+        // Format the response
+        const formattedSubscriptions = subscriptions.map(sub => ({
+            id: sub._id,
+            user: {
+                id: sub.userId?._id,
+                username: sub.userId?.username,
+                email: sub.userId.email,
+                name: `${sub.userId.firstName} ${sub.userId.lastName}`
+            },
+            plan: {
+                id: sub.planId?._id,
+                name: sub.planId?.name,
+                price: sub.planId?.price,
+                features: sub.planId?.features,
+                limits: {
+                    apiCalls: sub.planId?.apiCallsLimit,
+                    websites: sub.planId?.websiteLimit
+                }
+            },
+            status: sub.status,
+            startDate: sub.startDate,
+            endDate: sub.endDate,
+            billingCycle: sub.billingCycle,
+            paymentMethod: sub.paymentMethod,
+            lastPaymentDate: sub.lastPaymentDate,
+            nextBillingDate: sub.nextBillingDate
+        }));
+
+        // Get subscription statistics
+        const stats = {
+            total: await Subscription.countDocuments(),
+            active: await Subscription.countDocuments({ status: 'active' }),
+            cancelled: await Subscription.countDocuments({ status: 'cancelled' }),
+            expired: await Subscription.countDocuments({ status: 'expired' }),
+            byPlan: await Subscription.aggregate([
+                { $group: { _id: '$planId', count: { $sum: 1 } } },
+                { $lookup: { from: 'plans', localField: '_id', foreignField: '_id', as: 'plan' } },
+                { $unwind: '$plan' },
+                { $project: { planName: '$plan.name', count: 1 } }
+            ])
+        };
+
+        ResponseHandler.success(res, {
+            subscriptions: formattedSubscriptions,
+            pagination: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                pages: Math.ceil(total / limit)
+            },
+            stats
+        }, HTTP_STATUS_CODES.OK);
+    } catch (error) {
+        ErrorHandler.handleError(error, res);
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getRecentActivity,
@@ -705,5 +951,9 @@ module.exports = {
     getWebsiteStatus,
     getContentCalendar,
     getApiUsage,
-    getSubscriptionDetails
+    getSubscriptionDetails,
+    getSystemStats,
+    getUserActivities,
+    getSecurityAlerts,
+    getSubscribedUsers
 };
